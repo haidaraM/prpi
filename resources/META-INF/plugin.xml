@@ -29,9 +29,10 @@
 
   <actions>
     <!-- Add your actions here -->
-      <group id="prpi.Prpi" text="Collaborate" description="Collaborate options">
+      <group id="prpi.Prpi" text="PrPi" description="PrPi for collaboration">
           <add-to-group group-id="MainMenu" anchor="last"  />
           <action id="prpi.HelloWorld" class="com.prpi.actions.HelloWorld" text="HelloWorld" description="A test menu item" />
+          <action id="prpi.HostProject" class="com.prpi.actions.HostProject" text="Host project" description="Open this project for collaboration" />
       </group>
   </actions>
 
