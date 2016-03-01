@@ -1,6 +1,6 @@
 <idea-plugin version="2">
   <id>com.prpi</id>
-  <name>Plugin display name here</name>
+  <name>Prpi</name>
   <version>1.0</version>
   <vendor email="support@yourcompany.com" url="http://www.yourcompany.com">YourCompany</vendor>
 
@@ -29,6 +29,10 @@
 
   <actions>
     <!-- Add your actions here -->
+      <group id="prpi.Prpi" text="Collaborate" description="Collaborate options">
+          <add-to-group group-id="MainMenu" anchor="last"  />
+          <action id="prpi.HelloWorld" class="com.prpi.actions.HelloWorld" text="HelloWorld" description="A test menu item" />
+      </group>
   </actions>
 
 </idea-plugin>
