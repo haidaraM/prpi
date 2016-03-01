@@ -4,27 +4,30 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.vcs.changes.RunnableBackgroundableWrapper;
 import com.prpi.network.PrPiServer;
+import com.prpi.network.PrPiServerThread;
 
 import java.io.IOException;
 
 public class HostProject extends AnAction {
-    private PrPiServer server;
-    private static final int DEFAULT_PORT = 4011;
+    private Thread serverThread;
+    private static final int DEFAULT_PORT = 4211;
 
     @Override
     public void actionPerformed(AnActionEvent anActionEvent) {
+        System.out.println("ACTION PERFORMED");
         Project project = anActionEvent.getProject();
 
         try {
             launchServerInThread(DEFAULT_PORT);
-            Messages.showMessageDialog(project, "Connection opened on port.\nCollaboration is ready!", "Project hosted", Messages.getInformationIcon());
         } catch (IOException ex) {
-            Messages.showErrorDialog(project, ex.getMessage(), "Error creating server");
+            Messages.showErrorDialog(project, ex.getMessage(), "Error Starting Server Thread");
         }
     }
 
     private void launchServerInThread(int port) throws IOException {
-        server = new PrPiServer(port);
+        serverThread = new PrPiServerThread(port);
+        serverThread.start();
     }
 }
