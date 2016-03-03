@@ -4,6 +4,8 @@ import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.prpi.actions.JoinProject;
+import com.prpi.network.NetworkManager;
+import com.prpi.network.PrPiClientThread;
 
 
 import javax.swing.*;
@@ -32,7 +34,7 @@ public class JoinProjectWizardStep extends ModuleWizardStep {
         String ipAddress = jtf.getText();
         if(ipAddress != null){
             try {
-                new JoinProject().joinServerInThread(JoinProject.DEFAULT_PORT, ipAddress);
+                NetworkManager.addClient(new PrPiClientThread(NetworkManager.DEFAULT_PORT, ipAddress));
             } catch (IOException ex) {
                 Messages.showErrorDialog((Project)null, ex.getMessage(), "Error Starting Server Thread");
             }
