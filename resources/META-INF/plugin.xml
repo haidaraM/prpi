@@ -2,7 +2,7 @@
     <id>com.prpi</id>
     <name>Prpi</name>
     <version>1.0</version>
-    <vendor email="support@yourcompany.com" url="http://www.yourcompany.com">YourCompany</vendor>
+    <vendor email="prpi@prpi.com" url="http://www.yourcompany.com">Prpi</vendor>
 
     <description><![CDATA[
       A plugin for collaborative editing in Intellij Platform.
@@ -31,13 +31,19 @@
         <!-- Add your actions here -->
         <group id="prpi.Prpi" text="PrPi" description="PrPi for collaboration">
             <add-to-group group-id="MainMenu" anchor="last"/>
-            <action id="prpi.HelloWorld" class="com.prpi.actions.HelloWorld" text="HelloWorld"
-                    description="A test menu item"/>
             <action id="prpi.HostProject" class="com.prpi.actions.HostProject" text="Host project"
                     description="Open this project for collaboration"/>
             <action id="prpi.JoinProject" class="com.prpi.actions.JoinProject" text="Join project"
                     description="Join a project"/>
         </group>
+        <group>
+            <add-to-group group-id="WelcomeScreen.QuickStart" anchor="first"/>
+            <action id="prpi.JoinProjectWelcomeScreen" class="com.prpi.actions.JoinProject"
+                    icon="AllIcons.Welcome.CreateNewProject" text="Join Project" description="Join a project">
+            </action>
+
+        </group>
+
     </actions>
 
 </idea-plugin>

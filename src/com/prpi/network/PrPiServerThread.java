@@ -18,7 +18,8 @@ public class PrPiServerThread extends Thread {
         try {
             server.startListening();
         } catch (IOException ex) {
-            Messages.showErrorDialog((Project)null, ex.getMessage(), "Server Error While Listening for Connections");
+            Messages.showErrorDialog((Project)null, ex.getMessage(),
+                    "Server Error While Listening for Connections");
         }
     }
 }
