@@ -24,7 +24,8 @@
     -->
 
     <extensions defaultExtensionNs="com.intellij">
-        <!-- Add your extensions here -->
+        <moduleBuilder builderClass="com.prpi.wizard.JoinProjectBuilder" id="Join Project" order="first"/>
+        <moduleType id="JOIN_PROJECT" implementationClass="com.prpi.wizard.JoinProjectModule"/>
     </extensions>
 
     <actions>
@@ -35,13 +36,6 @@
                     description="Open this project for collaboration"/>
             <action id="prpi.JoinProject" class="com.prpi.actions.JoinProject" text="Join project"
                     description="Join a project"/>
-        </group>
-        <group>
-            <add-to-group group-id="WelcomeScreen.QuickStart" anchor="first"/>
-            <action id="prpi.JoinProjectWelcomeScreen" class="com.prpi.actions.JoinProject"
-                    icon="AllIcons.Welcome.CreateNewProject" text="Join Project" description="Join a project">
-            </action>
-
         </group>
 
     </actions>
