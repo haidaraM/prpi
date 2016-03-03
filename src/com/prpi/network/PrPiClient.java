@@ -1,10 +1,13 @@
 package com.prpi.network;
 
+import org.apache.log4j.Logger;
+
 import javax.net.ssl.*;
 import java.io.*;
 import java.net.*;
 
 public class PrPiClient {
+    private static final Logger logger = Logger.getLogger(PrPiServer.class);
     private Socket clientSocket;
     private InetSocketAddress serverAddress;
 
@@ -15,7 +18,7 @@ public class PrPiClient {
 
     public void startListening() throws IOException {
         clientSocket.connect(serverAddress, 2000);
-        System.out.println("Client is listening");
+        logger.trace("Client connected to " + serverAddress);
     }
 
 }

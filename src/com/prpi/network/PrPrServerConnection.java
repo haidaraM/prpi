@@ -6,9 +6,6 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 
-/**
- * Created by pierre on 03/03/16.
- */
 public class PrPrServerConnection extends Thread {
 
     /** Connection socket handled */
@@ -27,7 +24,7 @@ public class PrPrServerConnection extends Thread {
             String inputLine, outputLine;
 
             while ((inputLine = in.readLine()) != null) {
-                System.err.println("Message received: " + inputLine);
+                System.out.println("Message received: " + inputLine);
 
                 if (inputLine.contains("exit")) // TODO: Faire la fin de communication du protocole
                 {
