@@ -16,9 +16,12 @@ public class PrPiServer {
         System.out.println("Server is listening");
         while (true) {
             Socket incomingConnection = serverSocket.accept();
-            // TODO create thread handling connection
 
             System.out.println("Connection accepted !");
+
+            PrPrServerConnection serverConnection = new PrPrServerConnection(incomingConnection);
+            serverConnection.start();
+
         }
     }
 
