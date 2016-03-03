@@ -16,6 +16,15 @@ public class PrPiClient {
     public void startListening() throws IOException {
         clientSocket.connect(serverAddress, 2000);
         System.out.println("Client is listening");
+        ObjectInputStream in = new ObjectInputStream(clientSocket.getInputStream());
+        ObjectOutputStream out = new ObjectOutputStream(clientSocket.getOutputStream());
+        out.flush();
+        try {
+            out.writeObject("coucou");
+            out.flush();
+        } catch (final Exception e) {
+            System.out.println("error sending message");
+        }
     }
 
 }

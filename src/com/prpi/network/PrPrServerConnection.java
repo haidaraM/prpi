@@ -1,17 +1,14 @@
 package com.prpi.network;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.Socket;
 
-/**
- * Created by pierre on 03/03/16.
- */
+
 public class PrPrServerConnection extends Thread {
 
-    /** Connection socket handled */
+    /**
+     * Connection socket handled
+     */
     private Socket clientSocket = null;
 
     public PrPrServerConnection(Socket socket) {
@@ -21,18 +18,19 @@ public class PrPrServerConnection extends Thread {
     @Override
     public void run() {
         try (
-                PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
-                BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+                ObjectOutputStream out = new ObjectOutputStream(clientSocket.getOutputStream());
+                ObjectInputStream in = new ObjectInputStream(clientSocket.getInputStream())
         ) {
             String inputLine, outputLine;
 
-            while ((inputLine = in.readLine()) != null) {
-                System.err.println("Message received: " + inputLine);
+            while (!isInterrupted() && !clientSocket.isClosed()) {
+                try {
+                    Object msg = in.readObject();
+                    System.out.println("reçu : " + (String)msg);
+                } catch (Exception ignored){
 
-                if (inputLine.contains("exit")) // TODO: Faire la fin de communication du protocole
-                {
-                    break;
                 }
+
             }
 
             clientSocket.close();
