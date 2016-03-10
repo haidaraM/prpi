@@ -1,4 +1,4 @@
-package com.prpi.networkv2;
+package com.prpi.network;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelFuture;
