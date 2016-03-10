@@ -1,7 +1,7 @@
 package com.prpi.wizard;
 
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
-import com.prpi.network.PrPiClientThread;
+import com.prpi.network.PrPiClient;
 import com.prpi.network.PrpiServer;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -76,7 +76,7 @@ public class JoinProjectInputIPAndPortStep extends ModuleWizardStep {
                 port = PrpiServer.DEFAULT_PORT;
             }
 
-            Future<Boolean> couldConnectFuture = PrPiClientThread.testConnection(ipAddress, port);
+            Future<Boolean> couldConnectFuture = PrPiClient.testConnection(ipAddress, port);
             connectionResultTextField.setForeground(Color.BLACK);
             connectionResultTextField.setText("Processing...");
 
@@ -114,12 +114,7 @@ public class JoinProjectInputIPAndPortStep extends ModuleWizardStep {
         }
 
         if (StringUtils.isNotEmpty(ipAddress)) {
-            try {
-                new PrPiClientThread(ipAddress, port).run();
-            } catch (IOException ex) {
-                //Messages.showErrorDialog((Project)null, ex.getMessage(), "Error Starting Server Thread");
-                logger.error(String.format("Could not connect to %s:d", ipAddress, port));
-            }
+            new PrPiClient(ipAddress, port).run();
         }
     }
 }

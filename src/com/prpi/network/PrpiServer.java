@@ -19,7 +19,10 @@ import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.SelfSignedCertificate;
 
-public class PrpiServer {
+import javax.net.ssl.SSLException;
+import java.security.cert.CertificateException;
+
+public class PrpiServer extends Thread {
 
     public static final String DEFAULT_HOST = System.getProperty("host", "127.0.0.1");
     public static final int DEFAULT_PORT = Integer.parseInt(System.getProperty("port", "4211"));
@@ -34,14 +37,15 @@ public class PrpiServer {
         this.port = DEFAULT_PORT;
     }
 
-    public void run() throws Exception {
-        SelfSignedCertificate ssc = new SelfSignedCertificate();
-        SslContext sslCtx = SslContextBuilder.forServer(ssc.certificate(), ssc.privateKey()).build();
+    public void run() {
 
         EventLoopGroup bossGroup = new NioEventLoopGroup();
         EventLoopGroup workerGroup = new NioEventLoopGroup();
 
         try {
+            SelfSignedCertificate ssc = new SelfSignedCertificate();
+
+            SslContext sslCtx = SslContextBuilder.forServer(ssc.certificate(), ssc.privateKey()).build();
 
             ServerBootstrap b = new ServerBootstrap();
 
@@ -78,6 +82,12 @@ public class PrpiServer {
 
             // Wait until the server socket is closed.
             f.channel().closeFuture().sync();
+        } catch (CertificateException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (SSLException e) {
+            e.printStackTrace();
         } finally {
             workerGroup.shutdownGracefully();
             bossGroup.shutdownGracefully();

@@ -7,7 +7,7 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ui.configuration.ModulesProvider;
 import com.intellij.openapi.ui.Messages;
-import com.prpi.network.PrPiClientThread;
+import com.prpi.network.PrPiClient;
 import com.prpi.network.PrpiServer;
 
 import java.io.IOException;
@@ -36,7 +36,7 @@ public class JoinProject extends AnAction {
     }
 
     public void joinServerInThread(String ip, int port) throws IOException {
-        clientThread = new PrPiClientThread(ip, port);
+        clientThread = new PrPiClient(ip, port);
         clientThread.start();
     }
 }

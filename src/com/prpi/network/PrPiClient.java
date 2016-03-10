@@ -3,6 +3,8 @@ package com.prpi.network;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
@@ -17,10 +19,15 @@ import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 
+import javax.net.ssl.SSLException;
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.TimeUnit;
 
-public class PrPiClient {
+public class PrPiClient extends Thread {
 
     private String host;
     private int port;
@@ -45,14 +52,15 @@ public class PrPiClient {
         this.port = PrpiServer.DEFAULT_PORT;
     }
 
-    public void startListening() throws Exception {
-
-        // Configure SSL.
-        final SslContext sslCtx = SslContextBuilder.forClient().trustManager(InsecureTrustManagerFactory.INSTANCE).build();
+    @Override
+    public void run() {
 
         EventLoopGroup group = new NioEventLoopGroup();
 
         try {
+            // Configure SSL.
+            final SslContext sslCtx = SslContextBuilder.forClient().trustManager(InsecureTrustManagerFactory.INSTANCE).build();
+
             Bootstrap b = new Bootstrap();
 
             b.group(group);
@@ -109,10 +117,55 @@ public class PrPiClient {
                 lastWriteFuture.sync();
             }
 
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (SSLException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
         } finally {
             // The connection is closed automatically on shutdown.
             group.shutdownGracefully();
         }
     }
 
+    public static Future<Boolean> testConnection(String ipAddress, int port) {
+        Future<Boolean> futureTask = new FutureTask<>(() -> {
+            final boolean[] result = {false};
+            ChannelFuture channelFuture = new Bootstrap()
+                    .handler(new ChannelInitializer<SocketChannel>() {
+                        @Override
+                        protected void initChannel(SocketChannel socketChannel) throws Exception {
+                            ChannelPipeline pipeline = socketChannel.pipeline();
+                            pipeline.addLast(new DelimiterBasedFrameDecoder(8192, Delimiters.lineDelimiter()));
+                            pipeline.addLast(new StringDecoder());
+                            pipeline.addLast(new StringEncoder());
+                            pipeline.addLast(new ChannelInboundHandlerAdapter() {
+                                @Override
+                                public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+                                    if (msg.equals("OKAY BITCH"))
+                                        result[0] = true;
+                                }
+                            });
+                        }
+                    })
+                    .connect(ipAddress, port);
+            channelFuture.await(2, TimeUnit.SECONDS);
+
+            if (!channelFuture.isSuccess())
+                return false;
+
+            Channel channel = channelFuture.channel();
+            channel.writeAndFlush("TEST_CONNECTION");
+            channel.read();
+
+            result[0] = true;
+
+            channel.close();
+
+            return result[0];
+        });
+
+        return futureTask;
+    }
 }
