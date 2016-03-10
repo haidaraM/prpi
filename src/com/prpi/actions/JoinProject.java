@@ -39,7 +39,7 @@ public class JoinProject extends AnAction {
     }
 
     public void joinServerInThread(int port, String ip) throws IOException {
-        clientThread = new PrPiClientThread(port, ip);
+        clientThread = new PrPiClientThread(ip, port);
         clientThread.start();
     }
 }

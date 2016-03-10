@@ -1,11 +1,9 @@
 package com.prpi.network;
 
-import com.prpi.actions.JoinProject;
-
 public class NetworkManager {
     public static final int DEFAULT_PORT = 4211;
 
-    private static PrPiClientThread PrPiClientThread;
+    private static PrPiClientThread PrPiClient;
     /**
      * Constructeur privé
      */
@@ -28,7 +26,7 @@ public class NetworkManager {
     }
 
     public static void addClient(PrPiClientThread prPi){
-        PrPiClientThread = prPi;
+        PrPiClient = prPi;
         prPi.start();
     }
 

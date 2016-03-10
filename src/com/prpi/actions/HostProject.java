@@ -5,6 +5,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.prpi.network.PrPiServerThread;
+import com.prpi.network.PrpiServer;
 
 import java.io.IOException;
 
@@ -19,12 +20,12 @@ public class HostProject extends AnAction {
 
         try {
             launchServerInThread(DEFAULT_PORT);
-        } catch (IOException ex) {
-            Messages.showErrorDialog(project, ex.getMessage(), "Error Starting Server Thread");
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
-    private void launchServerInThread(int port) throws IOException {
+    private void launchServerInThread(int port) throws Exception {
         serverThread = new PrPiServerThread(port);
         serverThread.start();
     }

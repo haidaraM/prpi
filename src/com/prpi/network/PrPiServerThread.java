@@ -3,23 +3,20 @@ package com.prpi.network;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 
-import java.io.IOException;
-
 public class PrPiServerThread extends Thread {
-    private PrPiServer server;
+    private PrpiServer server;
 
-    public PrPiServerThread(int port) throws IOException {
+    public PrPiServerThread(int port) throws Exception {
         super();
-        server = new PrPiServer(port);
+        server = new PrpiServer(port);
     }
 
     @Override
     public void run() {
         try {
-            server.startListening();
-        } catch (IOException ex) {
-            Messages.showErrorDialog((Project)null, ex.getMessage(),
-                    "Server Error While Listening for Connections");
+            server.run();
+        } catch (Exception e) {
+           e.printStackTrace();
         }
     }
 }
