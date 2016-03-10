@@ -37,6 +37,9 @@ public class PrpiApplicationComponent implements ApplicationComponent {
 
 
     private void setupDocuementListener(){
+
+
+        // TODO : maybe setupListenner asynchronously to avoid delays during application launch
         VirtualFileManager.getInstance().addVirtualFileListener(new PrpiVirtualFileListenner());
     }
 }

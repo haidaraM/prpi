@@ -1,6 +1,14 @@
 package com.prpi.filesystem;
 
 
+import com.intellij.ide.DataManager;
+import com.intellij.openapi.actionSystem.DataConstants;
+import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.DataKeys;
+import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.editor.LogicalPosition;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.vfs.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -9,7 +17,6 @@ import org.jetbrains.annotations.NotNull;
  */
 public class PrpiVirtualFileListenner implements VirtualFileListener {
 
-
     @Override
     public void propertyChanged(@NotNull VirtualFilePropertyEvent event) {
     }
@@ -17,8 +24,25 @@ public class PrpiVirtualFileListenner implements VirtualFileListener {
     @Override
     public void contentsChanged(@NotNull VirtualFileEvent event) {
 
+        // Just for testing, we only handle event is the user explicitly save the file. This avoid project files to be processed
+
         if (event.isFromSave()) {
-            System.out.println("file saved : " + event.getFileName());
+            Document document = FileDocumentManager.getInstance().getDocument(event.getFile());
+            if(document != null){
+
+                DataContext dataContext = (DataContext) DataManager.getInstance().getDataContextFromFocus().getResultSync();
+
+                // get the editor
+                Editor editor = (Editor) DataKeys.EDITOR.getData(dataContext);
+
+                // get logical Position
+                LogicalPosition logicalPosition = editor.getCaretModel().getLogicalPosition();
+
+                // print line number : 0-based format => +1
+                System.out.println(String.format("Current line number : %d", logicalPosition.line+1));
+                System.out.println(String.format("Current column number : : %d", logicalPosition.column+1));
+
+            }
         }
 
     }
