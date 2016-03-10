@@ -1,4 +1,4 @@
-package com.prpi.document;
+package com.prpi.filesystem;
 
 
 import com.intellij.openapi.vfs.*;
@@ -7,8 +7,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Listen document changes
  */
-public class PrpiDocumentListenner implements VirtualFileListener{
-
+public class PrpiVirtualFileListenner implements VirtualFileListener {
 
 
     @Override
@@ -17,7 +16,11 @@ public class PrpiDocumentListenner implements VirtualFileListener{
 
     @Override
     public void contentsChanged(@NotNull VirtualFileEvent event) {
-        System.out.println("contentschanged : " + event.getFileName());
+
+        if (event.isFromSave()) {
+            System.out.println("file saved : " + event.getFileName());
+        }
+
     }
 
     @Override
