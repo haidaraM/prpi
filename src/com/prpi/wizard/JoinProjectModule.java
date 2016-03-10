@@ -36,7 +36,7 @@ public class JoinProjectModule extends ModuleType<JoinProjectBuilder> {
     @NotNull
     @Override
     public String getDescription() {
-        return "Join Project";
+        return "Join a collaborative shared project";
     }
 
     @Override

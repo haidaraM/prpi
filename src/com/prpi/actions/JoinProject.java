@@ -8,7 +8,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ui.configuration.ModulesProvider;
 import com.intellij.openapi.ui.Messages;
 import com.prpi.network.PrPiClientThread;
-import com.prpi.wizard.JoinProjectBuilder;
 
 import java.io.IOException;
 
@@ -29,16 +28,14 @@ public class JoinProject extends AnAction {
         String ipAddress = Messages.showInputDialog(project, "IP ?", "IP", Messages.getQuestionIcon());
         if(ipAddress != null){
             try {
-                joinServerInThread(DEFAULT_PORT, ipAddress);
+                joinServerInThread(ipAddress, DEFAULT_PORT);
             } catch (IOException ex) {
                 Messages.showErrorDialog(project, ex.getMessage(), "Error Starting Server Thread");
             }
         }
-
-
     }
 
-    public void joinServerInThread(int port, String ip) throws IOException {
+    public void joinServerInThread(String ip, int port) throws IOException {
         clientThread = new PrPiClientThread(ip, port);
         clientThread.start();
     }

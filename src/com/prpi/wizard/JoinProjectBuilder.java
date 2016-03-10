@@ -23,8 +23,8 @@ public class JoinProjectBuilder extends ModuleBuilder {
 
     @Override
     public ModuleWizardStep[] createWizardSteps(@NotNull WizardContext wizardContext, @NotNull ModulesProvider modulesProvider) {
-        return new ModuleWizardStep[]{
-                new JoinProjectWizardStep()
+        return new ModuleWizardStep[] {
+                new JoinProjectInputIPAndPortStep()
         };
     }
 }

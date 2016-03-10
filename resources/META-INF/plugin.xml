@@ -23,13 +23,14 @@
     <depends>com.intellij.modules.lang</depends>
     -->
 
+    <!-- Project wizard -->
     <extensions defaultExtensionNs="com.intellij">
         <moduleBuilder builderClass="com.prpi.wizard.JoinProjectBuilder" id="Join Project" order="first"/>
         <moduleType id="JOIN_PROJECT" implementationClass="com.prpi.wizard.JoinProjectModule"/>
     </extensions>
 
     <actions>
-        <!-- Add your actions here -->
+        <!-- Menu actions -->
         <group id="prpi.Prpi" text="PrPi" description="PrPi for collaboration">
             <add-to-group group-id="MainMenu" anchor="last"/>
             <action id="prpi.HostProject" class="com.prpi.actions.HostProject" text="Host project"
