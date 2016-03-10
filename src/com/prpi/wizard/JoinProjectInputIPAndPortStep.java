@@ -20,7 +20,7 @@ public class JoinProjectInputIPAndPortStep extends ModuleWizardStep {
 
     private JTextField ipTextField = new JTextField();
     private JTextField portTextField = new JTextField(Integer.toString(NetworkManager.DEFAULT_PORT));
-    private JTextField connectionResultTextField = new JTextField();
+    private JLabel connectionResultTextField = new JLabel();
 
     @Override
     public JComponent getComponent() {
