@@ -8,18 +8,18 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ui.configuration.ModulesProvider;
 import com.intellij.openapi.ui.Messages;
 import com.prpi.network.PrPiClientThread;
+import com.prpi.network.PrpiServer;
 
 import java.io.IOException;
 
 public class JoinProject extends AnAction {
 
     private Thread clientThread;
-    public static final int DEFAULT_PORT = 4211;
 
     @Override
     public void actionPerformed(AnActionEvent anActionEvent) {
 
-        System.out.println("ACTION PERFORMED");
+        System.out.println("JoinProject ACTION PERFORMED");
         Project project = anActionEvent.getProject();
         NewProjectWizard wizard = new NewProjectWizard(null, ModulesProvider.EMPTY_MODULES_PROVIDER, null);
 
@@ -28,7 +28,7 @@ public class JoinProject extends AnAction {
         String ipAddress = Messages.showInputDialog(project, "IP ?", "IP", Messages.getQuestionIcon());
         if(ipAddress != null){
             try {
-                joinServerInThread(ipAddress, DEFAULT_PORT);
+                joinServerInThread(ipAddress, PrpiServer.DEFAULT_PORT);
             } catch (IOException ex) {
                 Messages.showErrorDialog(project, ex.getMessage(), "Error Starting Server Thread");
             }

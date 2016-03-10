@@ -1,20 +1,28 @@
 package com.prpi.network;
 
-
 import io.netty.bootstrap.ServerBootstrap;
 
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
+import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.codec.DelimiterBasedFrameDecoder;
+import io.netty.handler.codec.Delimiters;
+import io.netty.handler.codec.string.StringDecoder;
+import io.netty.handler.codec.string.StringEncoder;
+import io.netty.handler.logging.LogLevel;
+import io.netty.handler.logging.LoggingHandler;
+import io.netty.handler.ssl.SslContext;
+import io.netty.handler.ssl.SslContextBuilder;
+import io.netty.handler.ssl.util.SelfSignedCertificate;
 
-/**
- * Discards any incoming data.
- */
 public class PrpiServer {
+
+    public static final String DEFAULT_HOST = System.getProperty("host", "127.0.0.1");
+    public static final int DEFAULT_PORT = Integer.parseInt(System.getProperty("port", "4211"));
 
     private int port;
 
@@ -22,69 +30,53 @@ public class PrpiServer {
         this.port = port;
     }
 
+    public PrpiServer() {
+        this.port = DEFAULT_PORT;
+    }
+
     public void run() throws Exception {
-        /*
-         NioEventLoopGroup is a multithreaded event loop that handles I/O operation.
-         Netty provides various EventLoopGroup implementations for different kind of transports.
-         We are implementing a server-side application in this example, and therefore two NioEventLoopGroup will be used.
-         The first one, often called 'boss', accepts an incoming connection. The second one, often called 'worker',
-         handles the traffic of the accepted connection once the boss accepts the connection and registers the accepted
-         connection to the worker. How many Threads are used and how they are mapped to the created Channels depends on
-         the EventLoopGroup implementation and may be even configurable via a constructor.
-        */
+        SelfSignedCertificate ssc = new SelfSignedCertificate();
+        SslContext sslCtx = SslContextBuilder.forServer(ssc.certificate(), ssc.privateKey()).build();
+
         EventLoopGroup bossGroup = new NioEventLoopGroup();
         EventLoopGroup workerGroup = new NioEventLoopGroup();
+
         try {
-            /*
-             ServerBootstrap is a helper class that sets up a server. You can set up the server using a Channel directly.
-             However, please note that this is a tedious process, and you do not need to do that in most cases.
-            */
+
             ServerBootstrap b = new ServerBootstrap();
-            b.group(bossGroup, workerGroup)
-                    /*
-                     Here, we specify to use the NioServerSocketChannel class which is used to instantiate a new Channel
-                     to accept incoming connections.
-                    */
-                    .channel(NioServerSocketChannel.class)
-                    /*
-                      The handler specified here will always be evaluated by a newly accepted Channel.
-                      The ChannelInitializer is a special handler that is purposed to help a user configure a new Channel.
-                      It is most likely that you want to configure the ChannelPipeline of the new Channel by adding some
-                      handlers such as DiscardServerHandler to implement your network application. As the application
-                      gets complicated, it is likely that you will add more handlers to the pipeline and extract this
-                      anonymous class into a top level class eventually.
-                    */
-                    .childHandler(new ChannelInitializer<SocketChannel>() {
-                        @Override
-                        public void initChannel(SocketChannel ch) throws Exception {
-                            ch.pipeline().addLast(new PrPiServerHandler());
-                        }
-                    })
-                    /*
-                     You can also set the parameters which are specific to the Channel implementation.
-                     We are writing a TCP/IP server, so we are allowed to set the socket options such as tcpNoDelay
-                     and keepAlive. Please refer to the apidocs of ChannelOption and the specific ChannelConfig
-                     implementations to get an overview about the supported ChannelOptions.
-                    */
-                    .option(ChannelOption.SO_BACKLOG, 128)
-                    /*
-                     Did you notice option() and childOption()? option() is for the NioServerSocketChannel that accepts
-                     incoming connections. childOption() is for the Channels accepted by the parent ServerChannel, which
-                     is NioServerSocketChannel in this case.
-                    */
-                    .childOption(ChannelOption.SO_KEEPALIVE, true);
+
+            b.group(bossGroup, workerGroup);
+
+            b.channel(NioServerSocketChannel.class);
+
+            b.handler(new LoggingHandler(LogLevel.INFO));
+
+            b.childHandler(new ChannelInitializer<SocketChannel>() {
+                @Override
+                public void initChannel(SocketChannel ch) throws Exception {
+                    ChannelPipeline pipeline = ch.pipeline();
+
+                    // Add SSL handler first to encrypt and decrypt everything.
+                    // In this example, we use a bogus certificate in the server side
+                    // and accept any invalid certificates in the client side.
+                    // You will need something more complicated to identify both
+                    // and server in the real world.
+                    pipeline.addLast(sslCtx.newHandler(ch.alloc()));
+
+                    // On top of the SSL handler, add the text line codec.
+                    pipeline.addLast(new DelimiterBasedFrameDecoder(8192, Delimiters.lineDelimiter()));
+                    pipeline.addLast(new StringDecoder());
+                    pipeline.addLast(new StringEncoder());
+
+                    // and then business logic.
+                    pipeline.addLast(new PrPiServerHandler());
+                }
+            });
 
             // Bind and start to accept incoming connections.
-            /*
-              We are ready to go now. What's left is to bind to the port and to start the server. Here, we bind to the port
-              8080 of all NICs (network interface cards) in the machine. You can now call the bind() method as many times
-              as you want (with different bind addresses.)
-            */
-            ChannelFuture f = b.bind(port).sync(); // (7)
+            ChannelFuture f = b.bind(port).sync();
 
             // Wait until the server socket is closed.
-            // In this example, this does not happen, but you can do that to gracefully
-            // shut down your server.
             f.channel().closeFuture().sync();
         } finally {
             workerGroup.shutdownGracefully();

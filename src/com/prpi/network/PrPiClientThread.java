@@ -20,7 +20,11 @@ public class PrPiClientThread extends Thread {
 
     @Override
     public void run() {
-        client.startListening();
+        try {
+            client.startListening();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public static Future<Boolean> testConnection(String ipAddress, int port) {

@@ -1,8 +1,8 @@
 package com.prpi.wizard;
 
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
-import com.prpi.network.NetworkManager;
 import com.prpi.network.PrPiClientThread;
+import com.prpi.network.PrpiServer;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
@@ -19,7 +19,7 @@ public class JoinProjectInputIPAndPortStep extends ModuleWizardStep {
     private static Logger logger = Logger.getLogger(JoinProjectInputIPAndPortStep.class);
 
     private JTextField ipTextField = new JTextField();
-    private JTextField portTextField = new JTextField(Integer.toString(NetworkManager.DEFAULT_PORT));
+    private JTextField portTextField = new JTextField(Integer.toString(PrpiServer.DEFAULT_PORT));
     private JLabel connectionResultTextField = new JLabel();
 
     @Override
@@ -42,7 +42,7 @@ public class JoinProjectInputIPAndPortStep extends ModuleWizardStep {
         JPanel portPanel = new JPanel(new FlowLayout());
         portPanel.add(new JLabel("Port :"));
         portPanel.add(portTextField);
-        portPanel.add(new JLabel(String.format("(default port : %d)", NetworkManager.DEFAULT_PORT)));
+        portPanel.add(new JLabel(String.format("(default port : %d)", PrpiServer.DEFAULT_PORT)));
         portTextField.setPreferredSize(new Dimension(70, 23));
 
         panel.add(ipPanel);
@@ -73,7 +73,7 @@ public class JoinProjectInputIPAndPortStep extends ModuleWizardStep {
             try {
                 port = Integer.parseInt(portTextField.getText());
             } catch (NumberFormatException ex) {
-                port = NetworkManager.DEFAULT_PORT;
+                port = PrpiServer.DEFAULT_PORT;
             }
 
             Future<Boolean> couldConnectFuture = PrPiClientThread.testConnection(ipAddress, port);
@@ -110,12 +110,12 @@ public class JoinProjectInputIPAndPortStep extends ModuleWizardStep {
         try {
             port = Integer.parseInt(portTextField.getText());
         } catch (NumberFormatException e) {
-            port = NetworkManager.DEFAULT_PORT;
+            port = PrpiServer.DEFAULT_PORT;
         }
 
         if (StringUtils.isNotEmpty(ipAddress)) {
             try {
-                NetworkManager.addClient(new PrPiClientThread(ipAddress, port));
+                new PrPiClientThread(ipAddress, port).run();
             } catch (IOException ex) {
                 //Messages.showErrorDialog((Project)null, ex.getMessage(), "Error Starting Server Thread");
                 logger.error(String.format("Could not connect to %s:d", ipAddress, port));
