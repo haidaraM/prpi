@@ -1,6 +1,8 @@
 package com.prpi.wizard;
 
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
+import com.prpi.actions.EditProjectConfiguration;
 import com.prpi.network.PrPiClient;
 import com.prpi.network.PrPiServer;
 import org.apache.commons.lang.StringUtils;
@@ -16,6 +18,7 @@ import java.util.concurrent.Future;
 
 public class JoinProjectInputIPAndPortStep extends ModuleWizardStep {
 
+    private static final Logger logger = Logger.getLogger(JoinProjectInputIPAndPortStep.class);
     private static final int TextFieldHeight = 25;
 
     private JTextField ipTextField = new JTextField();
@@ -112,6 +115,11 @@ public class JoinProjectInputIPAndPortStep extends ModuleWizardStep {
         } catch (NumberFormatException e) {
             port = PrPiServer.DEFAULT_PORT;
         }
+
+        logger.debug(String.format("Writin ip %s and port %d into module properties", ipAddress, port));
+        PropertiesComponent propertiesComponent = PropertiesComponent.getInstance();
+        propertiesComponent.setValue(EditProjectConfiguration.IP_CONF_NAME, ipAddress);
+        propertiesComponent.setValue(EditProjectConfiguration.PORT_CONF_NAME, port, 0);
 
         if (StringUtils.isNotEmpty(ipAddress)) {
             new PrPiClient(ipAddress, port).run();

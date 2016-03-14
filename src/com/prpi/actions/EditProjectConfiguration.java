@@ -14,6 +14,10 @@ import com.prpi.network.PrPiClient;
 import java.io.IOException;
 
 public class EditProjectConfiguration extends AnAction {
+
+    public static final String IP_CONF_NAME = "SHARED_MODULE_IP";
+    public static final String PORT_CONF_NAME = "SHARED_MODULE_PORT";
+
     private static final Logger logger = Logger.getLogger(EditProjectConfiguration.class);
 
     private Thread clientThread;

@@ -1,5 +1,6 @@
 package com.prpi.actions;
 
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.components.ApplicationComponent;
 import org.apache.log4j.Logger;
@@ -12,6 +13,8 @@ public class ActionStartupConfigurator implements ApplicationComponent {
     public void initComponent() {
         logger.debug("Init component");
 
+        String type = PropertiesComponent.getInstance().getValue("type");
+        logger.debug("Type : " + type);
         ActionManager actionManager = ActionManager.getInstance();
         // Look in configuration if this module is a SHARED_MODULE
 
