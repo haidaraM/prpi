@@ -2,7 +2,7 @@ package com.prpi.wizard;
 
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.prpi.network.PrPiClient;
-import com.prpi.network.PrpiServer;
+import com.prpi.network.PrPiServer;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
@@ -11,15 +11,13 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.IOException;
 import java.util.concurrent.Future;
 
 
 public class JoinProjectInputIPAndPortStep extends ModuleWizardStep {
-    private static Logger logger = Logger.getLogger(JoinProjectInputIPAndPortStep.class);
 
     private JTextField ipTextField = new JTextField();
-    private JTextField portTextField = new JTextField(Integer.toString(PrpiServer.DEFAULT_PORT));
+    private JTextField portTextField = new JTextField(Integer.toString(PrPiServer.DEFAULT_PORT));
     private JLabel connectionResultTextField = new JLabel();
 
     @Override
@@ -42,7 +40,7 @@ public class JoinProjectInputIPAndPortStep extends ModuleWizardStep {
         JPanel portPanel = new JPanel(new FlowLayout());
         portPanel.add(new JLabel("Port :"));
         portPanel.add(portTextField);
-        portPanel.add(new JLabel(String.format("(default port : %d)", PrpiServer.DEFAULT_PORT)));
+        portPanel.add(new JLabel(String.format("(default port : %d)", PrPiServer.DEFAULT_PORT)));
         portTextField.setPreferredSize(new Dimension(70, 23));
 
         panel.add(ipPanel);
@@ -73,7 +71,7 @@ public class JoinProjectInputIPAndPortStep extends ModuleWizardStep {
             try {
                 port = Integer.parseInt(portTextField.getText());
             } catch (NumberFormatException ex) {
-                port = PrpiServer.DEFAULT_PORT;
+                port = PrPiServer.DEFAULT_PORT;
             }
 
             Future<Boolean> couldConnectFuture = PrPiClient.testConnection(ipAddress, port);
@@ -110,7 +108,7 @@ public class JoinProjectInputIPAndPortStep extends ModuleWizardStep {
         try {
             port = Integer.parseInt(portTextField.getText());
         } catch (NumberFormatException e) {
-            port = PrpiServer.DEFAULT_PORT;
+            port = PrPiServer.DEFAULT_PORT;
         }
 
         if (StringUtils.isNotEmpty(ipAddress)) {

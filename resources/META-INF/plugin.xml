@@ -43,7 +43,7 @@
 
     <application-components>
         <component>
-            <implementation-class>com.prpi.PrpiApplicationComponent</implementation-class>
+            <implementation-class>com.prpi.PrPiApplicationComponent</implementation-class>
         </component>
     </application-components>
 </idea-plugin>
