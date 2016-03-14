@@ -16,6 +16,8 @@ import java.util.concurrent.Future;
 
 public class JoinProjectInputIPAndPortStep extends ModuleWizardStep {
 
+    private static final int TextFieldHeight = 25;
+
     private JTextField ipTextField = new JTextField();
     private JTextField portTextField = new JTextField(Integer.toString(PrPiServer.DEFAULT_PORT));
     private JLabel connectionResultTextField = new JLabel();
@@ -35,13 +37,13 @@ public class JoinProjectInputIPAndPortStep extends ModuleWizardStep {
         JPanel ipPanel = new JPanel(new FlowLayout());
         ipPanel.add(new JLabel("IP :"));
         ipPanel.add(ipTextField);
-        ipTextField.setPreferredSize(new Dimension(200, 23));
+        ipTextField.setPreferredSize(new Dimension(200, TextFieldHeight));
 
         JPanel portPanel = new JPanel(new FlowLayout());
         portPanel.add(new JLabel("Port :"));
         portPanel.add(portTextField);
         portPanel.add(new JLabel(String.format("(default port : %d)", PrPiServer.DEFAULT_PORT)));
-        portTextField.setPreferredSize(new Dimension(70, 23));
+        portTextField.setPreferredSize(new Dimension(70, TextFieldHeight));
 
         panel.add(ipPanel);
         panel.add(portPanel);

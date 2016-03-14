@@ -13,14 +13,14 @@ import com.prpi.network.PrPiClient;
 
 import java.io.IOException;
 
-public class JoinProject extends AnAction {
-    private static final Logger logger = Logger.getLogger(JoinProject.class);
+public class EditProjectConfiguration extends AnAction {
+    private static final Logger logger = Logger.getLogger(EditProjectConfiguration.class);
 
     private Thread clientThread;
 
     @Override
     public void actionPerformed(AnActionEvent anActionEvent) {
-        logger.debug("JoinProject actionPerformed begin");
+        logger.debug("EditProjectConfiguration actionPerformed begin");
         Project project = anActionEvent.getProject();
 
         NewProjectWizard wizard = new NewProjectWizard(null, ModulesProvider.EMPTY_MODULES_PROVIDER, null);
@@ -33,7 +33,7 @@ public class JoinProject extends AnAction {
             logger.error("Connection error", ex);
             Messages.showErrorDialog(project, ex.getMessage(), "Error Starting Server Thread");
         }
-        logger.debug("JoinProject actionPerformed end");
+        logger.debug("EditProjectConfiguration actionPerformed end");
     }
 
     public void joinServerInThread(String ip, int port) throws IOException {

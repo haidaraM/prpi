@@ -11,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 
 public class JoinProjectModule extends ModuleType<JoinProjectBuilder> {
-    private static final String ID = "JOIN_PROJECT";
+    private static final String ID = "SHARED_MODULE";
 
     public JoinProjectModule() {
         super(ID);
@@ -30,7 +30,7 @@ public class JoinProjectModule extends ModuleType<JoinProjectBuilder> {
     @NotNull
     @Override
     public String getName() {
-        return "Join Shared Project";
+        return "Shared Project";
     }
 
     @NotNull
