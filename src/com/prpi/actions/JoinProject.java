@@ -1,11 +1,14 @@
 package com.prpi.actions;
 
+import com.intellij.ide.impl.NewProjectUtil;
+import com.intellij.ide.projectWizard.NewProjectWizard;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
-import com.prpi.network.PrPiClientThread;
 import org.apache.log4j.Logger;
+import com.intellij.openapi.roots.ui.configuration.ModulesProvider;
+import com.prpi.network.PrPiClient;
 
 import java.io.IOException;
 
@@ -13,12 +16,14 @@ public class JoinProject extends AnAction {
     private static final Logger logger = Logger.getLogger(JoinProject.class);
 
     private Thread clientThread;
-    private static final int DEFAULT_PORT = 4211;
 
     @Override
     public void actionPerformed(AnActionEvent anActionEvent) {
         logger.debug("JoinProject actionPerformed begin");
         Project project = anActionEvent.getProject();
+
+        NewProjectWizard wizard = new NewProjectWizard(null, ModulesProvider.EMPTY_MODULES_PROVIDER, null);
+        NewProjectUtil.createNewProject(getEventProject(anActionEvent), wizard);
 
         String ipAddress = Messages.showInputDialog(project, "IP ?", "IP", Messages.getQuestionIcon());
         try {
@@ -30,8 +35,8 @@ public class JoinProject extends AnAction {
         logger.debug("JoinProject actionPerformed end");
     }
 
-    private void joinServerInThread(int port, String ip) throws IOException {
-        clientThread = new PrPiClientThread(port, ip);
+    public void joinServerInThread(String ip, int port) throws IOException {
+        clientThread = new PrPiClient(ip, port);
         clientThread.start();
     }
 }
