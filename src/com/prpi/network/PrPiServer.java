@@ -22,19 +22,19 @@ import io.netty.handler.ssl.util.SelfSignedCertificate;
 import javax.net.ssl.SSLException;
 import java.security.cert.CertificateException;
 
-public class PrpiServer extends Thread {
+public class PrPiServer extends Thread {
 
     public static final String DEFAULT_HOST = System.getProperty("host", "127.0.0.1");
     public static final int DEFAULT_PORT = Integer.parseInt(System.getProperty("port", "4211"));
 
     private int port;
 
-    public PrpiServer(int port) {
+    public PrPiServer(int port) {
         this.port = port;
     }
 
-    public PrpiServer() {
-        this.port = DEFAULT_PORT;
+    public PrPiServer() {
+        this(DEFAULT_PORT);
     }
 
     public void run() {

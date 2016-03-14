@@ -38,18 +38,7 @@ public class PrPiClient extends Thread {
     }
 
     public PrPiClient(String host) {
-        this.host = host;
-        this.port = PrpiServer.DEFAULT_PORT;
-    }
-
-    public PrPiClient(int port) {
-        this.host = PrpiServer.DEFAULT_HOST;
-        this.port = port;
-    }
-
-    public PrPiClient() {
-        this.host = PrpiServer.DEFAULT_HOST;
-        this.port = PrpiServer.DEFAULT_PORT;
+        this(host, PrPiServer.DEFAULT_PORT);
     }
 
     @Override
@@ -85,7 +74,7 @@ public class PrPiClient extends Thread {
                     pipeline.addLast("encoder", new StringEncoder());
 
                     // and then business logic.
-                    pipeline.addLast("handler", new PrpiClientHandler());
+                    pipeline.addLast("handler", new PrPiClientHandler());
                 }
             });
 
