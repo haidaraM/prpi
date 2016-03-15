@@ -1,5 +1,33 @@
 #!/bin/bash
 
+# Default arguments
+CONTAINER_NAME="prpi-client"
+DEBUG_PORT=7533
+VM_OPTION="-Xmx512m -Xms256m -XX:MaxPermSize=250m -ea"
+
+for i in "$@"
+do
+case $i in
+    -c=*|--container=*)
+        CONTAINER_NAME="${i#*=}"
+        shift # past argument=value
+    ;;
+    -p=*|--port=*)
+        DEBUG_PORT="${i#*=}"
+        shift # past argument=value
+    ;;
+    -o=*|--option=*)
+        VM_OPTION="${i#*=}"
+        shift # past argument=value
+    ;;
+    *)
+        echo "Unknow option : $i"
+        exit 1
+        # unknown option
+    ;;
+esac
+done
+
 printf "Check LXD ... "
 if [ $(lxc list "${CONTAINER_NAME}" -c ns | grep "RUNNING" | wc -l) -ne 1 ]; then
 
@@ -9,10 +37,6 @@ if [ $(lxc list "${CONTAINER_NAME}" -c ns | grep "RUNNING" | wc -l) -ne 1 ]; the
         exit 1
 
     else
-
-        if [ ! -d "${SHARE_DIR}" ]; then
-            mkdir ${SHARE_DIR}
-        fi
 
         lxc start ${CONTAINER_NAME}
 
@@ -25,18 +49,15 @@ if [ $(lxc list "${CONTAINER_NAME}" -c ns | grep "RUNNING" | wc -l) -ne 1 ]; the
 fi
 echo "Ok"
 
-printf "Sync data ... "
-rsync -qr --delete-during ~/.IntelliJIdea15/ ${SHARE_DIR}/ >&2 2>/dev/null
-echo "Ok"
-
-printf "Set rules ... "
-chmod a+rwx -R /tmp/${CONTAINER_NAME}-IntelliJIdea15 >&2 2>/dev/null
-echo "Ok"
+echo "Sync data progress :"
+rsync -r --info=progress2 --delete-during ~/.IntelliJIdea15/ prpi@${CONTAINER_NAME}:/home/prpi/.IntelliJIdea15/
+echo "Sync data done"
 
 echo "Start IntelliJ IDEA ..."
 echo "----------------------------------------------------------------------------"
 ssh -X prpi@${CONTAINER_NAME} /opt/java/jdk1.8.0_66/bin/java \
- -Xmx512m -Xms256m -XX:MaxPermSize=250m -ea -Xbootclasspath/a:/opt/idea-IC/lib/boot.jar \
+ ${VM_OPTION} \
+ -Xbootclasspath/a:/opt/idea-IC/lib/boot.jar \
  -Didea.config.path=/home/prpi/.IntelliJIdea15/system/plugins-sandbox/config \
  -Didea.system.path=/home/prpi/.IntelliJIdea15/system/plugins-sandbox/system \
  -Didea.plugins.path=/home/prpi/.IntelliJIdea15/system/plugins-sandbox/plugins \
