@@ -13,7 +13,7 @@ import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Listen document changes
+ * Listen virtual file changes
  */
 public class PrPiVirtualFileListener implements VirtualFileListener {
 
