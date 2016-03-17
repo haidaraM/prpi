@@ -1,5 +1,6 @@
 package com.prpi.network;
 
+import com.google.gson.Gson;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -18,11 +19,11 @@ import io.netty.handler.codec.string.StringEncoder;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
+import org.apache.log4j.Logger;
 
-import javax.net.ssl.SSLException;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
@@ -31,10 +32,15 @@ public class PrPiClient extends Thread {
 
     private String host;
     private int port;
+    private Queue<String> messages;
+    private static final Logger logger = Logger.getLogger(PrPiClient.class);
+
+    private static Gson gson = new Gson();
 
     public PrPiClient(String host, int port) {
         this.host = host;
         this.port = port;
+        this.messages = new LinkedList<>();
     }
 
     public PrPiClient(String host) {
@@ -43,6 +49,8 @@ public class PrPiClient extends Thread {
 
     @Override
     public void run() {
+
+        logger.debug("Client begin his run ...");
 
         EventLoopGroup group = new NioEventLoopGroup();
 
@@ -81,21 +89,18 @@ public class PrPiClient extends Thread {
             // Start the connection attempt.
             Channel ch = b.connect(host, port).sync().channel();
 
-            // Read commands from the stdin.
-            ChannelFuture lastWriteFuture = null;
-            BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
+            ChannelFuture lastWriteFuture;
             for (;;) {
-                String line = in.readLine();
-                if (line == null) {
-                    break;
-                }
+
+                String message = this.getMessageToSend();
 
                 // Sends the received line to the server.
-                lastWriteFuture = ch.writeAndFlush(line + "\r\n");
+                lastWriteFuture = ch.writeAndFlush(message);
 
                 // If user typed the 'bye' command, wait until the server closes
                 // the connection.
-                if ("bye".equals(line.toLowerCase())) {
+                // TODO Implement a clean procedure to stop the client thread
+                if (message.startsWith(PrPiServer.CLOSE_CONNECTION)) {
                     ch.closeFuture().sync();
                     break;
                 }
@@ -106,16 +111,27 @@ public class PrPiClient extends Thread {
                 lastWriteFuture.sync();
             }
 
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (SSLException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
+        } catch (InterruptedException | IOException e) {
             e.printStackTrace();
         } finally {
             // The connection is closed automatically on shutdown.
             group.shutdownGracefully();
         }
+
+        logger.debug("Client end his run.");
+    }
+
+    public synchronized void sendMessageToServer(PrPiMessage message) {
+        String json = gson.toJson(message);
+        this.messages.add(json);
+        this.notify();
+    }
+
+    private synchronized String getMessageToSend() throws InterruptedException {
+        while (this.messages.isEmpty()) {
+            this.wait();
+        }
+        return this.messages.remove();
     }
 
     public static Future<Boolean> testConnection(String ipAddress, int port) {

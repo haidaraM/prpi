@@ -18,6 +18,7 @@ import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.SelfSignedCertificate;
+import org.apache.log4j.Logger;
 
 import javax.net.ssl.SSLException;
 import java.security.cert.CertificateException;
@@ -26,6 +27,10 @@ public class PrPiServer extends Thread {
 
     public static final String DEFAULT_HOST = System.getProperty("host", "127.0.0.1");
     public static final int DEFAULT_PORT = Integer.parseInt(System.getProperty("port", "4211"));
+    public static final String CLOSE_CONNECTION = "CLOSE_CONNECTION";
+    public static final String PROTOCOL_PRPI_VERSION = "0.1";  // TODO Get this value from META-INF/plugin.xml directly
+
+    private static final Logger logger = Logger.getLogger(PrPiServerHandler.class);
 
     private int port;
 
@@ -82,12 +87,8 @@ public class PrPiServer extends Thread {
 
             // Wait until the server socket is closed.
             f.channel().closeFuture().sync();
-        } catch (CertificateException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (SSLException e) {
-            e.printStackTrace();
+        } catch (CertificateException | InterruptedException | SSLException e) {
+            logger.error(e.getStackTrace());
         } finally {
             workerGroup.shutdownGracefully();
             bossGroup.shutdownGracefully();
