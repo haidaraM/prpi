@@ -1,8 +1,12 @@
 package com.prpi;
 
+import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.components.ApplicationComponent;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.prpi.filesystem.PrPiVirtualFileListener;
+import org.apache.log4j.Logger;
+import org.apache.log4j.xml.DOMConfigurator;
 import org.jetbrains.annotations.NotNull;
 
 
@@ -13,15 +17,28 @@ import org.jetbrains.annotations.NotNull;
  */
 public class PrPiApplicationComponent implements ApplicationComponent {
 
-
+    private static final Logger logger = Logger.getLogger(PrPiApplicationComponent.class);
 
     public PrPiApplicationComponent() {
     }
 
     @Override
     public void initComponent() {
+        // Set the log4j configuration file
+        DOMConfigurator.configure(getClass().getClassLoader().getResource("log4j.xml"));
+
+        logger.debug("Init component");
+
+        logger.debug(PropertiesComponent.getInstance().getValue("version"));
+        ActionManager actionManager = ActionManager.getInstance();
+        // Look in configuration if this module is a SHARED_MODULE
+
+        // if no, disable Edit shared project configurator
+
         // TODO: insert component initialization logic here
         setupDocuementListener();
+
+        logger.debug("End of component init");
     }
 
     @Override

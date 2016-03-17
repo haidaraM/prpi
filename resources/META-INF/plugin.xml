@@ -44,8 +44,5 @@
         <component>
             <implementation-class>com.prpi.PrPiApplicationComponent</implementation-class>
         </component>
-        <component>
-            <implementation-class>com.prpi.actions.ActionStartupConfigurator</implementation-class>
-        </component>
     </application-components>
 </idea-plugin>
