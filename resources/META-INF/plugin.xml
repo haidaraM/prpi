@@ -37,6 +37,8 @@
                     description="Open this project for collaboration"/>
             <action id="prpi.EditProjectConfiguration" class="com.prpi.actions.EditProjectConfiguration" text="Edit Shared Project Configuration"
                     description="Edit the current project configuration about collaboration"/>
+            <action id="prpi.Test" class="com.prpi.actions.Test" text="Test Action"
+                    description="Test Action"/>
         </group>
     </actions>
 

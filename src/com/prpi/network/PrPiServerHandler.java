@@ -26,13 +26,14 @@ public class PrPiServerHandler extends SimpleChannelInboundHandler<String> {
         ctx.pipeline().get(SslHandler.class).handshakeFuture().addListener(
                 future -> {
                     PrPiMessage response = new PrPiMessage(
-                            "Welcome to " + InetAddress.getLocalHost().getHostName() + " secure remote project.\n" +
+                            "Welcome to " + InetAddress.getLocalHost().getHostName() + " secure remote project. " +
                                     "Your session is protected by " +
                                     ctx.pipeline().get(SslHandler.class).engine().getSession().getCipherSuite() +
-                                    " cipher suite.\n"
+                                    " cipher suite."
                     );
                     String json = gson.toJson(response);
-                    ctx.writeAndFlush(json);
+                    logger.trace("Server send this message to the cleint : " + json);
+                    ctx.writeAndFlush(json + "\n");
 
                     channels.add(ctx.channel());
                 });
@@ -53,7 +54,7 @@ public class PrPiServerHandler extends SimpleChannelInboundHandler<String> {
                     ctx.close();
                 }
 
-                logger.info("Message from a client : " + message.message.toString());
+                logger.debug("Message from a client : " + message.message.toString());
             } else {
                 logger.error("Receive message from a client with a different version protocol (Server " + PrPiServer.PROTOCOL_PRPI_VERSION + " / Client " + message.getVersion() + ").");
             }

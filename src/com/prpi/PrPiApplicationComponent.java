@@ -5,6 +5,8 @@ import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.components.ApplicationComponent;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.prpi.filesystem.PrPiVirtualFileListener;
+import com.prpi.network.PrPiClient;
+import com.prpi.network.PrPiServer;
 import org.apache.log4j.Logger;
 import org.apache.log4j.xml.DOMConfigurator;
 import org.jetbrains.annotations.NotNull;
@@ -19,7 +21,12 @@ public class PrPiApplicationComponent implements ApplicationComponent {
 
     private static final Logger logger = Logger.getLogger(PrPiApplicationComponent.class);
 
+    private PrPiServer serverThread;
+    private PrPiClient clientThread;
+
     public PrPiApplicationComponent() {
+        this.serverThread = null;
+        this.clientThread = null;
     }
 
     @Override
@@ -29,7 +36,7 @@ public class PrPiApplicationComponent implements ApplicationComponent {
 
         logger.debug("Init component");
 
-        logger.debug(PropertiesComponent.getInstance().getValue("version"));
+        logger.debug(PropertiesComponent.getInstance());
         ActionManager actionManager = ActionManager.getInstance();
         // Look in configuration if this module is a SHARED_MODULE
 
@@ -58,5 +65,29 @@ public class PrPiApplicationComponent implements ApplicationComponent {
 
         // TODO : maybe setupListenner asynchronously to avoid delays during application launch
         VirtualFileManager.getInstance().addVirtualFileListener(new PrPiVirtualFileListener());
+    }
+
+    @Override
+    public String toString() {
+        return "PrPiApplicationComponent{" +
+                "serverThread=" + serverThread +
+                ", clientThread=" + clientThread +
+                '}';
+    }
+
+    public PrPiClient getClientThread() {
+        return clientThread;
+    }
+
+    public void setClientThread(PrPiClient clientThread) {
+        this.clientThread = clientThread;
+    }
+
+    public PrPiServer getServerThread() {
+        return serverThread;
+    }
+
+    public void setServerThread(PrPiServer serverThread) {
+        this.serverThread = serverThread;
     }
 }

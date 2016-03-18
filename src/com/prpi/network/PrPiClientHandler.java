@@ -25,7 +25,7 @@ public class PrPiClientHandler extends SimpleChannelInboundHandler<String> {
                     ctx.close();
                 }
 
-                logger.info("Message from the server : " + message.message.toString());
+                logger.debug("Message from the server : " + message.message.toString());
             } else {
                 logger.error("Receive message from the server with a different version protocol (Client " + PrPiServer.PROTOCOL_PRPI_VERSION + " / Server " + message.getVersion() + ").");
             }

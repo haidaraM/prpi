@@ -21,7 +21,9 @@ import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import org.apache.log4j.Logger;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.concurrent.Future;
@@ -90,9 +92,11 @@ public class PrPiClient extends Thread {
             Channel ch = b.connect(host, port).sync().channel();
 
             ChannelFuture lastWriteFuture;
+
             for (;;) {
 
                 String message = this.getMessageToSend();
+                logger.trace("Client get a new emssage to send");
 
                 // Sends the received line to the server.
                 lastWriteFuture = ch.writeAndFlush(message);
@@ -112,7 +116,7 @@ public class PrPiClient extends Thread {
             }
 
         } catch (InterruptedException | IOException e) {
-            e.printStackTrace();
+            logger.error(e.getStackTrace());
         } finally {
             // The connection is closed automatically on shutdown.
             group.shutdownGracefully();
@@ -122,13 +126,15 @@ public class PrPiClient extends Thread {
     }
 
     public synchronized void sendMessageToServer(PrPiMessage message) {
+        logger.trace("Client add a new message in his pile");
         String json = gson.toJson(message);
-        this.messages.add(json);
+        this.messages.add(json + "\n");
         this.notify();
     }
 
     private synchronized String getMessageToSend() throws InterruptedException {
         while (this.messages.isEmpty()) {
+            logger.trace("Client wait a new message to send");
             this.wait();
         }
         return this.messages.remove();
