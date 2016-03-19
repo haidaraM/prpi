@@ -18,7 +18,7 @@ public class EditProjectConfiguration extends AnAction {
 
     @Override
     public void actionPerformed(AnActionEvent anActionEvent) {
-        logger.debug("EditProjectConfiguration actionPerformed begin");
+        logger.trace("EditProjectConfiguration actionPerformed begin");
         Project project = anActionEvent.getProject();
 
         if (project == null) {
@@ -44,6 +44,6 @@ public class EditProjectConfiguration extends AnAction {
             logger.error("Connection error", ex);
             Messages.showErrorDialog(project, ex.getMessage(), "Error Starting Server Thread");
         }
-        logger.debug("EditProjectConfiguration actionPerformed end");
+        logger.trace("EditProjectConfiguration actionPerformed end");
     }
 }

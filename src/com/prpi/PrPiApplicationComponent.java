@@ -34,18 +34,12 @@ public class PrPiApplicationComponent implements ApplicationComponent {
         // Set the log4j configuration file
         DOMConfigurator.configure(getClass().getClassLoader().getResource("log4j.xml"));
 
-        logger.debug("Init component");
-
-        logger.debug(PropertiesComponent.getInstance());
-        ActionManager actionManager = ActionManager.getInstance();
-        // Look in configuration if this module is a SHARED_MODULE
-
-        // if no, disable Edit shared project configurator
+        logger.trace("Init component");
 
         // TODO: insert component initialization logic here
         setupDocuementListener();
 
-        logger.debug("End of component init");
+        logger.trace("End of component init");
     }
 
     @Override
@@ -73,6 +67,14 @@ public class PrPiApplicationComponent implements ApplicationComponent {
                 "serverThread=" + serverThread +
                 ", clientThread=" + clientThread +
                 '}';
+    }
+
+    public boolean isHosting() {
+        return serverThread != null;
+    }
+
+    public boolean isClient() {
+        return clientThread != null;
     }
 
     public PrPiClient getClientThread() {

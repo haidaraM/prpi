@@ -15,14 +15,14 @@ public class Test extends AnAction {
     public void actionPerformed(AnActionEvent anActionEvent) {
 
         // Permet de tester l'envoie de message depuis le client
-        logger.debug("Test actionPerformed begin");
+        logger.trace("Test actionPerformed begin");
         PrPiClient client = anActionEvent.getProject().getComponent(PrPiApplicationComponent.class).getClientThread();
         if (client != null) {
-            PrPiMessage msg = new PrPiMessage("Test Bordel de merde !");
+            PrPiMessage<String> msg = new PrPiMessage<>("Test Bordel de merde !");
             client.sendMessageToServer(msg);
         } else {
             logger.error("No client started");
         }
-        logger.debug("Test actionPerformed end");
+        logger.trace("Test actionPerformed end");
     }
 }

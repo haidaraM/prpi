@@ -13,7 +13,7 @@ public class HostProject extends AnAction {
 
     @Override
     public void actionPerformed(AnActionEvent anActionEvent) {
-        logger.debug("HostProject actionPerformed called");
+        logger.trace("HostProject actionPerformed called");
 
         Project project = anActionEvent.getProject();
         if (project == null) {
@@ -23,9 +23,15 @@ public class HostProject extends AnAction {
         try {
             PrPiApplicationComponent component = project.getComponent(PrPiApplicationComponent.class);
             if (component != null) {
-                PrPiServer server = new PrPiServer(PrPiServer.DEFAULT_PORT);
-                server.start();
-                component.setServerThread(server);
+                if (component.isClient()) {
+                    Messages.showWarningDialog(project, "You are already a client of this remote project, you can't hosting this project!", "PrPi Warning - Host Is Not Allow");
+                } else if (component.isHosting()) {
+                    Messages.showWarningDialog(project, "You already host this project!", "PrPi Warning - Project Already Hosted");
+                } else {
+                    PrPiServer server = new PrPiServer(PrPiServer.DEFAULT_PORT);
+                    server.start();
+                    component.setServerThread(server);
+                }
             } else {
                 logger.error("Error: no component found");
             }
@@ -33,6 +39,6 @@ public class HostProject extends AnAction {
             logger.error("Error launching server", ex);
             Messages.showErrorDialog(project, ex.getMessage(), "Error Starting Server Thread");
         }
-        logger.debug("HostProject actionPerformed end");
+        logger.trace("HostProject actionPerformed end");
     }
 }

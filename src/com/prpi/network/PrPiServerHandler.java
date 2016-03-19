@@ -25,7 +25,7 @@ public class PrPiServerHandler extends SimpleChannelInboundHandler<String> {
         // list so the channel received the messages from others.
         ctx.pipeline().get(SslHandler.class).handshakeFuture().addListener(
                 future -> {
-                    PrPiMessage response = new PrPiMessage(
+                    PrPiMessage<String> response = new PrPiMessage<>(
                             "Welcome to " + InetAddress.getLocalHost().getHostName() + " secure remote project. " +
                                     "Your session is protected by " +
                                     ctx.pipeline().get(SslHandler.class).engine().getSession().getCipherSuite() +

@@ -1,9 +1,9 @@
 package com.prpi.network;
 
-public class PrPiMessage {
+public class PrPiMessage<T> {
 
     protected String version;
-    protected Object message;
+    protected T message;
     protected boolean closeConnection;
 
     public PrPiMessage() {
@@ -12,7 +12,7 @@ public class PrPiMessage {
         this.closeConnection = false;
     }
 
-    public PrPiMessage(Object message) {
+    public PrPiMessage(T message) {
         this();
         this.message = message;
     }
@@ -22,7 +22,7 @@ public class PrPiMessage {
         this.closeConnection = close;
     }
 
-    public PrPiMessage(Object message, boolean close) {
+    public PrPiMessage(T message, boolean close) {
         this(message);
         this.closeConnection = close;
     }
@@ -31,11 +31,11 @@ public class PrPiMessage {
         return version;
     }
 
-    public Object getMessage() {
+    public T getMessage() {
         return message;
     }
 
-    public void setMessage(Object message) {
+    public void setMessage(T message) {
         this.message = message;
     }
 
