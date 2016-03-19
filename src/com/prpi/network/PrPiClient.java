@@ -21,9 +21,7 @@ import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import org.apache.log4j.Logger;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.concurrent.Future;
@@ -116,7 +114,7 @@ public class PrPiClient extends Thread {
             }
 
         } catch (InterruptedException | IOException e) {
-            logger.error(e.getStackTrace());
+            logger.error(e);
         } finally {
             // The connection is closed automatically on shutdown.
             group.shutdownGracefully();
@@ -138,45 +136,5 @@ public class PrPiClient extends Thread {
             this.wait();
         }
         return this.messages.remove();
-    }
-
-    public static Future<Boolean> testConnection(String ipAddress, int port) {
-        Future<Boolean> futureTask = new FutureTask<>(() -> {
-            final boolean[] result = {false};
-            ChannelFuture channelFuture = new Bootstrap()
-                    .handler(new ChannelInitializer<SocketChannel>() {
-                        @Override
-                        protected void initChannel(SocketChannel socketChannel) throws Exception {
-                            ChannelPipeline pipeline = socketChannel.pipeline();
-                            pipeline.addLast(new DelimiterBasedFrameDecoder(8192, Delimiters.lineDelimiter()));
-                            pipeline.addLast(new StringDecoder());
-                            pipeline.addLast(new StringEncoder());
-                            pipeline.addLast(new ChannelInboundHandlerAdapter() {
-                                @Override
-                                public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-                                    if (msg.equals("OKAY BITCH"))
-                                        result[0] = true;
-                                }
-                            });
-                        }
-                    })
-                    .connect(ipAddress, port);
-            channelFuture.await(2, TimeUnit.SECONDS);
-
-            if (!channelFuture.isSuccess())
-                return false;
-
-            Channel channel = channelFuture.channel();
-            channel.writeAndFlush("TEST_CONNECTION");
-            channel.read();
-
-            result[0] = true;
-
-            channel.close();
-
-            return result[0];
-        });
-
-        return futureTask;
     }
 }

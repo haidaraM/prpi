@@ -1,20 +1,15 @@
 package com.prpi.wizard;
 
-import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
-import com.prpi.actions.EditProjectConfiguration;
-import com.prpi.network.PrPiClient;
+import com.intellij.openapi.options.ConfigurationException;
+import com.intellij.openapi.ui.Messages;
 import com.prpi.network.PrPiServer;
-import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
-
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.util.concurrent.Future;
-
+import java.io.IOException;
+import java.net.InetAddress;
 
 public class JoinProjectInputIPAndPortStep extends ModuleWizardStep {
 
@@ -23,7 +18,6 @@ public class JoinProjectInputIPAndPortStep extends ModuleWizardStep {
 
     private JTextField ipTextField = new JTextField();
     private JTextField portTextField = new JTextField(Integer.toString(PrPiServer.DEFAULT_PORT));
-    private JLabel connectionResultTextField = new JLabel();
 
     @Override
     public JComponent getComponent() {
@@ -33,12 +27,17 @@ public class JoinProjectInputIPAndPortStep extends ModuleWizardStep {
         return mainPanel;
     }
 
+    @Override
+    public void updateDataModel() {
+
+    }
+
     private JComponent createIpAndPortLayout() {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
         JPanel ipPanel = new JPanel(new FlowLayout());
-        ipPanel.add(new JLabel("IP :"));
+        ipPanel.add(new JLabel("Hostname / IP :"));
         ipPanel.add(ipTextField);
         ipTextField.setPreferredSize(new Dimension(200, TextFieldHeight));
 
@@ -50,79 +49,32 @@ public class JoinProjectInputIPAndPortStep extends ModuleWizardStep {
 
         panel.add(ipPanel);
         panel.add(portPanel);
-        panel.add(createTestConnectionButton());
 
         return panel;
-    }
-
-    private JComponent createTestConnectionButton() {
-        JPanel panel = new JPanel();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-
-        JButton testConnectionButton = new JButton("Test connection");
-        testConnectionButton.addActionListener(new TestConnectionActionListener());
-
-        panel.add(testConnectionButton);
-        panel.add(connectionResultTextField);
-
-        return panel;
-    }
-
-    private class TestConnectionActionListener implements ActionListener {
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            String ipAddress = ipTextField.getText();
-            int port;
-            try {
-                port = Integer.parseInt(portTextField.getText());
-            } catch (NumberFormatException ex) {
-                port = PrPiServer.DEFAULT_PORT;
-            }
-
-            Future<Boolean> couldConnectFuture = PrPiClient.testConnection(ipAddress, port);
-            connectionResultTextField.setForeground(Color.BLACK);
-            connectionResultTextField.setText("Processing...");
-
-            String msgText;
-            Color color;
-            boolean couldConnect;
-            try {
-                couldConnect = couldConnectFuture.get();
-            } catch (Exception ex) {
-                couldConnect = false;
-            }
-
-            if (couldConnect) {
-                msgText = "Connection working!";
-                color = Color.GREEN;
-            } else {
-                msgText = String.format("Could not reach %s:%d", ipAddress, port);
-                color = Color.RED;
-            }
-
-            connectionResultTextField.setText(msgText);
-            connectionResultTextField.setForeground(color);
-        }
     }
 
     @Override
-    public void updateDataModel() {
-        // TODO verifications + refus + message d'erreur
-        String ipAddress = ipTextField.getText();
-        int port;
+    public boolean validate() throws ConfigurationException {
+        boolean validate = false;
         try {
-            port = Integer.parseInt(portTextField.getText());
+            String ipAddress = ipTextField.getText();
+            if (!ipAddress.isEmpty()) {
+                int port = Integer.parseInt(portTextField.getText());
+
+                // TODO make a better check (with port and prpi plugin version)
+                validate = InetAddress.getByName(ipAddress).isReachable(10000);
+                logger.debug(String.format("Writin ip %s and port %d into module properties", ipAddress, port));
+            } else {
+                Messages.showWarningDialog("No hostname enter!", "PrPi Warning - No Hostname");
+            }
         } catch (NumberFormatException e) {
-            port = PrPiServer.DEFAULT_PORT;
+            logger.debug(e);
+            Messages.showWarningDialog("The hostname/ip address or port are not correctly formed.", "PrPi Warning - Problem In Host Or Port");
+        } catch (IOException e) {
+            logger.debug(e);
+            Messages.showWarningDialog("The hostname is not reachable.", "PrPi Warning - Host Not Reachable");
         }
-
-        logger.debug(String.format("Writin ip %s and port %d into module properties", ipAddress, port));
-        PropertiesComponent propertiesComponent = PropertiesComponent.getInstance();
-        propertiesComponent.setValue(EditProjectConfiguration.IP_CONF_NAME, ipAddress);
-        propertiesComponent.setValue(EditProjectConfiguration.PORT_CONF_NAME, port, 0);
-
-        if (StringUtils.isNotEmpty(ipAddress)) {
-            new PrPiClient(ipAddress, port).run();
-        }
+        return validate;
     }
+
 }

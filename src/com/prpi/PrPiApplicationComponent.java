@@ -2,7 +2,9 @@ package com.prpi;
 
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.components.ApplicationComponent;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.prpi.filesystem.PrPiVirtualFileListener;
 import com.prpi.network.PrPiClient;
@@ -91,5 +93,18 @@ public class PrPiApplicationComponent implements ApplicationComponent {
 
     public void setServerThread(PrPiServer serverThread) {
         this.serverThread = serverThread;
+    }
+
+
+    public static @NotNull PrPiApplicationComponent getPrPiAppComp(AnActionEvent anActionEvent) throws NullPointerException {
+        Project project = anActionEvent.getProject();
+        if (project == null) {
+            throw new NullPointerException("No project found.");
+        }
+        PrPiApplicationComponent component = project.getComponent(PrPiApplicationComponent.class);
+        if (component == null) {
+            throw new NullPointerException("No component found.");
+        }
+        return component;
     }
 }

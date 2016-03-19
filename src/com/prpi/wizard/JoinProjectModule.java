@@ -41,12 +41,12 @@ public class JoinProjectModule extends ModuleType<JoinProjectBuilder> {
 
     @Override
     public Icon getBigIcon() {
-        return AllIcons.General.Information;
+        return AllIcons.General.Web;
     }
 
     @Override
     public Icon getNodeIcon(@Deprecated boolean b) {
-        return AllIcons.General.Information;
+        return AllIcons.General.Web;
     }
 
     @NotNull
