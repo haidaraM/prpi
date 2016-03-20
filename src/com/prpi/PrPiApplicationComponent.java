@@ -3,10 +3,14 @@ package com.prpi;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ApplicationComponent;
+import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.editor.EditorFactory;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.prpi.filesystem.PrPiVirtualFileListener;
+import com.prpi.filesystem.PrpiDocumentListener;
 import com.prpi.network.PrPiClient;
 import com.prpi.network.PrPiServer;
 import org.apache.log4j.Logger;
@@ -16,8 +20,8 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * For more documentation, see the followings links :
- *  - http://www.jetbrains.org/intellij/sdk/docs/basics/plugin_structure/plugin_components.html?search=comp
- *  - https://upsource.jetbrains.com/idea-ce/file/idea-ce-1731d054af4ca27aa827c03929e27eeb0e6a8366/platform/core-api/src/com/intellij/openapi/components/ApplicationComponent.java
+ * - http://www.jetbrains.org/intellij/sdk/docs/basics/plugin_structure/plugin_components.html?search=comp
+ * - https://upsource.jetbrains.com/idea-ce/file/idea-ce-1731d054af4ca27aa827c03929e27eeb0e6a8366/platform/core-api/src/com/intellij/openapi/components/ApplicationComponent.java
  */
 public class PrPiApplicationComponent implements ApplicationComponent {
 
@@ -62,11 +66,12 @@ public class PrPiApplicationComponent implements ApplicationComponent {
     }
 
 
-    private void setupDocuementListener(){
+    private void setupDocuementListener() {
 
-
-        // TODO : maybe setupListenner asynchronously to avoid delays during application launch
-        VirtualFileManager.getInstance().addVirtualFileListener(new PrPiVirtualFileListener());
+        ApplicationManager.getApplication().invokeLater(() -> {
+            // VirtualFileManager.getInstance().addVirtualFileListener(new PrPiVirtualFileListener());
+            EditorFactory.getInstance().getEventMulticaster().addDocumentListener(new PrpiDocumentListener());
+        });
     }
 
     @Override
@@ -102,7 +107,8 @@ public class PrPiApplicationComponent implements ApplicationComponent {
     }
 
 
-    public static @NotNull PrPiApplicationComponent getPrPiAppComp(AnActionEvent anActionEvent) throws NullPointerException {
+    @NotNull
+    public static PrPiApplicationComponent getPrPiAppComp(AnActionEvent anActionEvent) throws NullPointerException {
         Project project = anActionEvent.getProject();
         if (project == null) {
             throw new NullPointerException("No project found.");
