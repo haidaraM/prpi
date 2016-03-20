@@ -4,11 +4,10 @@ package com.prpi.filesystem;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.DataKeys;
-import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.editor.LogicalPosition;
+import com.intellij.openapi.editor.*;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.vfs.*;
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 
@@ -18,6 +17,11 @@ import org.jetbrains.annotations.NotNull;
 public class PrPiVirtualFileListener implements VirtualFileListener {
 
     private static Logger logger = Logger.getLogger(PrPiVirtualFileListener.class);
+
+    //static {
+    //    logger.setLevel(Level.TRACE);
+    //}
+
 
     @Override
     public void propertyChanged(@NotNull VirtualFilePropertyEvent event) {
@@ -39,10 +43,8 @@ public class PrPiVirtualFileListener implements VirtualFileListener {
 
                 // get logical Position
                 LogicalPosition logicalPosition = editor.getCaretModel().getLogicalPosition();
+                Caret caret = editor.getCaretModel().addCaret(new VisualPosition(logicalPosition.line + 1, logicalPosition.column));
 
-                // print line number : 0-based format => +1
-                logger.trace(String.format("Current line number : %d", logicalPosition.line+1));
-                logger.trace(String.format("Current column number : : %d", logicalPosition.column+1));
             }
         }
 

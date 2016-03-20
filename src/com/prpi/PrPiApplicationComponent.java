@@ -1,8 +1,8 @@
 package com.prpi;
 
+import com.intellij.ide.DataManager;
 import com.intellij.ide.util.PropertiesComponent;
-import com.intellij.openapi.actionSystem.ActionManager;
-import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ApplicationComponent;
 import com.intellij.openapi.editor.Editor;
@@ -16,6 +16,7 @@ import com.prpi.network.PrPiServer;
 import org.apache.log4j.Logger;
 import org.apache.log4j.xml.DOMConfigurator;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 
 /**
@@ -69,7 +70,7 @@ public class PrPiApplicationComponent implements ApplicationComponent {
     private void setupDocuementListener() {
 
         ApplicationManager.getApplication().invokeLater(() -> {
-            // VirtualFileManager.getInstance().addVirtualFileListener(new PrPiVirtualFileListener());
+            VirtualFileManager.getInstance().addVirtualFileListener(new PrPiVirtualFileListener());
             EditorFactory.getInstance().getEventMulticaster().addDocumentListener(new PrpiDocumentListener());
         });
     }
@@ -118,5 +119,24 @@ public class PrPiApplicationComponent implements ApplicationComponent {
             throw new NullPointerException("No component found.");
         }
         return component;
+    }
+
+
+    @Nullable
+    public static Project getCurrentProject() {
+        DataContext dataContext = DataManager.getInstance().getDataContext();
+        Project project = null;
+        try {
+            project = PlatformDataKeys.PROJECT.getData(dataContext);
+        } catch (NoClassDefFoundError e) {
+            logger.warn(e.getMessage());
+
+            try {
+                project = DataKeys.PROJECT.getData(dataContext);
+            } catch (NoClassDefFoundError ex) {
+                logger.warn(ex.getMessage());
+            }
+        }
+        return project;
     }
 }
