@@ -47,6 +47,12 @@ public class PrPiApplicationComponent implements ApplicationComponent {
     @Override
     public void disposeComponent() {
         // TODO: insert component disposal logic here
+        if (this.isClient()) {
+            // TODO this.clientThread.closeConnectionAndStop();
+        }
+        if (this.isHosting()) {
+            // TODO this.serverThread.closeConnectionAndStop();
+        }
     }
 
     @Override

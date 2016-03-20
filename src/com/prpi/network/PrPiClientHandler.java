@@ -2,7 +2,6 @@ package com.prpi.network;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.handler.timeout.ReadTimeoutException;
 import org.apache.log4j.Logger;
 
 public class PrPiClientHandler extends SimpleChannelInboundHandler<String> {

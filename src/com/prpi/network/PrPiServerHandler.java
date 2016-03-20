@@ -6,7 +6,6 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.handler.ssl.SslHandler;
-import io.netty.handler.timeout.ReadTimeoutException;
 import io.netty.util.concurrent.GlobalEventExecutor;
 import org.apache.log4j.Logger;
 
@@ -30,10 +29,10 @@ public class PrPiServerHandler extends SimpleChannelInboundHandler<String> {
                                     " cipher suite."
                     );
                     String json = response.toJson();
-                    logger.trace("Server send this message to the cleint : " + json);
+                    logger.trace("Server send this message to the client : " + json);
                     ctx.writeAndFlush(json);
 
-                    channels.add(ctx.channel());
+                    //channels.add(ctx.channel());
                 });
     }
 
@@ -52,7 +51,7 @@ public class PrPiServerHandler extends SimpleChannelInboundHandler<String> {
                     ctx.close();
                 }
 
-                logger.debug("Message from a client : " + message.message.toString());
+                logger.debug("Message from a client : " + json);
             } else {
                 logger.error("Receive message from a client with a different version protocol (Server " + PrPiServer.PROTOCOL_PRPI_VERSION + " / Client " + message.getVersion() + ").");
             }

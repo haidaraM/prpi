@@ -4,6 +4,7 @@ import com.intellij.openapi.ui.Messages;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -98,7 +99,7 @@ public class PrPiClient extends Thread {
         return this.messages.remove();
     }
 
-    public static boolean testConnection(String host, int port) {
+    public static synchronized boolean testConnection(String host, int port) {
 
         final boolean[] result = {false};
 
@@ -108,25 +109,26 @@ public class PrPiClient extends Thread {
             Bootstrap b = new Bootstrap();
             b.group(workerGroup);
             b.channel(NioSocketChannel.class);
-            b.handler(new PrPiChannelInitializer(new PrPiClientHandler() {
+
+            PrPiClientHandler testHandler = new PrPiClientHandler() {
                 @Override
                 public void channelRead0(ChannelHandlerContext ctx, String json) throws Exception {
                     PrPiMessage message = PrPiMessage.jsonToPrPiMessage(json);
-                    if (message.getVersion().equals(PrPiServer.PROTOCOL_PRPI_VERSION)) {
-                        result[0] = true;
-                    } else {
+                    if (!message.getVersion().equals(PrPiServer.PROTOCOL_PRPI_VERSION)) {
                         String messageError = "The test failed, different version protocol (Client " + PrPiServer.PROTOCOL_PRPI_VERSION + " / Server " + message.getVersion() + ").";
                         Messages.showErrorDialog(messageError, "PrPi Error - Protocol Version");
                         logger.error(messageError);
+                    } else {
+                        result[0] = true;
                     }
-                    ctx.close();
+                    ctx.writeAndFlush(new PrPiMessage<>(true).toJson()).addListener(ChannelFutureListener.CLOSE);
                 }
-            }, host, port));
+            };
+
+            b.handler(new PrPiChannelInitializer(testHandler, host, port));
 
             // Start the connection attempt.
             ChannelFuture f = b.connect(host, port).sync();
-
-            f.channel().writeAndFlush(new PrPiMessage<>(true)); // Send a close request to the server
 
             // Wait until the connection is closed.
             f.channel().closeFuture().sync();
