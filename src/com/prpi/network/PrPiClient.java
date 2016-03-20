@@ -1,32 +1,20 @@
 package com.prpi.network;
 
-import com.google.gson.Gson;
+import com.intellij.openapi.ui.Messages;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.handler.codec.DelimiterBasedFrameDecoder;
-import io.netty.handler.codec.Delimiters;
-import io.netty.handler.codec.string.StringDecoder;
-import io.netty.handler.codec.string.StringEncoder;
-import io.netty.handler.ssl.SslContext;
-import io.netty.handler.ssl.SslContextBuilder;
-import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
+import io.netty.handler.timeout.ReadTimeoutException;
 import org.apache.log4j.Logger;
 
+import javax.net.ssl.SSLException;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.Queue;
-import java.util.concurrent.Future;
-import java.util.concurrent.FutureTask;
-import java.util.concurrent.TimeUnit;
 
 public class PrPiClient extends Thread {
 
@@ -34,8 +22,6 @@ public class PrPiClient extends Thread {
     private int port;
     private Queue<String> messages;
     private static final Logger logger = Logger.getLogger(PrPiClient.class);
-
-    private static Gson gson = new Gson();
 
     public PrPiClient(String host, int port) {
         this.host = host;
@@ -55,39 +41,14 @@ public class PrPiClient extends Thread {
         EventLoopGroup group = new NioEventLoopGroup();
 
         try {
-            // Configure SSL.
-            final SslContext sslCtx = SslContextBuilder.forClient().trustManager(InsecureTrustManagerFactory.INSTANCE).build();
 
             Bootstrap b = new Bootstrap();
-
             b.group(group);
-
             b.channel(NioSocketChannel.class);
-
-            b.handler(new ChannelInitializer<SocketChannel>() {
-                @Override
-                public void initChannel(SocketChannel ch) throws Exception {
-                    ChannelPipeline pipeline = ch.pipeline();
-
-                    // Add SSL handler first to encrypt and decrypt everything.
-                    // In this example, we use a bogus certificate in the server side
-                    // and accept any invalid certificates in the client side.
-                    // You will need something more complicated to identify both
-                    // and server in the real world.
-                    pipeline.addLast(sslCtx.newHandler(ch.alloc(), host, port));
-
-                    // On top of the SSL handler, add the text line codec.
-                    pipeline.addLast("framer", new DelimiterBasedFrameDecoder(8192, Delimiters.lineDelimiter()));
-                    pipeline.addLast("decoder", new StringDecoder());
-                    pipeline.addLast("encoder", new StringEncoder());
-
-                    // and then business logic.
-                    pipeline.addLast("handler", new PrPiClientHandler());
-                }
-            });
+            b.handler(new PrPiChannelInitializer(new PrPiClientHandler(), this.host, this.port));
 
             // Start the connection attempt.
-            Channel ch = b.connect(host, port).sync().channel();
+            Channel ch = b.connect(this.host, this.port).sync().channel();
 
             ChannelFuture lastWriteFuture;
 
@@ -125,8 +86,7 @@ public class PrPiClient extends Thread {
 
     public synchronized void sendMessageToServer(PrPiMessage message) {
         logger.trace("Client add a new message in his pile");
-        String json = gson.toJson(message);
-        this.messages.add(json + "\n");
+        this.messages.add(message.toJson());
         this.notify();
     }
 
@@ -136,5 +96,45 @@ public class PrPiClient extends Thread {
             this.wait();
         }
         return this.messages.remove();
+    }
+
+    public static boolean testConnection(String host, int port) {
+
+        final boolean[] result = {false};
+
+        EventLoopGroup workerGroup = new NioEventLoopGroup();
+
+        try {
+            Bootstrap b = new Bootstrap();
+            b.group(workerGroup);
+            b.channel(NioSocketChannel.class);
+            b.handler(new PrPiChannelInitializer(new PrPiClientHandler() {
+                @Override
+                public void channelRead0(ChannelHandlerContext ctx, String json) throws Exception {
+                    PrPiMessage message = PrPiMessage.jsonToPrPiMessage(json);
+                    if (message.getVersion().equals(PrPiServer.PROTOCOL_PRPI_VERSION)) {
+                        result[0] = true;
+                    } else {
+                        String messageError = "The test failed, different version protocol (Client " + PrPiServer.PROTOCOL_PRPI_VERSION + " / Server " + message.getVersion() + ").";
+                        Messages.showErrorDialog(messageError, "PrPi Error - Protocol Version");
+                        logger.error(messageError);
+                    }
+                    ctx.close();
+                }
+            }, host, port));
+
+            // Start the connection attempt.
+            ChannelFuture f = b.connect(host, port).sync();
+
+            f.channel().writeAndFlush(new PrPiMessage<>(true)); // Send a close request to the server
+
+            // Wait until the connection is closed.
+            f.channel().closeFuture().sync();
+        } catch (SSLException | InterruptedException e) {
+            logger.error(e);
+        } finally {
+            workerGroup.shutdownGracefully();
+        }
+        return result[0];
     }
 }

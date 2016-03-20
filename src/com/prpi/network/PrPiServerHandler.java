@@ -1,13 +1,12 @@
 package com.prpi.network;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
-import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.handler.ssl.SslHandler;
+import io.netty.handler.timeout.ReadTimeoutException;
 import io.netty.util.concurrent.GlobalEventExecutor;
 import org.apache.log4j.Logger;
 
@@ -16,7 +15,6 @@ import java.net.InetAddress;
 public class PrPiServerHandler extends SimpleChannelInboundHandler<String> {
 
     static final ChannelGroup channels = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
-    static final Gson gson = new Gson();
     private static final Logger logger = Logger.getLogger(PrPiServerHandler.class);
 
     @Override
@@ -31,9 +29,9 @@ public class PrPiServerHandler extends SimpleChannelInboundHandler<String> {
                                     ctx.pipeline().get(SslHandler.class).engine().getSession().getCipherSuite() +
                                     " cipher suite."
                     );
-                    String json = gson.toJson(response);
+                    String json = response.toJson();
                     logger.trace("Server send this message to the cleint : " + json);
-                    ctx.writeAndFlush(json + "\n");
+                    ctx.writeAndFlush(json);
 
                     channels.add(ctx.channel());
                 });
@@ -46,7 +44,7 @@ public class PrPiServerHandler extends SimpleChannelInboundHandler<String> {
 
         // Build result message
         try {
-            PrPiMessage message = gson.fromJson(json, PrPiMessage.class);
+            PrPiMessage message = PrPiMessage.jsonToPrPiMessage(json);
 
             if (message.getVersion().equals(PrPiServer.PROTOCOL_PRPI_VERSION)) {
                 if (message.isCloseConnection()) {
@@ -80,8 +78,8 @@ public class PrPiServerHandler extends SimpleChannelInboundHandler<String> {
     }
 
     @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-        logger.error("Error in server handler when reseive a new message", cause);
-        ctx.close();
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        logger.error("Error in server handler", cause);
+        super.exceptionCaught(ctx, cause);
     }
 }

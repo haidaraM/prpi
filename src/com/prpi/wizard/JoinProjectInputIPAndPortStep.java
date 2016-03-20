@@ -3,11 +3,15 @@ package com.prpi.wizard;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.ui.Messages;
+import com.prpi.network.PrPiClient;
 import com.prpi.network.PrPiServer;
 import org.apache.log4j.Logger;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.net.InetAddress;
 
@@ -18,6 +22,7 @@ public class JoinProjectInputIPAndPortStep extends ModuleWizardStep {
 
     private JTextField ipTextField = new JTextField();
     private JTextField portTextField = new JTextField(Integer.toString(PrPiServer.DEFAULT_PORT));
+    private JLabel connectionResultTextField = new JLabel();
 
     @Override
     public JComponent getComponent() {
@@ -25,11 +30,6 @@ public class JoinProjectInputIPAndPortStep extends ModuleWizardStep {
         mainPanel.add(createIpAndPortLayout(), BorderLayout.NORTH);
 
         return mainPanel;
-    }
-
-    @Override
-    public void updateDataModel() {
-
     }
 
     private JComponent createIpAndPortLayout() {
@@ -49,32 +49,99 @@ public class JoinProjectInputIPAndPortStep extends ModuleWizardStep {
 
         panel.add(ipPanel);
         panel.add(portPanel);
+        panel.add(createTestConnectionButton());
 
         return panel;
     }
 
+    private JComponent createTestConnectionButton() {
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+
+        JButton testConnectionButton = new JButton("Test connection");
+        testConnectionButton.addActionListener(new TestConnectionActionListener());
+
+        panel.add(testConnectionButton);
+        panel.add(connectionResultTextField);
+
+        return panel;
+    }
+
+    private class TestConnectionActionListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+
+            connectionResultTextField.setForeground(Color.BLACK);
+            connectionResultTextField.setText("Processing...");
+
+            boolean couldConnect = false;
+
+            String ipAddress = checkAndGetHostnameImput();
+            int port = checkAndGetPortImput();
+            if (ipAddress != null && port != 0) {
+                couldConnect = PrPiClient.testConnection(ipAddress, port);
+            }
+
+            String msgText;
+            Color color;
+            logger.debug("Connection status : " + couldConnect);
+            if (couldConnect) {
+                msgText = "Connection working!";
+                color = Color.GREEN;
+            } else {
+                msgText = String.format("Could not reach %s:%d", ipAddress, port);
+                color = Color.RED;
+            }
+
+            connectionResultTextField.setText(msgText);
+            connectionResultTextField.setForeground(color);
+        }
+    }
+
+    @Override
+    public void updateDataModel() {
+
+    }
+
     @Override
     public boolean validate() throws ConfigurationException {
-        boolean validate = false;
-        try {
-            String ipAddress = ipTextField.getText();
-            if (!ipAddress.isEmpty()) {
-                int port = Integer.parseInt(portTextField.getText());
+        return this.checkHostnameAndPortImputs();
+    }
 
-                // TODO make a better check (with port and prpi plugin version)
-                validate = InetAddress.getByName(ipAddress).isReachable(10000);
+    private boolean checkHostnameAndPortImputs() {
+        boolean validate = false;
+        String ipAddress = checkAndGetHostnameImput();
+        if (ipAddress != null) {
+            int port = checkAndGetPortImput();
+            if (port != 0) {
+                validate = true;
                 logger.debug(String.format("Writin ip %s and port %d into module properties", ipAddress, port));
-            } else {
-                Messages.showWarningDialog("No hostname enter!", "PrPi Warning - No Hostname");
             }
-        } catch (NumberFormatException e) {
-            logger.debug(e);
-            Messages.showWarningDialog("The hostname/ip address or port are not correctly formed.", "PrPi Warning - Problem In Host Or Port");
-        } catch (IOException e) {
-            logger.debug(e);
-            Messages.showWarningDialog("The hostname is not reachable.", "PrPi Warning - Host Not Reachable");
         }
         return validate;
     }
 
+    private int checkAndGetPortImput() {
+        int port = 0;
+        try {
+            port = Integer.parseInt(portTextField.getText());
+        } catch (NumberFormatException e) {
+            Messages.showWarningDialog("The port is not correctly formed.", "PrPi Warning - Port Problem");
+        }
+        return port;
+    }
+
+    private @Nullable String checkAndGetHostnameImput() {
+        String ipAddress = ipTextField.getText();
+        try {
+            if (ipAddress.isEmpty() || !InetAddress.getByName(ipAddress).isReachable(10000)) {
+                ipAddress = null;
+                Messages.showWarningDialog("No hostname, or not reachable!", "PrPi Warning - Hostname Problem");
+            }
+        } catch (IOException e) {
+            ipAddress = null;
+            logger.error("Network error", e);
+        }
+        return ipAddress;
+    }
 }

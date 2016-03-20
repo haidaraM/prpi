@@ -1,10 +1,16 @@
 package com.prpi.network;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
+
 public class PrPiMessage<T> {
 
     protected String version;
     protected T message;
     protected boolean closeConnection;
+    protected boolean testConnection;
+
+    private static final Gson gson = new Gson();
 
     public PrPiMessage() {
         this.version = PrPiServer.PROTOCOL_PRPI_VERSION;
@@ -45,5 +51,14 @@ public class PrPiMessage<T> {
 
     public void setCloseConnection(boolean closeConnection) {
         this.closeConnection = closeConnection;
+    }
+
+    public static PrPiMessage jsonToPrPiMessage(String json) throws JsonSyntaxException{
+        return gson.fromJson(json, PrPiMessage.class);
+    }
+
+    public String toJson() {
+        String json = gson.toJson(this);
+        return json + "\n";
     }
 }

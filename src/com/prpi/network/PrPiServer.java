@@ -48,10 +48,6 @@ public class PrPiServer extends Thread {
         EventLoopGroup workerGroup = new NioEventLoopGroup();
 
         try {
-            SelfSignedCertificate ssc = new SelfSignedCertificate();
-
-            SslContext sslCtx = SslContextBuilder.forServer(ssc.certificate(), ssc.privateKey()).build();
-
             ServerBootstrap b = new ServerBootstrap();
 
             b.group(bossGroup, workerGroup);
@@ -60,30 +56,10 @@ public class PrPiServer extends Thread {
 
             b.handler(new LoggingHandler(LogLevel.INFO));
 
-            b.childHandler(new ChannelInitializer<SocketChannel>() {
-                @Override
-                public void initChannel(SocketChannel ch) throws Exception {
-                    ChannelPipeline pipeline = ch.pipeline();
-
-                    // Add SSL handler first to encrypt and decrypt everything.
-                    // In this example, we use a bogus certificate in the server side
-                    // and accept any invalid certificates in the client side.
-                    // You will need something more complicated to identify both
-                    // and server in the real world.
-                    pipeline.addLast(sslCtx.newHandler(ch.alloc()));
-
-                    // On top of the SSL handler, add the text line codec.
-                    pipeline.addLast(new DelimiterBasedFrameDecoder(8192, Delimiters.lineDelimiter()));
-                    pipeline.addLast(new StringDecoder());
-                    pipeline.addLast(new StringEncoder());
-
-                    // and then business logic.
-                    pipeline.addLast(new PrPiServerHandler());
-                }
-            });
+            b.childHandler(new PrPiChannelInitializer(new PrPiServerHandler()));
 
             // Bind and start to accept incoming connections.
-            ChannelFuture f = b.bind(port).sync();
+            ChannelFuture f = b.bind(this.port).sync();
 
             // Wait until the server socket is closed.
             f.channel().closeFuture().sync();
