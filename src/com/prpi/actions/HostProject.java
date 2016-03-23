@@ -14,13 +14,13 @@ public class HostProject extends AnAction {
     public void actionPerformed(AnActionEvent anActionEvent) {
         logger.trace("HostProject actionPerformed called");
         try {
-            PrPiApplicationComponent appPrPi = PrPiApplicationComponent.getPrPiAppComp(anActionEvent);
+            PrPiApplicationComponent appPrPi = PrPiApplicationComponent.getPrPiAppComp(anActionEvent.getProject());
             if (appPrPi.isClient()) {
                 Messages.showWarningDialog(anActionEvent.getProject(), "You are already a client of this remote project, you can't hosting this project!", "PrPi Warning - Host Is Not Allow");
             } else if (appPrPi.isHosting()) {
                 Messages.showWarningDialog(anActionEvent.getProject(), "You already host this project!", "PrPi Warning - Project Already Hosted");
             } else {
-                PrPiServer server = new PrPiServer(PrPiServer.DEFAULT_PORT);
+                PrPiServer server = new PrPiServer(PrPiServer.DEFAULT_PORT, anActionEvent.getProject());
                 server.start();
                 appPrPi.setServerThread(server);
                 logger.debug("Project hosted - Server start");
@@ -35,6 +35,6 @@ public class HostProject extends AnAction {
     @Override
     public void update(AnActionEvent anActionEvent) {
         super.update(anActionEvent);
-        anActionEvent.getPresentation().setEnabled(!PrPiApplicationComponent.getPrPiAppComp(anActionEvent).isHosting());
+        anActionEvent.getPresentation().setEnabled(!PrPiApplicationComponent.getPrPiAppComp(anActionEvent.getProject()).isHosting());
     }
 }

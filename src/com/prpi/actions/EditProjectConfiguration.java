@@ -19,6 +19,6 @@ public class EditProjectConfiguration extends AnAction {
     @Override
     public void update(AnActionEvent anActionEvent) {
         super.update(anActionEvent);
-        anActionEvent.getPresentation().setEnabled(PrPiApplicationComponent.getPrPiAppComp(anActionEvent).isHosting());
+        anActionEvent.getPresentation().setEnabled(PrPiApplicationComponent.getPrPiAppComp(anActionEvent.getProject()).isHosting());
     }
 }

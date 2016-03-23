@@ -1,5 +1,6 @@
 package com.prpi.network;
 
+import com.intellij.openapi.project.Project;
 import io.netty.bootstrap.ServerBootstrap;
 
 import io.netty.channel.ChannelFuture;
@@ -34,12 +35,16 @@ public class PrPiServer extends Thread {
 
     private int port;
 
-    public PrPiServer(int port) {
+    // TODO no public STATIC for this
+    public static Project currentProject;
+
+    public PrPiServer(int port, Project project) {
         this.port = port;
+        PrPiServer.currentProject = project;
     }
 
-    public PrPiServer() {
-        this(DEFAULT_PORT);
+    public PrPiServer(Project project) {
+        this(DEFAULT_PORT, project);
     }
 
     public void run() {

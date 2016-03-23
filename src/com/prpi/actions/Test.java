@@ -21,10 +21,10 @@ public class Test extends AnAction {
         // Permet de tester l'envoie de message depuis le client
         logger.trace("Test actionPerformed begin");
 
-        PrPiApplicationComponent prpiApp = PrPiApplicationComponent.getPrPiAppComp(anActionEvent);
+        PrPiApplicationComponent prpiApp = PrPiApplicationComponent.getPrPiAppComp(anActionEvent.getProject());
 
         if (!prpiApp.isClient()) { // Create client before send a test message
-            String ipAddress = Messages.showInputDialog(anActionEvent.getProject(), "IP ?", "IP", Messages.getQuestionIcon());
+            String ipAddress = Messages.showInputDialog("IP ?", "IP", Messages.getQuestionIcon(), "localhost", null);
             try {
                 PrPiClient client = new PrPiClient(ipAddress, PrPiServer.DEFAULT_PORT);
                 client.start();
@@ -43,6 +43,6 @@ public class Test extends AnAction {
     @Override
     public void update(AnActionEvent anActionEvent) {
         super.update(anActionEvent);
-        anActionEvent.getPresentation().setEnabled(!PrPiApplicationComponent.getPrPiAppComp(anActionEvent).isHosting());
+        // TODO Uncomment this -> anActionEvent.getPresentation().setEnabled(!PrPiApplicationComponent.getPrPiAppComp(anActionEvent.getProject()).isHosting());
     }
 }

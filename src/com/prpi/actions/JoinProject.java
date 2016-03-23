@@ -25,6 +25,6 @@ public class JoinProject extends AnAction {
     @Override
     public void update(AnActionEvent anActionEvent) {
         super.update(anActionEvent);
-        anActionEvent.getPresentation().setEnabled(!PrPiApplicationComponent.getPrPiAppComp(anActionEvent).isClient());
+        anActionEvent.getPresentation().setEnabled(!PrPiApplicationComponent.getPrPiAppComp(anActionEvent.getProject()).isClient());
     }
 }

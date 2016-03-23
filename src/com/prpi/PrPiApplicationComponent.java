@@ -109,8 +109,10 @@ public class PrPiApplicationComponent implements ApplicationComponent {
 
 
     @NotNull
-    public static PrPiApplicationComponent getPrPiAppComp(AnActionEvent anActionEvent) throws NullPointerException {
-        Project project = anActionEvent.getProject();
+    public static PrPiApplicationComponent getPrPiAppComp(@Nullable Project project) throws NullPointerException {
+        if (project == null) {
+            project = PrPiApplicationComponent.getCurrentProject();
+        }
         if (project == null) {
             throw new NullPointerException("No project found.");
         }

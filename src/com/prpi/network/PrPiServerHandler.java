@@ -1,6 +1,7 @@
 package com.prpi.network;
 
 import com.google.gson.JsonSyntaxException;
+import com.intellij.openapi.project.Project;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.group.ChannelGroup;
@@ -9,7 +10,7 @@ import io.netty.handler.ssl.SslHandler;
 import io.netty.util.concurrent.GlobalEventExecutor;
 import org.apache.log4j.Logger;
 
-import java.net.InetAddress;
+import java.nio.file.Paths;
 
 public class PrPiServerHandler extends SimpleChannelInboundHandler<String> {
 
@@ -22,17 +23,42 @@ public class PrPiServerHandler extends SimpleChannelInboundHandler<String> {
         // list so the channel received the messages from others.
         ctx.pipeline().get(SslHandler.class).handshakeFuture().addListener(
                 future -> {
-                    PrPiMessage<String> response = new PrPiMessage<>(
-                            "Welcome to " + InetAddress.getLocalHost().getHostName() + " secure remote project. " +
-                                    "Your session is protected by " +
-                                    ctx.pipeline().get(SslHandler.class).engine().getSession().getCipherSuite() +
-                                    " cipher suite."
-                    );
-                    String json = response.toJson();
-                    logger.trace("Server send this message to the client : " + json);
-                    ctx.writeAndFlush(json);
 
-                    //channels.add(ctx.channel());
+                    Project currentProject = PrPiServer.currentProject;
+                    if (currentProject == null) {
+                        logger.error("Problem in the initialization of the new client, the server hasn't a current project !");
+                    } else {
+
+                        // TODO Send the INIT_PROJECT file tree then all file to the client
+
+                        PrPiMessageFile response = new PrPiMessageFile(Paths.get(currentProject.getBasePath() + "/HelloWorld.iml"), Paths.get(currentProject.getBasePath()));
+                        String json = response.toJson();
+                        logger.debug("Server send this file message to the client : " + json);
+                        ctx.writeAndFlush(json);
+
+//                        try {
+//                            logger.debug("Base Path : " + PrPiServer.currentProject.getBasePath());
+//                            long size = Files.walk(Paths.get(PrPiServer.currentProject.getBasePath())).mapToLong(p -> p.toFile().length() ).sum();
+//                            logger.debug("Project size : " + size + " bytes");
+//                        } catch (NullPointerException e) {
+//                            logger.error(e);
+//                        }
+
+                    }
+
+
+                    /* OLD :
+                        PrPiMessage<String> response = new PrPiMessage<>(
+                                "Welcome to " + InetAddress.getLocalHost().getHostName() + " secure remote project. " +
+                                        "Your session is protected by " +
+                                        ctx.pipeline().get(SslHandler.class).engine().getSession().getCipherSuite() +
+                                        " cipher suite."
+                        );
+                        String json = response.toJson();
+                        logger.debug("Server send this message to the client : " + json);
+                        ctx.writeAndFlush(json);
+                     */
+
                 });
     }
 
@@ -46,8 +72,9 @@ public class PrPiServerHandler extends SimpleChannelInboundHandler<String> {
             PrPiMessage message = PrPiMessage.jsonToPrPiMessage(json);
 
             if (message.getVersion().equals(PrPiServer.PROTOCOL_PRPI_VERSION)) {
-                if (message.isCloseConnection()) {
+                if (message.getTransaction().equals(PrPiTransaction.CLOSE)) {
                     logger.debug("Client left the remote project.");
+                    channels.remove(ctx.channel());
                     ctx.close();
                 }
 
