@@ -1,11 +1,14 @@
 package com.prpi.network;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.lang.reflect.Type;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class PrPiMessage<T> {
@@ -14,6 +17,11 @@ public class PrPiMessage<T> {
      * Version protocol used in this message
      */
     protected String version;
+
+    /**
+     * The class of this object to dynamic cast with children
+     */
+    private String className;
 
     /**
      * The message (String, int, Object ...)
@@ -51,6 +59,7 @@ public class PrPiMessage<T> {
         this.transactionID = PrPiMessage.getNextID();
         this.messageID = 0;
         this.nbMessage = 1;
+        this.className = this.getClass().getName();
     }
 
     public PrPiMessage(@Nullable T message) {
@@ -58,26 +67,26 @@ public class PrPiMessage<T> {
         this.message = message;
     }
 
-    public PrPiMessage(@NotNull PrPiTransaction transactionType) {
+    public PrPiMessage(@Nullable String transactionID, @NotNull PrPiTransaction transactionType, int nbMessage, int messageID) {
         this();
         this.transaction = transactionType;
+        this.transactionID = transactionID;
+        this.messageID = messageID;
+        this.nbMessage = nbMessage;
     }
 
-    public PrPiMessage(@Nullable T message, @NotNull PrPiTransaction transactionType) {
-        this(message);
-        this.transaction = transactionType;
-    }
 
     public String toJson() {
         String json = gson.toJson(this);
         return json + "\n";
     }
 
-    public static PrPiMessage jsonToPrPiMessage(@NotNull String json) throws JsonSyntaxException{
-        return gson.fromJson(json, PrPiMessage.class);
+    public static PrPiMessage jsonToPrPiMessage(@NotNull String json) throws JsonSyntaxException, ClassNotFoundException {
+        JsonObject jsonObject = new JsonParser().parse(json).getAsJsonObject();
+        return (PrPiMessage) gson.fromJson(json, Class.forName(jsonObject.get("className").getAsString()));
     }
 
-    private static @NotNull String getNextID()
+    public static @NotNull String getNextID()
     {
         return String.valueOf(generatorTransactionID.getAndIncrement());
     }
@@ -122,5 +131,18 @@ public class PrPiMessage<T> {
 
     public void setMessageID(int messageID) {
         this.messageID = messageID;
+    }
+
+    @Override
+    public String toString() {
+        return "PrPiMessage{" +
+                "version='" + version + '\'' +
+                ", className=" + className +
+                ", message=" + message +
+                ", transaction=" + transaction +
+                ", transactionID='" + transactionID + '\'' +
+                ", messageID=" + messageID +
+                ", nbMessage=" + nbMessage +
+                '}';
     }
 }

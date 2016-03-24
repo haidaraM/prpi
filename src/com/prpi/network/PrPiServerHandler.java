@@ -31,6 +31,7 @@ public class PrPiServerHandler extends SimpleChannelInboundHandler<String> {
 
                         // TODO Send the INIT_PROJECT file tree then all file to the client
 
+                        //PrPiMessageFile response = new PrPiMessageFile(Paths.get(currentProject.getBasePath() + "/test.txt"), Paths.get(currentProject.getBasePath()));
                         PrPiMessageFile response = new PrPiMessageFile(Paths.get(currentProject.getBasePath() + "/HelloWorld.iml"), Paths.get(currentProject.getBasePath()));
                         String json = response.toJson();
                         logger.debug("Server send this file message to the client : " + json);
@@ -83,7 +84,7 @@ public class PrPiServerHandler extends SimpleChannelInboundHandler<String> {
                 logger.error("Receive message from a client with a different version protocol (Server " + PrPiServer.PROTOCOL_PRPI_VERSION + " / Client " + message.getVersion() + ").");
             }
 
-        } catch (JsonSyntaxException e) {
+        } catch (JsonSyntaxException | ClassNotFoundException e) {
             logger.error("Error when parse the message to the json format.", e);
         }
 

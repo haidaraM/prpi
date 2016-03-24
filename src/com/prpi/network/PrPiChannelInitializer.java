@@ -1,5 +1,6 @@
 package com.prpi.network;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -23,6 +24,8 @@ public class PrPiChannelInitializer extends ChannelInitializer<SocketChannel> {
     private String host;
     private int port;
     private SimpleChannelInboundHandler handler;
+    public static final int maxFrameLength = 8192;
+    public static final ByteBuf[] delimiters = Delimiters.lineDelimiter();
 
     /**
      * Constructor for Server side
@@ -69,7 +72,7 @@ public class PrPiChannelInitializer extends ChannelInitializer<SocketChannel> {
         }
 
         // On top of the SSL handler, add the text line codec.
-        pipeline.addLast("framer", new DelimiterBasedFrameDecoder(8192, Delimiters.lineDelimiter()));
+        pipeline.addLast("framer", new DelimiterBasedFrameDecoder(PrPiChannelInitializer.maxFrameLength, PrPiChannelInitializer.delimiters));
         pipeline.addLast("decoder", new StringDecoder());
         pipeline.addLast("encoder", new StringEncoder());
 
