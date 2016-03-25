@@ -11,6 +11,7 @@ import io.netty.util.concurrent.GlobalEventExecutor;
 import org.apache.log4j.Logger;
 
 import java.nio.file.Paths;
+import java.util.Map;
 
 public class PrPiServerHandler extends SimpleChannelInboundHandler<String> {
 
@@ -31,11 +32,23 @@ public class PrPiServerHandler extends SimpleChannelInboundHandler<String> {
 
                         // TODO Send the INIT_PROJECT file tree then all file to the client
 
-                        //PrPiMessageFile response = new PrPiMessageFile(Paths.get(currentProject.getBasePath() + "/test.txt"), Paths.get(currentProject.getBasePath()));
-                        PrPiMessageFile response = new PrPiMessageFile(Paths.get(currentProject.getBasePath() + "/HelloWorld.iml"), Paths.get(currentProject.getBasePath()));
-                        String json = response.toJson();
-                        logger.debug("Server send this file message to the client : " + json);
-                        ctx.writeAndFlush(json);
+                        // Works for small file ! -->
+                        // Send a single message file
+                        //PrPiMessageFile response = new PrPiMessageFile(Paths.get(currentProject.getBasePath() + "/HelloWorld.iml"), Paths.get(currentProject.getBasePath()));
+                        //String json = response.toJson();
+                        //logger.debug("Server send this file message to the client : " + json);
+                        //ctx.writeAndFlush(json);
+
+                        // Works for all files ! -->
+                        // Send a composed message file
+                        // Too big : PrPiMessageFile response = new PrPiMessageFile(Paths.get(currentProject.getBasePath() + "/test.txt"), Paths.get(currentProject.getBasePath()));
+                        // So :
+                        //Map<Integer, PrPiMessageFile> prPiMessagesFiles = PrPiMessageFile.createPrPiMessageFile(Paths.get(currentProject.getBasePath() + "/test.txt"), Paths.get(currentProject.getBasePath()));
+                        //prPiMessagesFiles.forEach((k,v)->{
+                        //    String json = v.toJson();
+                        //    logger.debug("Server send this file message to the client : " + json);
+                        //    ctx.writeAndFlush(json);
+                        //});
 
 //                        try {
 //                            logger.debug("Base Path : " + PrPiServer.currentProject.getBasePath());

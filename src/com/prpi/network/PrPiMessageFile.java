@@ -1,20 +1,20 @@
 package com.prpi.network;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Base64;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.HashMap;
+import java.util.Map;
 
 public class PrPiMessageFile extends PrPiMessage<String> {
 
@@ -64,6 +64,18 @@ public class PrPiMessageFile extends PrPiMessage<String> {
         this.message = fileDataEncodedBase64;
     }
 
+    public boolean writeFile(Path projectBasePath) {
+        Path path = Paths.get(projectBasePath.toString() + this.pathInProject);
+        byte[] fileData = decodeFileData(this.message);
+        try {
+            Files.write(path, fileData);
+        } catch (IOException e) {
+            logger.error("Impossible to write the new file in this path " + path.toString(), e);
+            return false;
+        }
+        return true;
+    }
+
     /**
      * Create a set of all PrPiMessageFile to send the file, used when a single PrPiMessageFile is too small
      * @param pathToFile
@@ -71,18 +83,18 @@ public class PrPiMessageFile extends PrPiMessage<String> {
      * @return
      * @throws IOException
      */
-    public Set<PrPiMessageFile> createPrPiMessageFile(Path pathToFile, Path projectBasePath) throws IOException {
+    public static Map<Integer, PrPiMessageFile> createPrPiMessageFile(Path pathToFile, Path projectBasePath) throws IOException {
 
         PrPiMessageFile.isReadableAndIsNotDirectory(pathToFile); // Throws FileNotFoundException
         String fileName = pathToFile.getFileName().toString();
         String pathInProject = PrPiMessageFile.getPathToFileInProjectRoot(pathToFile, projectBasePath); // Throws FileNotFoundException
         long fileSize = PrPiMessageFile.getSizeOfFile(pathToFile);
 
-        Set<PrPiMessageFile> allPrPiMessageFileForThisFile = new LinkedHashSet<>();
+        Map<Integer, PrPiMessageFile> allPrPiMessageFileForThisFile = new HashMap<>();
 
         FileInputStream fileInputStream = new FileInputStream(new File(pathToFile.toString()));
 
-        int offset = 0;
+
         byte[] fileData = new byte[PrPiMessageFile.maxSizeFile];
 
         int nbMessage = (int) (fileSize / PrPiMessageFile.maxSizeFile);
@@ -95,36 +107,43 @@ public class PrPiMessageFile extends PrPiMessage<String> {
 
         while (fileSize > PrPiMessageFile.maxSizeFile) {
 
-            if (fileInputStream.read(fileData, offset, PrPiMessageFile.maxSizeFile) != PrPiMessageFile.maxSizeFile) {
+            if (fileInputStream.read(fileData) != PrPiMessageFile.maxSizeFile) {
                 throw new IOException("File is currently changed !");
             }
 
-            offset += PrPiMessageFile.maxSizeFile;
             fileSize -= PrPiMessageFile.maxSizeFile;
 
             PrPiMessageFile segmentedFile = new PrPiMessageFile(transactionID, nbMessage, messageNumber, fileName, pathInProject, PrPiMessageFile.maxSizeFile, encodeFileData(fileData));
+            logger.trace("Get byte from file (" + pathToFile + ") in the message ID : " + messageNumber + " / " + nbMessage);
             messageNumber++;
 
-            allPrPiMessageFileForThisFile.add(segmentedFile);
+            allPrPiMessageFileForThisFile.put(segmentedFile.messageID, segmentedFile);
 
         }
 
         fileData = new byte[(int) fileSize];
-        if (fileInputStream.read(fileData, offset, (int) fileSize) != (int) fileSize) {
+        if (fileInputStream.read(fileData) != (int) fileSize) {
             throw new IOException("File is currently changed !");
         }
 
         PrPiMessageFile segmentedFile = new PrPiMessageFile(transactionID, nbMessage, messageNumber, fileName, pathInProject, PrPiMessageFile.maxSizeFile, encodeFileData(fileData));
-        allPrPiMessageFileForThisFile.add(segmentedFile);
+        logger.trace("Get byte from file (" + pathToFile + ") in the message ID : " + messageNumber + " / " + nbMessage);
+        allPrPiMessageFileForThisFile.put(segmentedFile.messageID, segmentedFile);
 
         return allPrPiMessageFileForThisFile;
     }
 
-    public boolean writeFile(Path projectBasePath) {
-        Path path = Paths.get(projectBasePath.toString() + this.pathInProject);
-        byte[] fileData = decodeFileData(this.message);
+    public static boolean writeFileWithComposedMessages(Path projectBasePath, Map<Integer, PrPiMessageFile> messages) {
+        PrPiMessageFile firstMessage = messages.get(0);
+        Path path = Paths.get(projectBasePath.toString() + firstMessage.pathInProject);
+
         try {
-            Files.write(path, fileData);
+            FileOutputStream fileOutputStream = new FileOutputStream(new File(path.toString()));
+            for (int i = 0; i < firstMessage.nbMessage; i++) {
+                PrPiMessageFile message = messages.get(i);
+                fileOutputStream.write(PrPiMessageFile.decodeFileData(message.message));
+                logger.trace("Put byte in file (" + path + ") with the message ID : " + message.getMessageID() + " / " + (message.getNbMessage() - 1));
+            }
         } catch (IOException e) {
             logger.error("Impossible to write the new file in this path " + path.toString(), e);
             return false;

@@ -14,7 +14,7 @@ import java.util.Set;
 public class PrPiClientHandler extends SimpleChannelInboundHandler<String> {
     private static Logger logger = Logger.getLogger(PrPiClientHandler.class);
 
-    private Map<String, Set<PrPiMessage>> incompletePrPiMessage;
+    private Map<String, Map<Integer, PrPiMessage>> incompletePrPiMessage;
 
     public PrPiClientHandler() {
         super();
@@ -29,7 +29,7 @@ public class PrPiClientHandler extends SimpleChannelInboundHandler<String> {
         logger.debug("Message : " + message);
         if (message.getVersion().equals(PrPiServer.PROTOCOL_PRPI_VERSION)) {
             if (message.nbMessage > 1) {
-                Set<PrPiMessage> composedPrPiMessage = this.addNewIncompletePrPiMessage(message);
+                Map<Integer, PrPiMessage> composedPrPiMessage = this.addNewIncompletePrPiMessage(message);
                 if (composedPrPiMessage != null) {
                     logger.debug("Processing a composed message ...");
                     this.processMessage(ctx, composedPrPiMessage);
@@ -52,18 +52,18 @@ public class PrPiClientHandler extends SimpleChannelInboundHandler<String> {
         super.exceptionCaught(ctx, cause);
     }
 
-    private @Nullable Set<PrPiMessage> addNewIncompletePrPiMessage(PrPiMessage message) {
+    private @Nullable Map<Integer, PrPiMessage> addNewIncompletePrPiMessage(PrPiMessage message) {
 
         if (this.incompletePrPiMessage.containsKey(message.getTransactionID())) {
-            Set<PrPiMessage> waitingPrPiMessage = this.incompletePrPiMessage.get(message.getTransactionID());
-            waitingPrPiMessage.add(message);
+            Map<Integer, PrPiMessage> waitingPrPiMessage = this.incompletePrPiMessage.get(message.getTransactionID());
+            waitingPrPiMessage.put(message.messageID, message);
             if (waitingPrPiMessage.size() == message.nbMessage) {
                 this.incompletePrPiMessage.remove(message.getTransactionID());
                 return waitingPrPiMessage;
             }
         } else {
-            Set<PrPiMessage> waitingPrPiMessage = new HashSet<>();
-            waitingPrPiMessage.add(message);
+            Map<Integer, PrPiMessage> waitingPrPiMessage = new HashMap<>();
+            waitingPrPiMessage.put(message.messageID, message);
             this.incompletePrPiMessage.put(message.getTransactionID(), waitingPrPiMessage);
         }
         return null;
@@ -81,7 +81,7 @@ public class PrPiClientHandler extends SimpleChannelInboundHandler<String> {
             case FILE_TRANSFERT:
                 logger.debug("File message from the server.");
                 PrPiMessageFile messageFile = (PrPiMessageFile) message;
-                // logger.debug("File write status : " + messageFile.writeFile(Paths.get("/tmp")));
+                logger.debug("File write status : " + messageFile.writeFile(Paths.get("/tmp")));
                 break;
 
             case SIMPLE_MESSAGE:
@@ -92,10 +92,29 @@ public class PrPiClientHandler extends SimpleChannelInboundHandler<String> {
                 // TODO
                 logger.debug("Init message from the server.");
                 break;
+
+            default:
+                logger.debug("Impossible to process this message, transaction unknown.");
+                break;
         }
     }
 
-    private void processMessage(ChannelHandlerContext ctx, Set<PrPiMessage> messages) {
-        // TODO
+    private void processMessage(ChannelHandlerContext ctx, Map<Integer, PrPiMessage> messages) {
+        PrPiMessage firstMessage = messages.get(0);
+        switch (firstMessage.getTransaction()) {
+
+            case FILE_TRANSFERT:
+                logger.debug("Porcess a composed file message ...");
+
+                // TODO Do this more properly !
+                @SuppressWarnings("unchecked")
+                Map<Integer, PrPiMessageFile> messagesFile = (Map) messages;
+                logger.debug("File write status : " + PrPiMessageFile.writeFileWithComposedMessages(Paths.get("/tmp"), messagesFile));
+                break;
+
+            default:
+                logger.debug("Impossible to process this composed message, transaction unknown.");
+                break;
+        }
     }
 }
