@@ -1,12 +1,14 @@
 package com.prpi.network;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.DelimiterBasedFrameDecoder;
 import io.netty.handler.codec.Delimiters;
+import io.netty.handler.codec.json.JsonObjectDecoder;
 import io.netty.handler.codec.string.StringDecoder;
 import io.netty.handler.codec.string.StringEncoder;
 import io.netty.handler.ssl.SslContext;
@@ -25,15 +27,7 @@ public class PrPiChannelInitializer extends ChannelInitializer<SocketChannel> {
     private int port;
     private SimpleChannelInboundHandler handler;
 
-    /*
-     * Unused -> see comment in initChannel method
-     */
-    public static final int maxFrameLength = 8192;
-
-    /*
-     * Unused -> see comment in initChannel method
-     */
-    public static final ByteBuf[] delimiters = Delimiters.lineDelimiter();
+    public static final int maxFrameLength = 1048576;
 
     /**
      * Constructor for Server side
@@ -80,7 +74,7 @@ public class PrPiChannelInitializer extends ChannelInitializer<SocketChannel> {
         }
 
         // On top of the SSL handler, add the text line codec.
-        // Useless ?? -> pipeline.addLast("framer", new DelimiterBasedFrameDecoder(PrPiChannelInitializer.maxFrameLength, PrPiChannelInitializer.delimiters));
+        pipeline.addLast("framer", new JsonObjectDecoder(PrPiChannelInitializer.maxFrameLength));
         pipeline.addLast("decoder", new StringDecoder());
         pipeline.addLast("encoder", new StringEncoder());
 
