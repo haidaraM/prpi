@@ -24,7 +24,15 @@ public class PrPiChannelInitializer extends ChannelInitializer<SocketChannel> {
     private String host;
     private int port;
     private SimpleChannelInboundHandler handler;
+
+    /*
+     * Unused -> see comment in initChannel method
+     */
     public static final int maxFrameLength = 8192;
+
+    /*
+     * Unused -> see comment in initChannel method
+     */
     public static final ByteBuf[] delimiters = Delimiters.lineDelimiter();
 
     /**
@@ -72,7 +80,7 @@ public class PrPiChannelInitializer extends ChannelInitializer<SocketChannel> {
         }
 
         // On top of the SSL handler, add the text line codec.
-        pipeline.addLast("framer", new DelimiterBasedFrameDecoder(PrPiChannelInitializer.maxFrameLength, PrPiChannelInitializer.delimiters));
+        // Useless ?? -> pipeline.addLast("framer", new DelimiterBasedFrameDecoder(PrPiChannelInitializer.maxFrameLength, PrPiChannelInitializer.delimiters));
         pipeline.addLast("decoder", new StringDecoder());
         pipeline.addLast("encoder", new StringEncoder());
 

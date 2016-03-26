@@ -23,7 +23,12 @@ public class PrPiMessageFile extends PrPiMessage<String> {
     protected String fileName;
     protected String pathInProject;
     protected long fileSize;
-    private static int maxSizeFile = PrPiChannelInitializer.maxFrameLength/2;
+
+    /**
+     * When a file is greater than this size (in bytes), the file is cut in multiple messages (when use create method)
+     * or throw an exception (when use constructor)
+     */
+    private static int maxSizePerMessage = PrPiChannelInitializer.maxFrameLength;
 
     private static final Logger logger = Logger.getLogger(PrPiMessageFile.class);
 
@@ -42,7 +47,7 @@ public class PrPiMessageFile extends PrPiMessage<String> {
         this.pathInProject = PrPiMessageFile.getPathToFileInProjectRoot(pathToFile, projectBasePath); // Throws FileNotFoundException
         // By security, we need to add the json informations with data,
         // so in reality they are more than this.fileSize byte in the final message
-        this.fileSize = PrPiMessageFile.getSizeOfFile(pathToFile, PrPiMessageFile.maxSizeFile); // Throws IOException, OutOfMemoryError
+        this.fileSize = PrPiMessageFile.getSizeOfFile(pathToFile, PrPiMessageFile.maxSizePerMessage); // Throws IOException, OutOfMemoryError
         this.message = getFileDataEncoded(pathToFile);  // Throws IOException, OutOfMemoryError
     }
 
@@ -96,26 +101,26 @@ public class PrPiMessageFile extends PrPiMessage<String> {
         FileInputStream fileInputStream = new FileInputStream(new File(pathToFile.toString()));
 
 
-        byte[] fileData = new byte[PrPiMessageFile.maxSizeFile];
+        byte[] fileData = new byte[PrPiMessageFile.maxSizePerMessage];
 
-        int nbMessage = (int) (fileSize / PrPiMessageFile.maxSizeFile);
-        if (fileSize % PrPiMessageFile.maxSizeFile != 0) {
+        int nbMessage = (int) (fileSize / PrPiMessageFile.maxSizePerMessage);
+        if (fileSize % PrPiMessageFile.maxSizePerMessage != 0) {
             nbMessage++;
         }
         int messageNumber = 0;
 
         String transactionID = PrPiMessage.getNextID();
 
-        while (fileSize > PrPiMessageFile.maxSizeFile) {
+        while (fileSize > PrPiMessageFile.maxSizePerMessage) {
 
-            if (fileInputStream.read(fileData) != PrPiMessageFile.maxSizeFile) {
+            if (fileInputStream.read(fileData) != PrPiMessageFile.maxSizePerMessage) {
                 throw new IOException("File is currently changed !");
             }
 
-            fileSize -= PrPiMessageFile.maxSizeFile;
+            fileSize -= PrPiMessageFile.maxSizePerMessage;
 
-            PrPiMessageFile segmentedFile = new PrPiMessageFile(transactionID, nbMessage, messageNumber, fileName, pathInProject, PrPiMessageFile.maxSizeFile, encodeFileData(fileData));
-            logger.trace("Get byte from file (" + pathToFile + ") in the message ID : " + (messageNumber+1) + " / " + nbMessage);
+            PrPiMessageFile segmentedFile = new PrPiMessageFile(transactionID, nbMessage, messageNumber, fileName, pathInProject, PrPiMessageFile.maxSizePerMessage, encodeFileData(fileData));
+            logger.trace("Get byte from file (" + pathToFile + ") in the message ID : " + messageNumber + " (" + (messageNumber+1) + " / " + nbMessage + ")");
             messageNumber++;
 
             allPrPiMessageFileForThisFile.put(segmentedFile.messageID, segmentedFile);
@@ -127,8 +132,8 @@ public class PrPiMessageFile extends PrPiMessage<String> {
             throw new IOException("File is currently changed !");
         }
 
-        PrPiMessageFile segmentedFile = new PrPiMessageFile(transactionID, nbMessage, messageNumber, fileName, pathInProject, PrPiMessageFile.maxSizeFile, encodeFileData(fileData));
-        logger.trace("Get byte from file (" + pathToFile + ") in the message ID : " + messageNumber + " / " + nbMessage);
+        PrPiMessageFile segmentedFile = new PrPiMessageFile(transactionID, nbMessage, messageNumber, fileName, pathInProject, PrPiMessageFile.maxSizePerMessage, encodeFileData(fileData));
+        logger.trace("Get byte from file (" + pathToFile + ") in the message ID : " + messageNumber + " (" + (messageNumber+1) + " / " + nbMessage + ")");
         allPrPiMessageFileForThisFile.put(segmentedFile.messageID, segmentedFile);
 
         return allPrPiMessageFileForThisFile;
@@ -163,7 +168,7 @@ public class PrPiMessageFile extends PrPiMessage<String> {
             for (int i = 0; i < firstMessage.nbMessage; i++) {
                 PrPiMessageFile message = messages.get(i);
                 fileOutputStream.write(PrPiMessageFile.decodeFileData(message.message));
-                logger.trace("Put byte in file (" + path + ") with the message ID : " + (message.getMessageID()+1) + " / " + message.getNbMessage());
+                logger.trace("Put byte in file (" + path + ") with the message ID : " + message.getMessageID() + " (" + (message.getMessageID()+1) + " / " + message.getNbMessage() + ")");
             }
         } catch (IOException e) {
             logger.error("Impossible to write the new file in this path " + path.toString(), e);

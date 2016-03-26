@@ -53,13 +53,13 @@ public class PrPiServerHandler extends SimpleChannelInboundHandler<String> {
 //                            ctx.writeAndFlush(json);
 //                        });
 
-
-                        Path projectDirectory = Paths.get(PrPiServer.currentProject.getBasePath());
-                        Set<Map<Integer, PrPiMessageFile>> allFilesMessages = PrPiMessageFile.createFromDirectory(projectDirectory, projectDirectory);
-                        PrPiMessage<String> response = new PrPiMessage<>("Number of files : " + allFilesMessages.size());
-                        String json = response.toJson();
-                        logger.debug("Server send this file message to the client : " + json);
-                        ctx.writeAndFlush(json);
+                        // Works in progress -> Make th project init
+//                        Path projectDirectory = Paths.get(PrPiServer.currentProject.getBasePath());
+//                        Set<Map<Integer, PrPiMessageFile>> allFilesMessages = PrPiMessageFile.createFromDirectory(projectDirectory, projectDirectory);
+//                        PrPiMessage<String> response = new PrPiMessage<>("Number of files : " + allFilesMessages.size());
+//                        String json = response.toJson();
+//                        logger.debug("Server send this file message to the client : " + json);
+//                        ctx.writeAndFlush(json);
 
 //                        try {
 //                            logger.debug("Base Path : " + PrPiServer.currentProject.getBasePath());
