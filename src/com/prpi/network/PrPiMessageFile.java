@@ -22,13 +22,13 @@ public class PrPiMessageFile extends PrPiMessage<String> {
 
     protected String fileName;
     protected String pathInProject;
-    protected long fileSize;
+    protected int fileSize;
 
     /**
      * When a file is greater than this size (in bytes), the file is cut in multiple messages (when use create method)
      * or throw an exception (when use constructor)
      */
-    private static int maxSizePerMessage = PrPiChannelInitializer.maxFrameLength;
+    private static int maxSizePerMessage = PrPiChannelInitializer.maxFrameLength - 20000;
 
     private static final Logger logger = Logger.getLogger(PrPiMessageFile.class);
 
@@ -62,7 +62,7 @@ public class PrPiMessageFile extends PrPiMessage<String> {
      * @param fileSize
      * @param fileDataEncodedBase64
      */
-    private PrPiMessageFile(@NotNull String transactionID, int nbMessage, int messageID, @NotNull String fileName, @NotNull String pathInProject, long fileSize, @NotNull String fileDataEncodedBase64) {
+    private PrPiMessageFile(@NotNull String transactionID, int nbMessage, int messageID, @NotNull String fileName, @NotNull String pathInProject, int fileSize, @NotNull String fileDataEncodedBase64) {
         super(transactionID, PrPiTransaction.FILE_TRANSFERT, nbMessage, messageID);
         this.fileName = fileName;
         this.pathInProject = pathInProject;
@@ -71,12 +71,14 @@ public class PrPiMessageFile extends PrPiMessage<String> {
     }
 
     public boolean writeFile(Path projectBasePath) {
-        Path path = Paths.get(projectBasePath.toString() + this.pathInProject);
+        Path pathToFile = Paths.get(projectBasePath.toString() + this.pathInProject);
+        Path pathToParentDirectory = pathToFile.getParent();
         byte[] fileData = decodeFileData(this.message);
         try {
-            Files.write(path, fileData);
+            Files.createDirectories(pathToParentDirectory);
+            Files.write(pathToFile, fileData);
         } catch (IOException e) {
-            logger.error("Impossible to write the new file in this path " + path.toString(), e);
+            logger.error("Impossible to write the new file in this path " + pathToFile.toString(), e);
             return false;
         }
         return true;
@@ -94,14 +96,11 @@ public class PrPiMessageFile extends PrPiMessage<String> {
         PrPiMessageFile.isReadableAndIsNotDirectory(pathToFile); // Throws FileNotFoundException
         String fileName = pathToFile.getFileName().toString();
         String pathInProject = PrPiMessageFile.getPathToFileInProjectRoot(pathToFile, projectBasePath); // Throws FileNotFoundException
-        long fileSize = PrPiMessageFile.getSizeOfFile(pathToFile);
-
+        int fileSize = PrPiMessageFile.getSizeOfFile(pathToFile);
+        logger.debug("Size of file " + pathToFile + " is " + fileSize);
         Map<Integer, PrPiMessageFile> allPrPiMessageFileForThisFile = new HashMap<>();
 
         FileInputStream fileInputStream = new FileInputStream(new File(pathToFile.toString()));
-
-
-        byte[] fileData = new byte[PrPiMessageFile.maxSizePerMessage];
 
         int nbMessage = (int) (fileSize / PrPiMessageFile.maxSizePerMessage);
         if (fileSize % PrPiMessageFile.maxSizePerMessage != 0) {
@@ -109,9 +108,12 @@ public class PrPiMessageFile extends PrPiMessage<String> {
         }
         int messageNumber = 0;
 
+        byte[] fileData;
         String transactionID = PrPiMessage.getNextID();
 
         while (fileSize > PrPiMessageFile.maxSizePerMessage) {
+
+            fileData = new byte[PrPiMessageFile.maxSizePerMessage];
 
             if (fileInputStream.read(fileData) != PrPiMessageFile.maxSizePerMessage) {
                 throw new IOException("File is currently changed !");
@@ -127,12 +129,12 @@ public class PrPiMessageFile extends PrPiMessage<String> {
 
         }
 
-        fileData = new byte[(int) fileSize];
-        if (fileInputStream.read(fileData) != (int) fileSize) {
+        fileData = new byte[fileSize];
+        if (fileInputStream.read(fileData) != fileSize) {
             throw new IOException("File is currently changed !");
         }
 
-        PrPiMessageFile segmentedFile = new PrPiMessageFile(transactionID, nbMessage, messageNumber, fileName, pathInProject, PrPiMessageFile.maxSizePerMessage, encodeFileData(fileData));
+        PrPiMessageFile segmentedFile = new PrPiMessageFile(transactionID, nbMessage, messageNumber, fileName, pathInProject, fileSize, encodeFileData(fileData));
         logger.trace("Get byte from file (" + pathToFile + ") in the message ID : " + messageNumber + " (" + (messageNumber+1) + " / " + nbMessage + ")");
         allPrPiMessageFileForThisFile.put(segmentedFile.messageID, segmentedFile);
 
@@ -161,17 +163,18 @@ public class PrPiMessageFile extends PrPiMessage<String> {
 
     public static boolean writeFromMessages(Path projectBasePath, Map<Integer, PrPiMessageFile> messages) {
         PrPiMessageFile firstMessage = messages.get(0);
-        Path path = Paths.get(projectBasePath.toString() + firstMessage.pathInProject);
-
+        Path pathToFile = Paths.get(projectBasePath.toString() + firstMessage.pathInProject);
+        Path pathToParentDirectory = pathToFile.getParent();
         try {
-            FileOutputStream fileOutputStream = new FileOutputStream(new File(path.toString()));
+            Files.createDirectories(pathToParentDirectory);
+            FileOutputStream fileOutputStream = new FileOutputStream(new File(pathToFile.toString()));
             for (int i = 0; i < firstMessage.nbMessage; i++) {
                 PrPiMessageFile message = messages.get(i);
                 fileOutputStream.write(PrPiMessageFile.decodeFileData(message.message));
-                logger.trace("Put byte in file (" + path + ") with the message ID : " + message.getMessageID() + " (" + (message.getMessageID()+1) + " / " + message.getNbMessage() + ")");
+                logger.trace("Put byte in file (" + pathToFile + ") with the message ID : " + message.getMessageID() + " (" + (message.getMessageID()+1) + " / " + message.getNbMessage() + ")");
             }
         } catch (IOException e) {
-            logger.error("Impossible to write the new file in this path " + path.toString(), e);
+            logger.error("Impossible to write the new file in this path " + pathToFile.toString(), e);
             return false;
         }
         return true;
@@ -203,16 +206,18 @@ public class PrPiMessageFile extends PrPiMessage<String> {
         }
     }
 
-    private static long getSizeOfFile(Path pathToFile) throws IOException {
-        return Files.size(pathToFile);
+    private static int getSizeOfFile(Path pathToFile) throws IOException {
+        return PrPiMessageFile.getSizeOfFile(pathToFile, Integer.MAX_VALUE);
     }
 
-    private static long getSizeOfFile(Path pathToFile, int maxSize) throws IOException, OutOfMemoryError {
-        long size = PrPiMessageFile.getSizeOfFile(pathToFile);
+    private static int getSizeOfFile(Path pathToFile, int maxSize) throws IOException, OutOfMemoryError {
+        long size = Files.size(pathToFile);
         if (size > maxSize) {
             throw new OutOfMemoryError("The file is too big (" + size + ", max is " + maxSize + ") ! File : " + pathToFile.toString());
+        } else if (size >  Integer.MAX_VALUE) {
+            throw new OutOfMemoryError("The file is too big (" + size + ", max is " + Integer.MAX_VALUE + " (the integer max value)) ! File : " + pathToFile.toString());
         }
-        return size;
+        return (int) size;
     }
 
     private static String getFileDataEncoded(Path pathToFile) throws IOException, OutOfMemoryError {

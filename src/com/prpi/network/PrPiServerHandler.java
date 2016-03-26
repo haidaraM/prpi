@@ -18,8 +18,15 @@ import java.util.Set;
 
 public class PrPiServerHandler extends SimpleChannelInboundHandler<String> {
 
-    static final ChannelGroup channels = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
+    private static final ChannelGroup channels = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
     private static final Logger logger = Logger.getLogger(PrPiServerHandler.class);
+
+    protected Project currentProject;
+
+    public PrPiServerHandler(Project currentProject) {
+        super();
+        this.currentProject = currentProject;
+    }
 
     @Override
     public void channelActive(final ChannelHandlerContext ctx) {
@@ -28,7 +35,7 @@ public class PrPiServerHandler extends SimpleChannelInboundHandler<String> {
         ctx.pipeline().get(SslHandler.class).handshakeFuture().addListener(
                 future -> {
 
-                    Project currentProject = PrPiServer.currentProject;
+                    Project currentProject = this.currentProject;
                     if (currentProject == null) {
                         logger.error("Problem in the initialization of the new client, the server hasn't a current project !");
                     } else {
@@ -54,12 +61,13 @@ public class PrPiServerHandler extends SimpleChannelInboundHandler<String> {
 //                        });
 
                         // Works in progress -> Make th project init
-//                        Path projectDirectory = Paths.get(PrPiServer.currentProject.getBasePath());
-//                        Set<Map<Integer, PrPiMessageFile>> allFilesMessages = PrPiMessageFile.createFromDirectory(projectDirectory, projectDirectory);
-//                        PrPiMessage<String> response = new PrPiMessage<>("Number of files : " + allFilesMessages.size());
-//                        String json = response.toJson();
-//                        logger.debug("Server send this file message to the client : " + json);
-//                        ctx.writeAndFlush(json);
+                        Path projectDirectory = Paths.get(currentProject.getBasePath());
+                        Set<Map<Integer, PrPiMessageFile>> allFilesMessages = PrPiMessageFile.createFromDirectory(projectDirectory, projectDirectory);
+                        allFilesMessages.forEach(s->s.forEach((k, v)->{
+                            String json = v.toJson();
+                            logger.debug("Server send this file message to the client : " + json);
+                            ctx.writeAndFlush(json);
+                        }));
 
 //                        try {
 //                            logger.debug("Base Path : " + PrPiServer.currentProject.getBasePath());
@@ -99,7 +107,7 @@ public class PrPiServerHandler extends SimpleChannelInboundHandler<String> {
             if (message.getVersion().equals(PrPiServer.PROTOCOL_PRPI_VERSION)) {
                 if (message.getTransaction().equals(PrPiTransaction.CLOSE)) {
                     logger.debug("Client left the remote project.");
-                    channels.remove(ctx.channel());
+                    //channels.remove(ctx.channel());
                     ctx.close();
                 }
 

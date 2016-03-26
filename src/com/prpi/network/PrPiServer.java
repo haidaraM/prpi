@@ -35,12 +35,11 @@ public class PrPiServer extends Thread {
 
     private int port;
 
-    // TODO no public STATIC for this
-    public static Project currentProject;
+    protected Project currentProject;
 
     public PrPiServer(int port, Project project) {
         this.port = port;
-        PrPiServer.currentProject = project;
+        this.currentProject = project;
     }
 
     public PrPiServer(Project project) {
@@ -61,7 +60,7 @@ public class PrPiServer extends Thread {
 
             b.handler(new LoggingHandler(LogLevel.INFO));
 
-            b.childHandler(new PrPiChannelInitializer(new PrPiServerHandler()));
+            b.childHandler(new PrPiChannelInitializer(new PrPiServerHandler(this.currentProject)));
 
             // Bind and start to accept incoming connections.
             ChannelFuture f = b.bind(this.port).sync();

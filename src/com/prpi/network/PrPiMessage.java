@@ -85,7 +85,7 @@ public class PrPiMessage<T> {
 
     public String toJson() {
         String json = gson.toJson(this);
-        return json + "\n";
+        return json + '\n';
     }
 
     public static PrPiMessage jsonToPrPiMessage(@NotNull String json) throws JsonSyntaxException, ClassNotFoundException {

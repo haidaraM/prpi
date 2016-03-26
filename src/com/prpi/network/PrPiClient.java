@@ -56,7 +56,7 @@ public class PrPiClient extends Thread {
             for (;;) {
 
                 String message = this.getMessageToSend();
-                logger.trace("Client get a new emssage to send");
+                logger.trace("Client get a new message to send");
 
                 // Sends the received line to the server.
                 lastWriteFuture = ch.writeAndFlush(message);

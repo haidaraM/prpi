@@ -1,5 +1,6 @@
 package com.prpi.network;
 
+import com.google.gson.JsonSyntaxException;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import org.apache.log4j.Logger;
@@ -23,7 +24,13 @@ public class PrPiClientHandler extends SimpleChannelInboundHandler<String> {
     public void channelRead0(ChannelHandlerContext ctx, String json) throws Exception {
         logger.trace("Client reseive a new message");
 
-        PrPiMessage message = PrPiMessage.jsonToPrPiMessage(json);
+        PrPiMessage message;
+        try {
+            message = PrPiMessage.jsonToPrPiMessage(json);
+        } catch (JsonSyntaxException e) {
+            logger.error("Problem during convertion Json to Object, the json : " + json, e);
+            throw e;
+        }
         logger.debug("Message : " + message);
         if (message.getVersion().equals(PrPiServer.PROTOCOL_PRPI_VERSION)) {
             if (message.nbMessage > 1) {
@@ -79,7 +86,7 @@ public class PrPiClientHandler extends SimpleChannelInboundHandler<String> {
             case FILE_TRANSFERT:
                 logger.debug("File message from the server.");
                 PrPiMessageFile messageFile = (PrPiMessageFile) message;
-                logger.debug("File write status : " + messageFile.writeFile(Paths.get("/tmp")));
+                logger.debug("File write status : " + messageFile.writeFile(Paths.get("/tmp/project")));
                 break;
 
             case SIMPLE_MESSAGE:
@@ -106,7 +113,7 @@ public class PrPiClientHandler extends SimpleChannelInboundHandler<String> {
                 // TODO Do this more properly !
                 @SuppressWarnings("unchecked")
                 Map<Integer, PrPiMessageFile> messagesFile = (Map) messages;
-                logger.debug("File write status : " + PrPiMessageFile.writeFromMessages(Paths.get("/tmp"), messagesFile));
+                logger.debug("File write status : " + PrPiMessageFile.writeFromMessages(Paths.get("/tmp/project"), messagesFile));
                 break;
 
             default:
