@@ -8,7 +8,6 @@ import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.lang.reflect.Type;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class PrPiMessage<T> {
@@ -52,29 +51,37 @@ public class PrPiMessage<T> {
     private static final Gson gson = new Gson();
     private static final Logger logger = Logger.getLogger(PrPiMessage.class);
 
-    public PrPiMessage() {
+    private PrPiMessage() {
         this.version = PrPiServer.PROTOCOL_PRPI_VERSION;
         this.message = null;
         this.transaction = PrPiTransaction.SIMPLE_MESSAGE;
-        this.transactionID = PrPiMessage.getNextID();
+        this.transactionID = null;
         this.messageID = 0;
         this.nbMessage = 1;
         this.className = this.getClass().getName();
     }
 
-    public PrPiMessage(@Nullable T message) {
+    protected PrPiMessage(boolean genTransactionId, String transactionID) {
         this();
+        if (genTransactionId || transactionID == null) {
+            this.transactionID = PrPiMessage.getNextID();
+        } else {
+            this.transactionID = transactionID;
+        }
+
+    }
+
+    public PrPiMessage(@Nullable T message) {
+        this(true, null);
         this.message = message;
     }
 
     public PrPiMessage(@Nullable String transactionID, @NotNull PrPiTransaction transactionType, int nbMessage, int messageID) {
-        this();
+        this(false, transactionID);
         this.transaction = transactionType;
-        this.transactionID = transactionID;
         this.messageID = messageID;
         this.nbMessage = nbMessage;
     }
-
 
     public String toJson() {
         String json = gson.toJson(this);

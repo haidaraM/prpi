@@ -7,9 +7,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Paths;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 public class PrPiClientHandler extends SimpleChannelInboundHandler<String> {
     private static Logger logger = Logger.getLogger(PrPiClientHandler.class);
@@ -89,8 +87,7 @@ public class PrPiClientHandler extends SimpleChannelInboundHandler<String> {
                 break;
 
             case INIT_PROJECT:
-                // TODO
-                logger.debug("Init message from the server.");
+                logger.debug("Init message from the server : " + message);
                 break;
 
             default:
@@ -109,7 +106,7 @@ public class PrPiClientHandler extends SimpleChannelInboundHandler<String> {
                 // TODO Do this more properly !
                 @SuppressWarnings("unchecked")
                 Map<Integer, PrPiMessageFile> messagesFile = (Map) messages;
-                logger.debug("File write status : " + PrPiMessageFile.writeFileWithComposedMessages(Paths.get("/tmp"), messagesFile));
+                logger.debug("File write status : " + PrPiMessageFile.writeFromMessages(Paths.get("/tmp"), messagesFile));
                 break;
 
             default:
