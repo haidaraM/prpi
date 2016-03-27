@@ -100,7 +100,6 @@ public class PrPiServerHandler extends SimpleChannelInboundHandler<String> {
                         logger.debug("Server send this message to the client : " + json);
                         ctx.writeAndFlush(json);
                      */
-
                 });
     }
 

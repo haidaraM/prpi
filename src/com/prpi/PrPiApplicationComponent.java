@@ -53,10 +53,10 @@ public class PrPiApplicationComponent implements ApplicationComponent {
     public void disposeComponent() {
         // TODO: insert component disposal logic here
         if (this.isClient()) {
-            // TODO this.clientThread.closeConnectionAndStop();
+            this.clientThread.closeConnection();
         }
         if (this.isHosting()) {
-            // TODO this.serverThread.closeConnectionAndStop();
+            this.serverThread.closeConnection();
         }
     }
 

@@ -3,6 +3,7 @@ package com.prpi.network;
 import com.intellij.openapi.project.Project;
 import io.netty.bootstrap.ServerBootstrap;
 
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
@@ -34,12 +35,14 @@ public class PrPiServer extends Thread {
     private static final Logger logger = Logger.getLogger(PrPiServerHandler.class);
 
     private int port;
+    private Channel channel;
 
     protected Project currentProject;
 
     public PrPiServer(int port, Project project) {
         this.port = port;
         this.currentProject = project;
+        this.channel = null;
     }
 
     public PrPiServer(Project project) {
@@ -65,13 +68,26 @@ public class PrPiServer extends Thread {
             // Bind and start to accept incoming connections.
             ChannelFuture f = b.bind(this.port).sync();
 
+            this.channel = f.channel();
+
             // Wait until the server socket is closed.
-            f.channel().closeFuture().sync();
+            this.channel.closeFuture().sync();
         } catch (CertificateException | InterruptedException | SSLException e) {
             logger.error(e.getStackTrace());
         } finally {
             workerGroup.shutdownGracefully();
             bossGroup.shutdownGracefully();
+            this.notify();
         }
+    }
+
+    public void closeConnection() {
+        this.channel.close();
+        try {
+            this.wait();
+        } catch (InterruptedException e) {
+            logger.error(e);
+        }
+        logger.debug("Server connections closed");
     }
 }

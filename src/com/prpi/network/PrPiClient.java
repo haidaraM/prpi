@@ -87,6 +87,7 @@ public class PrPiClient extends Thread {
         } catch (InterruptedException e) {
             logger.error(e);
         }
+        logger.debug("Client connection closed");
     }
 
     @Override
