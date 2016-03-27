@@ -10,7 +10,7 @@
     </appender>
 
     <logger name="com.prpi">
-        <level value="trace"/>
+        <level value="debug"/>
     </logger>
 
     <root>

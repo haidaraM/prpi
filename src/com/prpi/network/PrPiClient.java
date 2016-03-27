@@ -25,29 +25,33 @@ public class PrPiClient extends Thread {
     private Queue<String> messages;
     private static final Logger logger = Logger.getLogger(PrPiClient.class);
     private Project currentProject;
+    private EventLoopGroup group;
+    private Channel channel;
+
 
     public PrPiClient(String host, int port) {
         this.host = host;
         this.port = port;
         this.messages = new LinkedList<>();
         this.currentProject = null;
+        this.group = null;
+        this.channel = null;
     }
 
     public PrPiClient(String host) {
         this(host, PrPiServer.DEFAULT_PORT);
     }
 
-    @Override
-    public void run() {
+    public boolean initConnection() {
 
         if (this.currentProject == null) {
             logger.error("You need to setup the project of the client thread before run it !");
-            return;
+            return false;
         }
 
         logger.debug("Client begin his run ...");
 
-        EventLoopGroup group = new NioEventLoopGroup();
+        this.group = new NioEventLoopGroup();
 
         try {
 
@@ -57,7 +61,30 @@ public class PrPiClient extends Thread {
             b.handler(new PrPiChannelInitializer(new PrPiClientHandler(this.currentProject), this.host, this.port));
 
             // Start the connection attempt.
-            Channel ch = b.connect(this.host, this.port).sync().channel();
+            this.channel = b.connect(this.host, this.port).sync().channel();
+
+        } catch (InterruptedException | IOException e) {
+            logger.error(e);
+            return false;
+        }
+        return true;
+    }
+
+    public void closeConnection() {
+        // The connection is closed automatically on shutdown.
+        this.group.shutdownGracefully();
+    }
+
+    @Override
+    public void run() {
+
+        if (this.group == null || this.channel == null) {
+            logger.error("You need to init connection of the client thread before run it !");
+            return;
+        }
+
+        logger.debug("Client begin his run ...");
+        try {
 
             ChannelFuture lastWriteFuture;
 
@@ -67,13 +94,13 @@ public class PrPiClient extends Thread {
                 logger.trace("Client get a new message to send");
 
                 // Sends the received line to the server.
-                lastWriteFuture = ch.writeAndFlush(message);
+                lastWriteFuture = this.channel.writeAndFlush(message);
 
                 // If user typed the 'bye' command, wait until the server closes
                 // the connection.
                 // TODO Implement a clean procedure to stop the client thread
                 if (message.startsWith(PrPiServer.CLOSE_CONNECTION)) {
-                    ch.closeFuture().sync();
+                    this.channel.closeFuture().sync();
                     break;
                 }
             }
@@ -83,13 +110,11 @@ public class PrPiClient extends Thread {
                 lastWriteFuture.sync();
             }
 
-        } catch (InterruptedException | IOException e) {
+        } catch (InterruptedException e) {
             logger.error(e);
         } finally {
-            // The connection is closed automatically on shutdown.
-            group.shutdownGracefully();
+            this.closeConnection();
         }
-
         logger.debug("Client end his run.");
     }
 

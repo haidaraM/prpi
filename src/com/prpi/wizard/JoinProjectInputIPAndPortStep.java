@@ -1,6 +1,7 @@
 package com.prpi.wizard;
 
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
+import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.ide.wizard.CommitStepException;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
@@ -26,6 +27,19 @@ public class JoinProjectInputIPAndPortStep extends ModuleWizardStep {
     private JTextField ipTextField = new JTextField();
     private JTextField portTextField = new JTextField(Integer.toString(PrPiServer.DEFAULT_PORT));
     private JLabel connectionResultTextField = new JLabel();
+
+    private JoinProjectBuilder builder;
+    private WizardContext context;
+
+    private JoinProjectInputIPAndPortStep() {
+        super();
+    }
+
+    public JoinProjectInputIPAndPortStep(JoinProjectBuilder joinProjectBuilder, WizardContext wizardContext) {
+        this();
+        this.builder = joinProjectBuilder;
+        this.context = wizardContext;
+    }
 
     @Override
     public JComponent getComponent() {
@@ -152,7 +166,7 @@ public class JoinProjectInputIPAndPortStep extends ModuleWizardStep {
 
     @Override
     public void onWizardFinished() throws CommitStepException {
-        PrPiApplicationComponent app = PrPiApplicationComponent.getPrPiAppComp(null);
+        PrPiApplicationComponent app = PrPiApplicationComponent.getPrPiAppComp(builder.getMyProject());
         app.setClientThread(new PrPiClient(this.checkAndGetHostnameImput(), this.checkAndGetPortImput()));
     }
 }
