@@ -1,6 +1,7 @@
 package com.prpi.network;
 
 import com.google.gson.JsonSyntaxException;
+import com.intellij.openapi.project.Project;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import org.apache.log4j.Logger;
@@ -14,10 +15,12 @@ public class PrPiClientHandler extends SimpleChannelInboundHandler<String> {
     private static Logger logger = Logger.getLogger(PrPiClientHandler.class);
 
     private Map<String, Map<Integer, PrPiMessage>> incompletePrPiMessage;
+    private Project currentProject;
 
-    public PrPiClientHandler() {
+    public PrPiClientHandler(Project currentProject) {
         super();
         incompletePrPiMessage = new HashMap<>();
+        this.currentProject = currentProject;
     }
 
     @Override
@@ -86,7 +89,7 @@ public class PrPiClientHandler extends SimpleChannelInboundHandler<String> {
             case FILE_TRANSFERT:
                 logger.debug("File message from the server.");
                 PrPiMessageFile messageFile = (PrPiMessageFile) message;
-                logger.debug("File write status : " + messageFile.writeFile(Paths.get("/tmp/project")));
+                logger.debug("File write status : " + messageFile.writeFile(Paths.get(this.currentProject.getBasePath())));
                 break;
 
             case SIMPLE_MESSAGE:
@@ -113,7 +116,7 @@ public class PrPiClientHandler extends SimpleChannelInboundHandler<String> {
                 // TODO Do this more properly !
                 @SuppressWarnings("unchecked")
                 Map<Integer, PrPiMessageFile> messagesFile = (Map) messages;
-                logger.debug("File write status : " + PrPiMessageFile.writeFromMessages(Paths.get("/tmp/project"), messagesFile));
+                logger.debug("File write status : " + PrPiMessageFile.writeFromMessages(Paths.get(this.currentProject.getBasePath()), messagesFile));
                 break;
 
             default:

@@ -1,5 +1,6 @@
 package com.prpi.network;
 
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
@@ -23,11 +24,13 @@ public class PrPiClient extends Thread {
     private int port;
     private Queue<String> messages;
     private static final Logger logger = Logger.getLogger(PrPiClient.class);
+    private Project currentProject;
 
     public PrPiClient(String host, int port) {
         this.host = host;
         this.port = port;
         this.messages = new LinkedList<>();
+        this.currentProject = null;
     }
 
     public PrPiClient(String host) {
@@ -36,6 +39,11 @@ public class PrPiClient extends Thread {
 
     @Override
     public void run() {
+
+        if (this.currentProject == null) {
+            logger.error("You need to setup the project of the client thread before run it !");
+            return;
+        }
 
         logger.debug("Client begin his run ...");
 
@@ -46,7 +54,7 @@ public class PrPiClient extends Thread {
             Bootstrap b = new Bootstrap();
             b.group(group);
             b.channel(NioSocketChannel.class);
-            b.handler(new PrPiChannelInitializer(new PrPiClientHandler(), this.host, this.port));
+            b.handler(new PrPiChannelInitializer(new PrPiClientHandler(this.currentProject), this.host, this.port));
 
             // Start the connection attempt.
             Channel ch = b.connect(this.host, this.port).sync().channel();
@@ -99,7 +107,15 @@ public class PrPiClient extends Thread {
         return this.messages.remove();
     }
 
-    public static synchronized boolean testConnection(String host, int port) {
+    public Project getCurrentProject() {
+        return currentProject;
+    }
+
+    public void setCurrentProject(Project currentProject) {
+        this.currentProject = currentProject;
+    }
+
+    /*    public static synchronized boolean testConnection(String host, int port) {
 
         final boolean[] result = {false};
 
@@ -138,5 +154,5 @@ public class PrPiClient extends Thread {
             workerGroup.shutdownGracefully();
         }
         return result[0];
-    }
+    }*/
 }

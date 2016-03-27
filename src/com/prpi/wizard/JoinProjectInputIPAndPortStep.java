@@ -1,8 +1,11 @@
 package com.prpi.wizard;
 
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
+import com.intellij.ide.wizard.CommitStepException;
 import com.intellij.openapi.options.ConfigurationException;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
+import com.prpi.PrPiApplicationComponent;
 import com.prpi.network.PrPiClient;
 import com.prpi.network.PrPiServer;
 import org.apache.log4j.Logger;
@@ -49,7 +52,9 @@ public class JoinProjectInputIPAndPortStep extends ModuleWizardStep {
 
         panel.add(ipPanel);
         panel.add(portPanel);
-        panel.add(createTestConnectionButton());
+
+        // TODO -> uncomment this line
+        //panel.add(createTestConnectionButton());
 
         return panel;
     }
@@ -79,7 +84,7 @@ public class JoinProjectInputIPAndPortStep extends ModuleWizardStep {
             String ipAddress = checkAndGetHostnameImput();
             int port = checkAndGetPortImput();
             if (ipAddress != null && port != 0) {
-                couldConnect = PrPiClient.testConnection(ipAddress, port);
+                //couldConnect = PrPiClient.testConnection(ipAddress, port);
             }
 
             String msgText;
@@ -143,5 +148,11 @@ public class JoinProjectInputIPAndPortStep extends ModuleWizardStep {
             logger.error("Network error", e);
         }
         return ipAddress;
+    }
+
+    @Override
+    public void onWizardFinished() throws CommitStepException {
+        PrPiApplicationComponent app = PrPiApplicationComponent.getPrPiAppComp(null);
+        app.setClientThread(new PrPiClient(this.checkAndGetHostnameImput(), this.checkAndGetPortImput()));
     }
 }
