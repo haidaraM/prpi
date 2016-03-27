@@ -166,7 +166,7 @@ public class JoinProjectInputIPAndPortStep extends ModuleWizardStep {
 
     @Override
     public void onWizardFinished() throws CommitStepException {
-        PrPiApplicationComponent app = PrPiApplicationComponent.getPrPiAppComp(builder.getMyProject());
+        PrPiApplicationComponent app = PrPiApplicationComponent.getPrPiAppComp(null);
         app.setClientThread(new PrPiClient(this.checkAndGetHostnameImput(), this.checkAndGetPortImput()));
     }
 }

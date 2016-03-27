@@ -48,10 +48,4 @@ public class JoinProjectModule extends ModuleType<JoinProjectBuilder> {
     public Icon getNodeIcon(@Deprecated boolean b) {
         return AllIcons.General.Web;
     }
-
-    @NotNull
-    @Override
-    public ModuleWizardStep[] createWizardSteps(@NotNull WizardContext wizardContext, @NotNull JoinProjectBuilder moduleBuilder, @NotNull ModulesProvider modulesProvider) {
-        return super.createWizardSteps(wizardContext, moduleBuilder, modulesProvider);
-    }
 }

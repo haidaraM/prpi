@@ -16,11 +16,13 @@ public class PrPiClientHandler extends SimpleChannelInboundHandler<String> {
 
     private Map<String, Map<Integer, PrPiMessage>> incompletePrPiMessage;
     private Project currentProject;
+    private boolean projectInitDone;
 
     public PrPiClientHandler(Project currentProject) {
         super();
         incompletePrPiMessage = new HashMap<>();
         this.currentProject = currentProject;
+        this.projectInitDone = false;
     }
 
     @Override
@@ -98,6 +100,7 @@ public class PrPiClientHandler extends SimpleChannelInboundHandler<String> {
 
             case INIT_PROJECT:
                 logger.debug("Init message from the server : " + message);
+                this.projectInitDone = true;
                 break;
 
             default:
@@ -123,5 +126,9 @@ public class PrPiClientHandler extends SimpleChannelInboundHandler<String> {
                 logger.debug("Impossible to process this composed message, transaction unknown.");
                 break;
         }
+    }
+
+    public boolean isProjectInitDone() {
+        return this.projectInitDone;
     }
 }

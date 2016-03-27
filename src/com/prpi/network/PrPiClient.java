@@ -12,6 +12,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.timeout.ReadTimeoutException;
 import org.apache.log4j.Logger;
+import org.jetbrains.annotations.Nullable;
 
 import javax.net.ssl.SSLException;
 import java.io.IOException;
@@ -27,6 +28,7 @@ public class PrPiClient extends Thread {
     private Project currentProject;
     private EventLoopGroup group;
     private Channel channel;
+    private PrPiClientHandler handler;
 
 
     public PrPiClient(String host, int port) {
@@ -36,6 +38,7 @@ public class PrPiClient extends Thread {
         this.currentProject = null;
         this.group = null;
         this.channel = null;
+        this.handler = null;
     }
 
     public PrPiClient(String host) {
@@ -58,10 +61,17 @@ public class PrPiClient extends Thread {
             Bootstrap b = new Bootstrap();
             b.group(group);
             b.channel(NioSocketChannel.class);
-            b.handler(new PrPiChannelInitializer(new PrPiClientHandler(this.currentProject), this.host, this.port));
+
+            this.handler = new PrPiClientHandler(this.currentProject);
+
+            b.handler(new PrPiChannelInitializer(this.handler, this.host, this.port));
 
             // Start the connection attempt.
             this.channel = b.connect(this.host, this.port).sync().channel();
+
+            for(int i = 0; !this.isProjectInitDone() && i < 100000; i++) {
+                sleep(1000);
+            }
 
         } catch (InterruptedException | IOException e) {
             logger.error(e);
@@ -71,8 +81,12 @@ public class PrPiClient extends Thread {
     }
 
     public void closeConnection() {
-        // The connection is closed automatically on shutdown.
-        this.group.shutdownGracefully();
+        this.notify();
+        try {
+            this.wait();
+        } catch (InterruptedException e) {
+            logger.error(e);
+        }
     }
 
     @Override
@@ -86,20 +100,17 @@ public class PrPiClient extends Thread {
         logger.debug("Client begin his run ...");
         try {
 
-            ChannelFuture lastWriteFuture;
+            ChannelFuture lastWriteFuture = null;
 
-            for (;;) {
+            String message = "";
+            while(message != null) {
 
-                String message = this.getMessageToSend();
-                logger.trace("Client get a new message to send");
+                message = this.getMessageToSend();
 
-                // Sends the received line to the server.
-                lastWriteFuture = this.channel.writeAndFlush(message);
-
-                // If user typed the 'bye' command, wait until the server closes
-                // the connection.
-                // TODO Implement a clean procedure to stop the client thread
-                if (message.startsWith(PrPiServer.CLOSE_CONNECTION)) {
+                if (message != null) {
+                    // Sends the received line to the server.
+                    lastWriteFuture = this.channel.writeAndFlush(message);
+                } else {
                     this.channel.closeFuture().sync();
                     break;
                 }
@@ -113,7 +124,9 @@ public class PrPiClient extends Thread {
         } catch (InterruptedException e) {
             logger.error(e);
         } finally {
-            this.closeConnection();
+            // The connection is closed automatically on shutdown.
+            this.group.shutdownGracefully();
+            this.notify();
         }
         logger.debug("Client end his run.");
     }
@@ -124,60 +137,22 @@ public class PrPiClient extends Thread {
         this.notify();
     }
 
-    private synchronized String getMessageToSend() throws InterruptedException {
+    private synchronized @Nullable String getMessageToSend() throws InterruptedException {
         while (this.messages.isEmpty()) {
             logger.trace("Client wait a new message to send");
             this.wait();
         }
+        if (this.messages.isEmpty()) {
+            return null;
+        }
         return this.messages.remove();
-    }
-
-    public Project getCurrentProject() {
-        return currentProject;
     }
 
     public void setCurrentProject(Project currentProject) {
         this.currentProject = currentProject;
     }
 
-    /*    public static synchronized boolean testConnection(String host, int port) {
-
-        final boolean[] result = {false};
-
-        EventLoopGroup workerGroup = new NioEventLoopGroup();
-
-        try {
-            Bootstrap b = new Bootstrap();
-            b.group(workerGroup);
-            b.channel(NioSocketChannel.class);
-
-            PrPiClientHandler testHandler = new PrPiClientHandler() {
-                @Override
-                public void channelRead0(ChannelHandlerContext ctx, String json) throws Exception {
-                    PrPiMessage message = PrPiMessage.jsonToPrPiMessage(json);
-                    if (!message.getVersion().equals(PrPiServer.PROTOCOL_PRPI_VERSION)) {
-                        String messageError = "The test failed, different version protocol (Client " + PrPiServer.PROTOCOL_PRPI_VERSION + " / Server " + message.getVersion() + ").";
-                        Messages.showErrorDialog(messageError, "PrPi Error - Protocol Version");
-                        logger.error(messageError);
-                    } else {
-                        result[0] = true;
-                    }
-                    ctx.writeAndFlush(new PrPiMessage<>(true).toJson()).addListener(ChannelFutureListener.CLOSE);
-                }
-            };
-
-            b.handler(new PrPiChannelInitializer(testHandler, host, port));
-
-            // Start the connection attempt.
-            ChannelFuture f = b.connect(host, port).sync();
-
-            // Wait until the connection is closed.
-            f.channel().closeFuture().sync();
-        } catch (SSLException | InterruptedException e) {
-            logger.error(e);
-        } finally {
-            workerGroup.shutdownGracefully();
-        }
-        return result[0];
-    }*/
+    public boolean isProjectInitDone() {
+        return this.handler.isProjectInitDone();
+    }
 }
