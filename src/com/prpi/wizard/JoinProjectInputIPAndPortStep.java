@@ -7,6 +7,7 @@ import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.prpi.PrPiApplicationComponent;
+import com.prpi.PrPiProjectComponent;
 import com.prpi.network.PrPiClient;
 import com.prpi.network.PrPiServer;
 import org.apache.log4j.Logger;
@@ -165,8 +166,7 @@ public class JoinProjectInputIPAndPortStep extends ModuleWizardStep {
     }
 
     @Override
-    public void onWizardFinished() throws CommitStepException {
-        PrPiApplicationComponent app = PrPiApplicationComponent.getPrPiAppComp(null);
-        app.setClientThread(new PrPiClient(this.checkAndGetHostnameImput(), this.checkAndGetPortImput()));
+    public void onStepLeaving() {
+        this.builder.setHostnameAndPort(this.checkAndGetHostnameImput(), this.checkAndGetPortImput());
     }
 }

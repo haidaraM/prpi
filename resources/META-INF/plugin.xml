@@ -50,4 +50,9 @@
             <implementation-class>com.prpi.PrPiApplicationComponent</implementation-class>
         </component>
     </application-components>
+    <project-components>
+        <component>
+            <implementation-class>com.prpi.PrPiProjectComponent</implementation-class>
+        </component>
+    </project-components>
 </idea-plugin>

@@ -9,6 +9,7 @@ import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ui.configuration.ModulesProvider;
 import com.intellij.openapi.ui.Messages;
 import com.prpi.PrPiApplicationComponent;
+import com.prpi.PrPiProjectComponent;
 import com.prpi.network.PrPiClient;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -16,6 +17,9 @@ import org.jetbrains.annotations.NotNull;
 public class JoinProjectBuilder extends ExistingModuleLoader {
 
     private static final Logger logger = Logger.getLogger(JoinProjectBuilder.class);
+
+    private String hostname;
+    private int port;
 
     @Override
     public ModuleWizardStep[] createWizardSteps(@NotNull WizardContext wizardContext, @NotNull ModulesProvider modulesProvider) {
@@ -36,10 +40,17 @@ public class JoinProjectBuilder extends ExistingModuleLoader {
 
     @Override
     public boolean validate(final Project current, final Project dest) {
-        PrPiClient client = PrPiApplicationComponent.getPrPiAppComp(dest).getClientThread();
+        PrPiProjectComponent projectApp = dest.getComponent(PrPiProjectComponent.class);
+        PrPiClient client = new PrPiClient(this.hostname, this.port);
         client.setCurrentProject(dest);
+        projectApp.setClientThread(client);
         logger.debug("Begin init client - Copy files from server");
         return client.initConnection() && super.validate(current, dest);
+    }
+
+    public void setHostnameAndPort(String hostname, int port) {
+        this.hostname = hostname;
+        this.port = port;
     }
 }
 

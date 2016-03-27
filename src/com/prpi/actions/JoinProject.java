@@ -7,6 +7,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.roots.ui.configuration.ModulesProvider;
 import com.intellij.openapi.ui.Messages;
 import com.prpi.PrPiApplicationComponent;
+import com.prpi.PrPiProjectComponent;
 import org.apache.log4j.Logger;
 
 public class JoinProject extends AnAction {
@@ -26,6 +27,6 @@ public class JoinProject extends AnAction {
     @Override
     public void update(AnActionEvent anActionEvent) {
         super.update(anActionEvent);
-        anActionEvent.getPresentation().setEnabled(!PrPiApplicationComponent.getPrPiAppComp(anActionEvent.getProject()).isClient());
+        anActionEvent.getPresentation().setEnabled(!anActionEvent.getProject().getComponent(PrPiProjectComponent.class).isHosting());
     }
 }

@@ -28,18 +28,14 @@ public class PrPiApplicationComponent implements ApplicationComponent {
 
     private static final Logger logger = Logger.getLogger(PrPiApplicationComponent.class);
 
-    private PrPiServer serverThread;
-    private PrPiClient clientThread;
-
     public PrPiApplicationComponent() {
-        this.serverThread = null;
-        this.clientThread = null;
     }
 
     @Override
     public void initComponent() {
+
         // Set the log4j configuration file
-        DOMConfigurator.configure(getClass().getClassLoader().getResource("log4j.xml"));
+        DOMConfigurator.configure(PrPiApplicationComponent.class.getClassLoader().getResource("log4j.xml"));
 
         logger.trace("Init component");
 
@@ -52,12 +48,6 @@ public class PrPiApplicationComponent implements ApplicationComponent {
     @Override
     public void disposeComponent() {
         // TODO: insert component disposal logic here
-        if (this.isClient()) {
-            this.clientThread.closeConnection();
-        }
-        if (this.isHosting()) {
-            this.serverThread.closeConnection();
-        }
     }
 
     @Override
@@ -74,39 +64,6 @@ public class PrPiApplicationComponent implements ApplicationComponent {
             EditorFactory.getInstance().getEventMulticaster().addDocumentListener(new PrpiDocumentListener());
         });
     }
-
-    @Override
-    public String toString() {
-        return "PrPiApplicationComponent{" +
-                "serverThread=" + serverThread +
-                ", clientThread=" + clientThread +
-                '}';
-    }
-
-    public boolean isHosting() {
-        return serverThread != null;
-    }
-
-    public boolean isClient() {
-        return clientThread != null;
-    }
-
-    public PrPiClient getClientThread() {
-        return clientThread;
-    }
-
-    public void setClientThread(PrPiClient clientThread) {
-        this.clientThread = clientThread;
-    }
-
-    public PrPiServer getServerThread() {
-        return serverThread;
-    }
-
-    public void setServerThread(PrPiServer serverThread) {
-        this.serverThread = serverThread;
-    }
-
 
     @NotNull
     public static PrPiApplicationComponent getPrPiAppComp(@Nullable Project project) throws NullPointerException {
