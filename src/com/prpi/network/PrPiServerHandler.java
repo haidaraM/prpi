@@ -2,6 +2,8 @@ package com.prpi.network;
 
 import com.google.gson.JsonSyntaxException;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ProjectFileIndex;
+import com.intellij.openapi.roots.ProjectRootManager;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.group.ChannelGroup;
@@ -13,6 +15,7 @@ import org.apache.log4j.Logger;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -64,15 +67,23 @@ public class PrPiServerHandler extends SimpleChannelInboundHandler<String> {
                         // Works in progress -> Make th project init
                         Path projectDirectory = Paths.get(currentProject.getBasePath());
                         Set<Map<Integer, PrPiMessageFile>> allFilesMessages = PrPiMessageFile.createFromDirectory(projectDirectory, projectDirectory);
-                        PrPiMessage<Set<String>> initProjectMessage = new PrPiMessage<>(PrPiMessage.getNextID(), PrPiTransaction.INIT_PROJECT, 1, 0);
+
+                        // To store all transaction IDs
                         Set<String> allTransactionId = new HashSet<>();
+
                         allFilesMessages.forEach(s->s.forEach((k, v)->{
                             allTransactionId.add(v.getTransactionID());
                             String json = v.toJson();
                             logger.debug("Server send this file message to the client : " + json);
                             ctx.writeAndFlush(json);
                         }));
-                        initProjectMessage.setMessage(allTransactionId);
+
+                        PrPiMessage<Map<String, Object>> initProjectMessage = new PrPiMessage<>(PrPiMessage.getNextID(), PrPiTransaction.INIT_PROJECT, 1, 0);
+
+                        Map<String, Object> initProjectProperties = new HashMap<>();
+                        initProjectProperties.put("transactionIDs", allTransactionId); // Put transactions
+                        initProjectProperties.put("projectName", this.currentProject.getName()); // Put project name
+                        initProjectMessage.setMessage(initProjectProperties);
                         String initProjectJson = initProjectMessage.toJson();
                         logger.debug("Server send this init message project to the client : " + initProjectJson);
                         ctx.writeAndFlush(initProjectJson);

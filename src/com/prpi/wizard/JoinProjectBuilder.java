@@ -20,9 +20,11 @@ public class JoinProjectBuilder extends ExistingModuleLoader {
 
     private String hostname;
     private int port;
+    private WizardContext wizardContext;
 
     @Override
     public ModuleWizardStep[] createWizardSteps(@NotNull WizardContext wizardContext, @NotNull ModulesProvider modulesProvider) {
+        this.wizardContext = wizardContext;
         return new ModuleWizardStep[] {
                 new JoinProjectInputIPAndPortStep(this, wizardContext)
         };
@@ -45,7 +47,14 @@ public class JoinProjectBuilder extends ExistingModuleLoader {
         client.setCurrentProject(dest);
         projectApp.setClientThread(client);
         logger.debug("Begin init client - Copy files from server");
-        return client.initConnection() && super.validate(current, dest);
+        if (client.initConnection()) {
+            if (this.wizardContext != null) {
+                this.wizardContext.setProjectName(client.getProjectNameToSet());
+                // TODO Disable last wizard step and set project name and properties (not with iml like this...)
+            }
+            return super.validate(current, dest);
+        }
+        return false;
     }
 
     public void setHostnameAndPort(String hostname, int port) {

@@ -69,6 +69,7 @@ public class PrPiClient extends Thread {
             // Start the connection attempt.
             this.channel = b.connect(this.host, this.port).sync().channel();
 
+            // Add limit of 100000 in case of problem but this is an issue in big project (the copy process is long)
             for(int i = 0; !this.isProjectInitDone() && i < 100000; i++) {
                 sleep(1000);
             }
@@ -155,5 +156,12 @@ public class PrPiClient extends Thread {
 
     public boolean isProjectInitDone() {
         return this.handler.isProjectInitDone();
+    }
+
+    public String getProjectNameToSet() {
+        if (this.isProjectInitDone()) {
+            return this.handler.getProjectNameToSet();
+        }
+        return null;
     }
 }
