@@ -20,7 +20,7 @@ public class PrPiMessageFile extends PrPiMessage<String> {
      * When a file is greater than this size (in bytes), the file is cut in multiple messages (when use create method)
      * or throw an exception (when use constructor)
      */
-    protected static final int MAX_SIZE_PER_MESSAGE = PrPiChannelInitializer.MAX_FRAME_LENGTH - 100000; // TODO 20000 ??? pq? 60000?
+    protected static final int MAX_SIZE_PER_MESSAGE = PrPiChannelInitializer.MAX_FRAME_LENGTH - 500000; // TODO 20000 ??? pq? 60000?
 
     private static final Logger logger = Logger.getLogger(PrPiMessageFile.class);
 

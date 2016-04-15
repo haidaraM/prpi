@@ -27,7 +27,7 @@ public class HostProject extends AnAction {
             } else {
                 // TODO : add window for choosing port
                 launchServer(PrPiServer.DEFAULT_PORT);
-                logger.trace("Project hosted - Server start");
+                logger.debug("Project hosted - Server start");
             }
         } catch (Exception ex) {
             logger.error("Error launching server", ex);
