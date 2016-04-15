@@ -1,9 +1,11 @@
-package com.prpi.network;
+package com.prpi.network.server;
 
 import com.google.gson.JsonSyntaxException;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ProjectFileIndex;
-import com.intellij.openapi.roots.ProjectRootManager;
+import com.prpi.network.communication.PrPiMessage;
+import com.prpi.network.communication.PrPiMessageFile;
+import com.prpi.network.communication.PrPiMessageFileFactory;
+import com.prpi.network.communication.PrPiTransaction;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.group.ChannelGroup;
@@ -12,13 +14,9 @@ import io.netty.handler.ssl.SslHandler;
 import io.netty.util.concurrent.GlobalEventExecutor;
 import org.apache.log4j.Logger;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class PrPiServerHandler extends SimpleChannelInboundHandler<String> {
 
@@ -66,15 +64,15 @@ public class PrPiServerHandler extends SimpleChannelInboundHandler<String> {
 
                         // Works in progress -> Make th project init
                         Path projectDirectory = Paths.get(currentProject.getBasePath());
-                        Set<Map<Integer, PrPiMessageFile>> allFilesMessages = PrPiMessageFile.createFromDirectory(projectDirectory, projectDirectory);
+                        List<List<PrPiMessageFile>> allFilesMessages = PrPiMessageFileFactory.createFromDirectory(projectDirectory, projectDirectory);
 
                         // To store all transaction IDs
                         Set<String> allTransactionId = new HashSet<>();
 
-                        allFilesMessages.forEach(s->s.forEach((k, v)->{
-                            allTransactionId.add(v.getTransactionID());
-                            String json = v.toJson();
-                            logger.debug("Server send this file message to the client : " + json);
+                        allFilesMessages.forEach(l -> l.forEach(msg -> {
+                            allTransactionId.add(msg.getTransactionID());
+                            String json = msg.toJson();
+                            logger.debug("Server send this file message to the client : " + json.getBytes().length + "(transaction id : " + msg.getTransactionID() + ")");
                             ctx.writeAndFlush(json);
                         }));
 
@@ -85,7 +83,7 @@ public class PrPiServerHandler extends SimpleChannelInboundHandler<String> {
                         initProjectProperties.put("projectName", this.currentProject.getName()); // Put project name
                         initProjectMessage.setMessage(initProjectProperties);
                         String initProjectJson = initProjectMessage.toJson();
-                        logger.debug("Server send this init message project to the client : " + initProjectJson);
+                        //logger.debug("Server send this init message project to the client : " + initProjectJson);
                         ctx.writeAndFlush(initProjectJson);
 
 
@@ -117,7 +115,7 @@ public class PrPiServerHandler extends SimpleChannelInboundHandler<String> {
     @Override
     public void channelRead0(ChannelHandlerContext ctx, String json) {
 
-        logger.trace("Server reseive a new message");
+        logger.trace("Server receive a new message");
 
         // Build result message
         try {

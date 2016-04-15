@@ -2,14 +2,9 @@ package com.prpi.wizard;
 
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.ide.util.projectWizard.WizardContext;
-import com.intellij.ide.wizard.CommitStepException;
 import com.intellij.openapi.options.ConfigurationException;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
-import com.prpi.PrPiApplicationComponent;
-import com.prpi.PrPiProjectComponent;
-import com.prpi.network.PrPiClient;
-import com.prpi.network.PrPiServer;
+import com.prpi.network.server.PrPiServer;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
 

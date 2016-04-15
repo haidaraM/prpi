@@ -2,8 +2,8 @@ package com.prpi;
 
 import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.project.Project;
-import com.prpi.network.PrPiClient;
-import com.prpi.network.PrPiServer;
+import com.prpi.network.client.PrPiClient;
+import com.prpi.network.server.PrPiServer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

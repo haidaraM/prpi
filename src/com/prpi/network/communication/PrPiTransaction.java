@@ -1,4 +1,4 @@
-package com.prpi.network;
+package com.prpi.network.communication;
 
 public enum PrPiTransaction {
     FILE_TRANSFERT,

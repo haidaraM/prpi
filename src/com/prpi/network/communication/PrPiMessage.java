@@ -1,9 +1,10 @@
-package com.prpi.network;
+package com.prpi.network.communication;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
+import com.prpi.network.server.PrPiServer;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -89,13 +90,19 @@ public class PrPiMessage<T> {
     }
 
     public static PrPiMessage jsonToPrPiMessage(@NotNull String json) throws JsonSyntaxException, ClassNotFoundException {
-        JsonObject jsonObject = new JsonParser().parse(json).getAsJsonObject();
+        JsonParser parser = new JsonParser();
+        JsonObject jsonObject = parser.parse(json).getAsJsonObject();
+
         return (PrPiMessage) gson.fromJson(json, Class.forName(jsonObject.get("className").getAsString()));
     }
 
     public static @NotNull String getNextID()
     {
         return String.valueOf(generatorTransactionID.getAndIncrement());
+    }
+
+    public boolean isComposedMessage() {
+        return nbMessage > 1;
     }
 
     // Getter & Setter *************************************************************************************************

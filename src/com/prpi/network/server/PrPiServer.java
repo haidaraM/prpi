@@ -1,25 +1,16 @@
-package com.prpi.network;
+package com.prpi.network.server;
 
 import com.intellij.openapi.project.Project;
+import com.prpi.network.PrPiChannelInitializer;
 import io.netty.bootstrap.ServerBootstrap;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.codec.DelimiterBasedFrameDecoder;
-import io.netty.handler.codec.Delimiters;
-import io.netty.handler.codec.string.StringDecoder;
-import io.netty.handler.codec.string.StringEncoder;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
-import io.netty.handler.ssl.SslContext;
-import io.netty.handler.ssl.SslContextBuilder;
-import io.netty.handler.ssl.util.SelfSignedCertificate;
 import org.apache.log4j.Logger;
 
 import javax.net.ssl.SSLException;
@@ -27,7 +18,6 @@ import java.security.cert.CertificateException;
 
 public class PrPiServer extends Thread {
 
-    public static final String DEFAULT_HOST = System.getProperty("host", "127.0.0.1");
     public static final int DEFAULT_PORT = Integer.parseInt(System.getProperty("port", "4211"));
     public static final String CLOSE_CONNECTION = "CLOSE_CONNECTION";
     public static final String PROTOCOL_PRPI_VERSION = "0.1";  // TODO Get this value from META-INF/plugin.xml directly
@@ -73,7 +63,7 @@ public class PrPiServer extends Thread {
             // Wait until the server socket is closed.
             this.channel.closeFuture().sync();
         } catch (CertificateException | InterruptedException | SSLException e) {
-            logger.error(e.getStackTrace());
+            logger.error(e.getStackTrace(), e);
         } finally {
             workerGroup.shutdownGracefully();
             bossGroup.shutdownGracefully();
@@ -88,6 +78,6 @@ public class PrPiServer extends Thread {
         } catch (InterruptedException e) {
             logger.error(e);
         }
-        logger.debug("Server connections closed");
+        logger.debug("Server connection closed");
     }
 }

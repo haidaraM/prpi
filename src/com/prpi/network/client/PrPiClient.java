@@ -1,20 +1,18 @@
-package com.prpi.network;
+package com.prpi.network.client;
 
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.Messages;
+import com.prpi.network.PrPiChannelInitializer;
+import com.prpi.network.communication.PrPiMessage;
+import com.prpi.network.server.PrPiServer;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.handler.timeout.ReadTimeoutException;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
 
-import javax.net.ssl.SSLException;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -23,22 +21,17 @@ public class PrPiClient extends Thread {
 
     private String host;
     private int port;
-    private Queue<String> messages;
+    private Queue<String> messages = new LinkedList<>();
     private static final Logger logger = Logger.getLogger(PrPiClient.class);
-    private Project currentProject;
-    private EventLoopGroup group;
-    private Channel channel;
-    private PrPiClientHandler handler;
+    private Project currentProject = null;
+    private EventLoopGroup group = null;
+    private Channel channel = null;
+    private PrPiClientHandler handler = null;
 
 
     public PrPiClient(String host, int port) {
         this.host = host;
         this.port = port;
-        this.messages = new LinkedList<>();
-        this.currentProject = null;
-        this.group = null;
-        this.channel = null;
-        this.handler = null;
     }
 
     public PrPiClient(String host) {
@@ -57,22 +50,20 @@ public class PrPiClient extends Thread {
         this.group = new NioEventLoopGroup();
 
         try {
-
             Bootstrap b = new Bootstrap();
             b.group(group);
             b.channel(NioSocketChannel.class);
 
-            this.handler = new PrPiClientHandler(this.currentProject);
+            handler = new PrPiClientHandler(currentProject);
 
-            b.handler(new PrPiChannelInitializer(this.handler, this.host, this.port));
+            b.handler(new PrPiChannelInitializer(handler, host, port));
 
             // Start the connection attempt.
-            this.channel = b.connect(this.host, this.port).sync().channel();
+            this.channel = b.connect(host, port).sync().channel();
 
             // Add limit of 100000 in case of problem but this is an issue in big project (the copy process is long)
-            for(int i = 0; !this.isProjectInitDone() && i < 100000; i++) {
+            for(int i = 0; !this.isProjectInitDone() && i < 1000000; i++)
                 sleep(1000);
-            }
 
         } catch (InterruptedException | IOException e) {
             logger.error(e);
@@ -101,7 +92,6 @@ public class PrPiClient extends Thread {
 
         logger.debug("Client begin his run ...");
         try {
-
             ChannelFuture lastWriteFuture = null;
 
             String message = "";

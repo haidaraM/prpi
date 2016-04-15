@@ -3,11 +3,10 @@ package com.prpi.actions;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.ui.Messages;
-import com.prpi.PrPiApplicationComponent;
 import com.prpi.PrPiProjectComponent;
-import com.prpi.network.PrPiClient;
-import com.prpi.network.PrPiMessage;
-import com.prpi.network.PrPiServer;
+import com.prpi.network.client.PrPiClient;
+import com.prpi.network.communication.PrPiMessage;
+import com.prpi.network.server.PrPiServer;
 import org.apache.log4j.Logger;
 
 public class Test extends AnAction {

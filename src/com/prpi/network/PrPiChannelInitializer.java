@@ -27,7 +27,7 @@ public class PrPiChannelInitializer extends ChannelInitializer<SocketChannel> {
     private int port;
     private SimpleChannelInboundHandler handler;
 
-    public static final int maxFrameLength = 1048576;
+    public static final int MAX_FRAME_LENGTH = 1048576;
 
     /**
      * Constructor for Server side
@@ -74,7 +74,7 @@ public class PrPiChannelInitializer extends ChannelInitializer<SocketChannel> {
         }
 
         // On top of the SSL handler, add the text line codec.
-        pipeline.addLast("framer", new JsonObjectDecoder(PrPiChannelInitializer.maxFrameLength));
+        pipeline.addLast("framer", new JsonObjectDecoder(PrPiChannelInitializer.MAX_FRAME_LENGTH));
         pipeline.addLast("decoder", new StringDecoder());
         pipeline.addLast("encoder", new StringEncoder());
 
