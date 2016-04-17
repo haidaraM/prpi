@@ -37,17 +37,18 @@ public class NetworkTransactionRecomposer {
                 // Check if the composed message is completely here
                 if (incompleteMessages.get(networkTransaction.getTransactionID()).size() == networkTransaction.getNbMessage()) {
 
-                    // TODO How to choose between a file and a message ? Read PrPiMessageFileFactory
+                    // TODO recomposed a Transaction (not a message) and then cast it in File or Message with the type attribut content in the Transaction recomposed
 
                     String content = "";
                     Map<Integer, NetworkTransaction> allComposedNetworkMessage = incompleteMessages.get(networkTransaction.getTransactionID());
                     for (int i = 0; i < networkTransaction.getNbMessage(); i++) {
                         content += allComposedNetworkMessage.get(i).getContent();
                     }
-                    result = Message.jsonToMessage(content);
+
+                    //result = Message.jsonToMessage(content);
                 }
             } else {
-                result = Message.jsonToMessage(networkTransaction.getContent());
+                //result = Message.jsonToMessage(networkTransaction.getContent());
             }
         } catch (JsonSyntaxException e) {
             logger.error("The json is not correctly formed : " + json, e);
