@@ -22,9 +22,9 @@ public class NetworkTransactionRecomposer {
     /**
      * Add a part of receive message
      * @param json the part of message received
-     * @return the Message if it complete, else return null
+     * @return the Transaction if it complete, else return null
      */
-    public Message addPart(String json) {
+    public Transaction addPart(String json) {
         Message result = null;
         try {
             // Get the NetworkTransaction
@@ -44,6 +44,8 @@ public class NetworkTransactionRecomposer {
                     for (int i = 0; i < networkTransaction.getNbMessage(); i++) {
                         content += allComposedNetworkMessage.get(i).getContent();
                     }
+
+                    // TODO Impossible de le recomposer pour le fichier, le getString ne donne pas un json mais la Base64 ... Faut trouver une solution !
 
                     //result = Message.jsonToMessage(content);
                 }

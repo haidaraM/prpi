@@ -32,17 +32,11 @@ class Message<T> extends Transaction {
 
     @Override
     public String getString(int offset, int length) {
-        return this.json.substring(offset, length);
+        return this.json.substring(offset, offset + length);
     }
 
     @Override
     public int getLength() {
         return this.json.length();
     }
-
-    /*
-    protected static Message jsonToMessage(String json) throws JsonSyntaxException {
-        return gson.fromJson(json, Message.class);
-    }
-    */
 }

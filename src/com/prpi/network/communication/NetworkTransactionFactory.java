@@ -58,12 +58,17 @@ public class NetworkTransactionFactory {
         // The ID of the transaction
         String transactionID = NetworkTransactionFactory.getNextTransactionID();
 
+        // The offset in string
+        int offset = 0;
+
         while (messageLengthLeft > maxMessageLength) {
-            result.add(new NetworkTransaction(transactionID, transactionType, nbMessage, messageID, "" /* TODO use message.getString(offset, length) */));
+            result.add(new NetworkTransaction(transactionID, transactionType, nbMessage, messageID, message.getString(offset, maxMessageLength)));
             messageID++;
+            offset += maxMessageLength;
+            messageLengthLeft -= maxMessageLength;
         }
         if (messageLengthLeft > 0) {
-            result.add(new NetworkTransaction(transactionID, transactionType, nbMessage, messageID, "" /* TODO use message.getString(offset, length) */));
+            result.add(new NetworkTransaction(transactionID, transactionType, nbMessage, messageID, message.getString(offset, messageLengthLeft)));
         }
 
         return result;

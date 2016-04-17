@@ -1,5 +1,6 @@
 package com.prpi.network.communication;
 
+import com.google.gson.Gson;
 import org.apache.log4j.Logger;
 
 import java.io.FileInputStream;
@@ -33,17 +34,24 @@ class File extends Transaction {
 
     private static transient final Logger logger = Logger.getLogger(File.class);
 
-    public File(String fileName, String pathInProject, int fileSize) {
+    /**
+     * The json builder
+     */
+    private transient static final Gson gson = new Gson();
+
+    public File(Path file, Path projectRoot) {
+        super(File.class);
+        this.fileName = file.getFileName().toString();
+        this.pathInProject = getPathToFileInProjectRoot(file, projectRoot);
+        this.fileSize = File.getFileSize(file);
+        this.pathOfProjectRoot = projectRoot.toString();
+    }
+
+    File(String fileName, String pathInProject, int fileSize) {
         super(File.class);
         this.fileName = fileName;
         this.pathInProject = pathInProject;
         this.fileSize = fileSize;
-        this.pathOfProjectRoot = null;
-    }
-
-    public File(String fileName, String pathInProject, int fileSize, String pathOfProjectRoot) {
-        this(fileName, pathInProject, fileSize);
-        this.pathOfProjectRoot = pathOfProjectRoot;
     }
 
     @Override
@@ -82,5 +90,25 @@ class File extends Transaction {
 
     private static byte[] decodeFileData(String fileDataEncodedBase64) {
         return Base64.getDecoder().decode(fileDataEncodedBase64);
+    }
+
+    private static int getFileSize(Path pathToFile) {
+        long size;
+        try {
+            size = Files.size(pathToFile);
+            if (size > Integer.MAX_VALUE)
+                return -1;
+            return (int) size;
+        } catch (IOException e) {
+            logger.error("Could not estimate file size", e);
+            return -1;
+        }
+    }
+
+    private static String getPathToFileInProjectRoot(Path pathToFile, Path projectBasePath) {
+        if (pathToFile.toString().startsWith(projectBasePath.toString()))
+            return pathToFile.toString().substring(projectBasePath.toString().length());
+
+        return pathToFile.toString();
     }
 }
