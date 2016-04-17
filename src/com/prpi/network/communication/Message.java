@@ -10,18 +10,8 @@ class Message<T> extends Transaction {
      */
     private T content;
 
-    /**
-     * To store the json result (need to be update when an attribut is changed)
-     */
-    private transient String json;
-
-    /**
-     * The json builder
-     */
-    private transient static final Gson gson = new Gson();
-
-    public Message(T obj) {
-        super(Message.class);
+    public Message(T obj, PrPiTransaction transactionType) {
+        super(Message.class, transactionType);
         this.content = obj;
         this.json = gson.toJson(this);
     }
