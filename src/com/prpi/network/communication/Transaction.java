@@ -4,7 +4,14 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-abstract class Transaction {
+public abstract class Transaction {
+
+    public enum TransactionType {
+        FILE_TRANSFERT,
+        SIMPLE_MESSAGE,
+        INIT_PROJECT,
+        CLOSE
+    }
 
     private String objectTypeInTransaction;
 
@@ -16,9 +23,9 @@ abstract class Transaction {
     /**
      * The transaction type of this message
      */
-    protected PrPiTransaction transactionType;
+    protected TransactionType transactionType;
 
-    Transaction(Class type, PrPiTransaction transactionType) {
+    Transaction(Class type, TransactionType transactionType) {
         this.objectTypeInTransaction = type.getCanonicalName();
         this.transactionType = transactionType;
     }

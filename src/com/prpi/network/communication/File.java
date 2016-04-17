@@ -3,7 +3,6 @@ package com.prpi.network.communication;
 import com.google.gson.Gson;
 import org.apache.log4j.Logger;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -13,7 +12,7 @@ import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
 
-class File extends Transaction {
+public class File extends Transaction {
 
     /**
      * The name of the file (with extension)
@@ -54,7 +53,7 @@ class File extends Transaction {
      */
     private transient static final Gson gson = new Gson();
 
-    public File(Path file, Path projectRoot, PrPiTransaction transactionType) {
+    public File(Path file, Path projectRoot, TransactionType transactionType) {
         super(File.class, transactionType);
         this.fileName = file.getFileName().toString();
         this.pathInProject = getPathToFileInProjectRoot(file, projectRoot);
@@ -64,7 +63,7 @@ class File extends Transaction {
         this.json = gson.toJson(this);
     }
 
-    File(String fileName, String pathInProject, int fileSize, PrPiTransaction transactionType) {
+    public File(String fileName, String pathInProject, int fileSize, TransactionType transactionType) {
         super(File.class, transactionType);
         this.fileName = fileName;
         this.pathInProject = pathInProject;
@@ -128,5 +127,24 @@ class File extends Transaction {
 
     public boolean isComplete() {
         return complete;
+    }
+
+    public void setPathOfProjectRoot(String pathOfProjectRoot) {
+        this.pathOfProjectRoot = pathOfProjectRoot;
+    }
+
+    public boolean writeFile() {
+        if (!this.isComplete()) {
+            // TODO Error
+            return false;
+        }
+
+        if (this.pathOfProjectRoot == null) {
+            // TODO Error
+            return false;
+        }
+
+        // TODO Make the write method
+        return true;
     }
 }

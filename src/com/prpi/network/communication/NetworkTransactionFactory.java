@@ -40,7 +40,7 @@ public class NetworkTransactionFactory {
      * @param transactionType The transaction type
      * @return a list of all NetworkTransaction to send that represent your original message object given
      */
-    public static void buildAndSend(@NotNull Transaction message, @NotNull PrPiTransaction transactionType, @NotNull final ChannelHandlerContext receiver) {
+    public static void buildAndSend(@NotNull Transaction message, @NotNull Transaction.TransactionType transactionType, @NotNull final ChannelHandlerContext receiver) {
 
         // The limit of the message length
         final int maxMessageLength = PrPiChannelInitializer.MAX_FRAME_LENGTH
@@ -82,7 +82,7 @@ public class NetworkTransactionFactory {
         return directory.listFiles((dir, name) -> !name.equals(".idea"));
     }
 
-    public static void buildAndSend(Path file, Path projectRoot, @NotNull PrPiTransaction transactionType, @NotNull final ChannelHandlerContext receiver) {
+    public static void buildAndSend(Path file, Path projectRoot, @NotNull Transaction.TransactionType transactionType, @NotNull final ChannelHandlerContext receiver) {
         if (!Files.isReadable(file)) {
             // TODO : Warning/error
             return;

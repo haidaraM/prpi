@@ -3,14 +3,14 @@ package com.prpi.network.communication;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
-class Message<T> extends Transaction {
+public class Message<T> extends Transaction {
 
     /**
      * The message (String, int, Object ...)
      */
     private T content;
 
-    public Message(T obj, PrPiTransaction transactionType) {
+    public Message(T obj, TransactionType transactionType) {
         super(Message.class, transactionType);
         this.content = obj;
         this.json = gson.toJson(this);

@@ -17,7 +17,7 @@ public class FileContent extends Transaction {
 
     private boolean lastContent;
 
-    FileContent(String fileId, byte[] content, int sizeContent, int order, boolean lastContent, PrPiTransaction transactionType) {
+    FileContent(String fileId, byte[] content, int sizeContent, int order, boolean lastContent, TransactionType transactionType) {
         super(FileContent.class, transactionType);
         this.fileId = fileId;
         this.content = content;

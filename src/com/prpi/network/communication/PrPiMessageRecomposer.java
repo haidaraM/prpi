@@ -5,6 +5,7 @@ import java.util.*;
 /**
  * This class is able to recompose multiple incoming PrPiMessage
  */
+@Deprecated
 public class PrPiMessageRecomposer {
 
     private Map<String, Map<Integer, PrPiMessage>> incompleteMessages = new HashMap<>();

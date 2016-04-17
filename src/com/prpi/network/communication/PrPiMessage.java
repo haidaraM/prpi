@@ -11,6 +11,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.concurrent.atomic.AtomicLong;
 
+@Deprecated
 public class PrPiMessage<T> {
 
     /**

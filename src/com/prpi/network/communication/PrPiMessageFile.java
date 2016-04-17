@@ -10,6 +10,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
+@Deprecated
 public class PrPiMessageFile extends PrPiMessage<String> {
 
     protected String fileName;

@@ -10,6 +10,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 
+@Deprecated
 public class PrPiMessageFileFactory {
 
     private static final Logger logger = Logger.getLogger(PrPiMessageFileFactory.class);

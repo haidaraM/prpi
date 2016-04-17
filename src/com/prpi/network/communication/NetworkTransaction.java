@@ -4,12 +4,12 @@ import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import org.jetbrains.annotations.NotNull;
 
-class NetworkTransaction {
+public class NetworkTransaction {
 
     /**
      * The transaction type of this message
      */
-    private PrPiTransaction transactionType;
+    private Transaction.TransactionType transactionType;
 
     /**
      * The ID of the transaction
@@ -31,7 +31,7 @@ class NetworkTransaction {
      */
     private String content;
 
-    NetworkTransaction(@NotNull String transactionID, @NotNull PrPiTransaction transactionType, int nbMessage, int messageID, @NotNull String content) {
+    NetworkTransaction(@NotNull String transactionID, @NotNull Transaction.TransactionType transactionType, int nbMessage, int messageID, @NotNull String content) {
         this.content = content;
         this.transactionType = transactionType;
         this.transactionID = transactionID;
@@ -49,7 +49,7 @@ class NetworkTransaction {
         return gson.fromJson(json, NetworkTransaction.class);
     }
 
-    protected PrPiTransaction getTransactionType() {
+    protected Transaction.TransactionType getTransactionType() {
         return transactionType;
     }
 
