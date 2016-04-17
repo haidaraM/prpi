@@ -1,10 +1,15 @@
 package com.prpi.network.communication;
 
-class File {
+class File extends Message<String> {
 
     private String fileName;
     private String pathInProject;
     private int fileSize;
 
-    // TODO complete this class : read PrPiMessageFile
+    public File(String fileName, String pathInProject, int fileSize, String content) {
+        super(content);
+        this.fileName = fileName;
+        this.pathInProject = pathInProject;
+        this.fileSize = fileSize;
+    }
 }
