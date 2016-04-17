@@ -9,7 +9,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
-public class NetworkMessageFactory {
+public class NetworkTransactionFactory {
 
     /**
      * The generator of transaction ID
@@ -28,20 +28,20 @@ public class NetworkMessageFactory {
      * The builder to send a message one the network
      * @param message The message object
      * @param transactionType The transaction type
-     * @return a list of all NetworkMessage to send that represent your original message object given
+     * @return a list of all NetworkTransaction to send that represent your original message object given
      */
-    public static List<NetworkMessage> build(@NotNull Message message, @NotNull PrPiTransaction transactionType) {
+    public static List<NetworkTransaction> build(@NotNull Message message, @NotNull PrPiTransaction transactionType) {
 
         // The limit of the message length
         final int maxMessageLength = PrPiChannelInitializer.MAX_FRAME_LENGTH
-                - new NetworkMessage(Long.toString(Long.MAX_VALUE), transactionType, Integer.MAX_VALUE, Integer.MAX_VALUE, "").toJson().length()
+                - new NetworkTransaction(Long.toString(Long.MAX_VALUE), transactionType, Integer.MAX_VALUE, Integer.MAX_VALUE, "").toJson().length()
                 - 100; // Increase if needed this random value in case of out of frame length
 
         // The message to send in String
         StringBuilder buffer = new StringBuilder(message.toJson());
 
         // The result
-        LinkedList<NetworkMessage> result = new LinkedList<>();
+        LinkedList<NetworkTransaction> result = new LinkedList<>();
 
         // Get the total number of message to buildsssss
         int nbMessage = buffer.length() / maxMessageLength;
@@ -53,15 +53,30 @@ public class NetworkMessageFactory {
         int messageID = 0;
 
         // The ID of the transaction
-        String transactionID = NetworkMessageFactory.getNextTransactionID();
+        String transactionID = NetworkTransactionFactory.getNextTransactionID();
 
         while (buffer.length() > maxMessageLength) {
-            result.add(new NetworkMessage(transactionID, transactionType, nbMessage, messageID, buffer.delete(0, maxMessageLength).toString()));
+            result.add(new NetworkTransaction(transactionID, transactionType, nbMessage, messageID, buffer.delete(0, maxMessageLength).toString()));
             messageID++;
         }
         if (buffer.length() > 0) {
-            result.add(new NetworkMessage(transactionID, transactionType, nbMessage, messageID, buffer.delete(0, buffer.length()).toString()));
+            result.add(new NetworkTransaction(transactionID, transactionType, nbMessage, messageID, buffer.delete(0, buffer.length()).toString()));
         }
+
+        return result;
+    }
+
+    public static List<NetworkTransaction> build(@NotNull File file, @NotNull PrPiTransaction transactionType) {
+
+        // The limit of the message length
+        final int maxMessageLength = PrPiChannelInitializer.MAX_FRAME_LENGTH
+                - new NetworkTransaction(Long.toString(Long.MAX_VALUE), transactionType, Integer.MAX_VALUE, Integer.MAX_VALUE, "").toJson().length()
+                - 100; // Increase if needed this random value in case of out of frame length
+
+        // The result
+        LinkedList<NetworkTransaction> result = new LinkedList<>();
+
+        // TODO read step by step the file and make new NetworkTransaction : read the PrPiMessageFileFactory and PrPiMessageFile
 
         return result;
     }
@@ -72,7 +87,7 @@ public class NetworkMessageFactory {
         return gson.toJson(this);
     }
 
-    protected static NetworkMessage jsonToNetworkMessage(@NotNull String json) throws JsonSyntaxException {
-        return gson.fromJson(json, NetworkMessage.class);
+    protected static NetworkTransaction jsonToNetworkMessage(@NotNull String json) throws JsonSyntaxException {
+        return gson.fromJson(json, NetworkTransaction.class);
     }
 }

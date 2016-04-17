@@ -3,7 +3,7 @@ package com.prpi.network.communication;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
-public class Message<T> {
+class Message<T> {
 
     /**
      * The message (String, int, Object ...)
@@ -12,6 +12,10 @@ public class Message<T> {
 
     public Message(T obj) {
         this.content = obj;
+    }
+
+    public T getContent() {
+        return content;
     }
 
     private static final Gson gson = new Gson();
