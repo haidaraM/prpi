@@ -5,7 +5,6 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.prpi.PrPiProjectComponent;
-import com.prpi.network.server.PrPiServer;
 import com.prpi.network.server.Server;
 import org.apache.log4j.Logger;
 
@@ -27,7 +26,7 @@ public class HostProject extends AnAction {
                 Messages.showWarningDialog(project, "You already host this project!", "PrPi Warning - Project Already Hosted");
             } else {
                 // TODO : add window for choosing port
-                launchServer(PrPiServer.DEFAULT_PORT);
+                launchServer(Server.DEFAULT_PORT);
                 logger.debug("Project hosted - Server start");
             }
         } catch (Exception ex) {

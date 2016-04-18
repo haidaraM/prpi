@@ -4,7 +4,7 @@ import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.ui.Messages;
-import com.prpi.network.server.PrPiServer;
+import com.prpi.network.server.Server;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
 
@@ -21,7 +21,7 @@ public class JoinProjectInputIPAndPortStep extends ModuleWizardStep {
     private static final int TextFieldHeight = 25;
 
     private JTextField ipTextField = new JTextField();
-    private JTextField portTextField = new JTextField(Integer.toString(PrPiServer.DEFAULT_PORT));
+    private JTextField portTextField = new JTextField(Integer.toString(Server.DEFAULT_PORT));
     private JLabel connectionResultTextField = new JLabel();
 
     private JoinProjectBuilder builder;
@@ -57,7 +57,7 @@ public class JoinProjectInputIPAndPortStep extends ModuleWizardStep {
         JPanel portPanel = new JPanel(new FlowLayout());
         portPanel.add(new JLabel("Port :"));
         portPanel.add(portTextField);
-        portPanel.add(new JLabel(String.format("(default port : %d)", PrPiServer.DEFAULT_PORT)));
+        portPanel.add(new JLabel(String.format("(default port : %d)", Server.DEFAULT_PORT)));
         portTextField.setPreferredSize(new Dimension(70, TextFieldHeight));
 
         panel.add(ipPanel);
