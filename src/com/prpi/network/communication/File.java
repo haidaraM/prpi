@@ -194,7 +194,7 @@ public class File extends Transaction {
 
         try (FileOutputStream fileOutputStream = new FileOutputStream(filePath.toFile())) {
             logger.trace("Start writing file (" + lastContentOrder + " parts)");
-            for (int i = 0; i < lastContentOrder; i++) {
+            for (int i = 0; i <= lastContentOrder; i++) {
                 FileContent content = contents.get(i);
                 fileOutputStream.write(content.getContent());
                 logger.trace(String.format("Wrote part of %s (%d/%d)", filePath, i, lastContentOrder));
