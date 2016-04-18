@@ -145,6 +145,8 @@ public class File extends Transaction {
      * @param content the part of the file
      */
     public void addFileContent(FileContent content) {
+        if (contents == null)
+            contents = new HashMap<>();
         contents.put(content.getOrder(), content);
 
         if (content.isLastContent()) {

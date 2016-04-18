@@ -48,7 +48,7 @@ public class NetworkTransactionRecomposer {
             if (networkTransaction.isComposedMessage())
                 resultTransaction = handleComposedMessage(networkTransaction);
             else // if simple message, simply parse message to the right object
-                resultTransaction = handleSimpleMessage(networkTransaction);
+                resultTransaction = handleTransactionContent(networkTransaction.getContent());
 
             return resultTransaction;
 
@@ -61,24 +61,28 @@ public class NetworkTransactionRecomposer {
     }
 
     private Transaction handleComposedMessage(NetworkTransaction networkTransaction) throws ClassNotFoundException {
-        addTransaction(networkTransaction);
+        addPartOfTransaction(networkTransaction);
 
-        Map<Integer, NetworkTransaction> composedNetworkMessages = incompleteTransactions.get(networkTransaction.getTransactionID());
+        // Check if transaction if fully restored (all parts received)
+        String transactionId = networkTransaction.getTransactionID();
+        Map<Integer, NetworkTransaction> composedNetworkMessages = incompleteTransactions.get(transactionId);
         int expectedSize = networkTransaction.getNbMessage();
         if (composedNetworkMessages.size() != expectedSize) {
             logger.debug("NetworkTransaction is not complete. Need more parts");
             return null;
         }
 
-        return recomposeTransaction(networkTransaction.getTransactionID());
+        // Recompose the transaction
+        StringBuilder contentBuilder = new StringBuilder();
+        for (NetworkTransaction transactionPart : composedNetworkMessages.values())
+            contentBuilder.append(transactionPart.getContent());
+        String content = contentBuilder.toString();
+
+        // The recomposed transaction
+        return handleTransactionContent(content);
     }
 
-    private Transaction handleSimpleMessage(NetworkTransaction networkTransaction) {
-        Transaction transaction = Transaction.jsonToTransaction(networkTransaction.getContent());
-        return transaction;
-    }
-
-    private void addTransaction(NetworkTransaction transaction) {
+    private void addPartOfTransaction(NetworkTransaction transaction) {
         String transactionID = transaction.getTransactionID();
         Map<Integer, NetworkTransaction> currentTransactions = incompleteTransactions.get(transactionID);
 
@@ -91,17 +95,7 @@ public class NetworkTransactionRecomposer {
         currentTransactions.put(messageID, transaction);
     }
 
-    private Transaction recomposeTransaction(String transactionId) throws ClassNotFoundException {
-
-        Map<Integer, NetworkTransaction> composedNetworkMessages = incompleteTransactions.get(transactionId);
-
-        // Recompose the transaction
-        StringBuilder contentBuilder = new StringBuilder();
-        for (NetworkTransaction transactionPart : composedNetworkMessages.values())
-            contentBuilder.append(transactionPart.getContent());
-        String content = contentBuilder.toString();
-
-        // The recomposed transaction
+    private Transaction handleTransactionContent(String content) throws ClassNotFoundException {
         Transaction transaction = Transaction.jsonToTransaction(content);
 
         // If its a File or a FileContent, need to check if its fully recomposed too
@@ -114,24 +108,29 @@ public class NetworkTransactionRecomposer {
     }
 
     private File recomposeFile(File file) {
+        logger.trace("Recomposing file");
         String fileId = file.getId();
 
         // If a file content is waiting for the file
         if (incompleteFileContents.containsKey(fileId)) {
+            logger.trace("Adding content to the file");
             List<FileContent> fileContents = incompleteFileContents.get(file.getId());
             fileContents.forEach(file::addFileContent);
 
             incompleteFileContents.remove(fileId);
         }
 
-        if (file.isComplete())
+        if (file.isComplete()) {
+            logger.trace("The file is now complete!");
             return file;
+        }
 
         incompleteFiles.put(fileId, file);
         return null;
     }
 
     private File recomposeFileContent(FileContent fileContent) {
+        logger.trace("Recomposing file content");
         String fileId = fileContent.getFileId();
 
         if (incompleteFiles.containsKey(fileId)) {
@@ -139,14 +138,17 @@ public class NetworkTransactionRecomposer {
             fileToComplete.addFileContent(fileContent);
 
             if (fileToComplete.isComplete()) {
+                logger.trace("File is now complete!");
                 incompleteFiles.remove(fileId);
                 return fileToComplete;
             }
-            else
+            else {
+                logger.trace("File exists, but still not complete");
                 return null;
+            }
 
         } else {
-
+            logger.trace("No file is associated with this content");
             List<FileContent> fileContents = incompleteFileContents.get(fileId);
             if (fileContents == null) {
                 fileContents = new ArrayList<>();
