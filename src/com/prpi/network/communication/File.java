@@ -183,23 +183,26 @@ public class File extends Transaction {
             return false;
         }
 
+        logger.trace("Writing " + fileName + "...");
         // Get the absolute path to the file
-        Path filePath = Paths.get(projectRoot.toString(), this.pathInProject);
+        Path filePath = Paths.get(projectRoot.toString(), pathInProject);
+        logger.trace("File path: " + filePath);
 
         // Create all parents directories to the file
+        logger.trace("Creating directories of parent: " + filePath.getParent());
         Files.createDirectories(filePath.getParent());
 
-        FileOutputStream fileOutputStream = new FileOutputStream(filePath.toFile());
+        try (FileOutputStream fileOutputStream = new FileOutputStream(filePath.toFile())) {
+            logger.trace("Start writing file (" + lastContentOrder + " parts)");
+            for (int i = 0; i < lastContentOrder; i++) {
+                FileContent content = contents.get(i);
+                fileOutputStream.write(content.getContent());
+                logger.trace(String.format("Wrote part of %s (%d/%d)", filePath, i, lastContentOrder));
+            }
+            logger.debug("Completely wrote " + filePath);
 
-
-        for (int i = 0; i < this.lastContentOrder; i++) {
-            FileContent content = this.contents.get(i);
-            fileOutputStream.write(content.getContent());
-            logger.debug(String.format("Wrote part of %s (%d/%d)", filePath, i, this.lastContentOrder));
+            return true;
         }
-        logger.debug("Completely wrote " + filePath);
-
-        return true;
     }
 
     @Override

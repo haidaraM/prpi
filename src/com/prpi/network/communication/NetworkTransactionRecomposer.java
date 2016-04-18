@@ -118,13 +118,15 @@ public class NetworkTransactionRecomposer {
             fileContents.forEach(file::addFileContent);
 
             incompleteFileContents.remove(fileId);
-        }
+        } else
+            logger.trace("No file content associated (yet)");
 
         if (file.isComplete()) {
             logger.trace("The file is now complete!");
             return file;
         }
 
+        logger.trace("The file is uncomplete");
         incompleteFiles.put(fileId, file);
         return null;
     }
@@ -135,6 +137,7 @@ public class NetworkTransactionRecomposer {
 
         if (incompleteFiles.containsKey(fileId)) {
             File fileToComplete = incompleteFiles.get(fileId);
+            logger.trace("Adding the content the file");
             fileToComplete.addFileContent(fileContent);
 
             if (fileToComplete.isComplete()) {
