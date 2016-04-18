@@ -3,13 +3,13 @@ package com.prpi.network.communication;
 import com.google.gson.Gson;
 import org.apache.log4j.Logger;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 public class File extends Transaction {
@@ -35,15 +35,19 @@ public class File extends Transaction {
     private String id;
 
     /**
-     * The absolute path of the root project to read and write file
+     * The content of the file
      */
-    private transient String pathOfProjectRoot;
+    private transient Map<Integer, FileContent> contents = new HashMap<>();
 
-    // TODO : FileContent comparator (order)
-    private transient List<FileContent> contents = new ArrayList<>();
-
+    /**
+     * The number of the last content (get his order number)
+     * Set to -1 when is not known
+     */
     private transient int lastContentOrder = -1;
 
+    /**
+     * True if all FileContent are added correctly in this File
+     */
     private transient boolean complete = false;
 
     private static transient final Logger logger = Logger.getLogger(File.class);
@@ -58,11 +62,11 @@ public class File extends Transaction {
         this.fileName = file.getFileName().toString();
         this.pathInProject = getPathToFileInProjectRoot(file, projectRoot);
         this.fileSize = File.getFileSize(file);
-        this.pathOfProjectRoot = projectRoot.toString();
         this.id = UUID.randomUUID().toString();
-        this.json = gson.toJson(this);
+        this.json = Transaction.gson.toJson(this);
     }
 
+    /* To delete ?
     public File(String fileName, String pathInProject, int fileSize, TransactionType transactionType) {
         super(File.class, transactionType);
         this.fileName = fileName;
@@ -70,17 +74,13 @@ public class File extends Transaction {
         this.fileSize = fileSize;
         this.id = UUID.randomUUID().toString();
         this.json = gson.toJson(this);
-    }
+    }*/
 
-
-    private static String encodeFileData(byte[] fileData) {
-        return Base64.getEncoder().encodeToString(fileData);
-    }
-
-    private static byte[] decodeFileData(String fileDataEncodedBase64) {
-        return Base64.getDecoder().decode(fileDataEncodedBase64);
-    }
-
+    /**
+     * Get the size of an file given with is absolute path
+     * @param pathToFile absolute path to the file
+     * @return the size if is not exceed the int max value / -1 in error cases
+     */
     private static int getFileSize(Path pathToFile) {
         long size;
         try {
@@ -94,6 +94,12 @@ public class File extends Transaction {
         }
     }
 
+    /**
+     * Give the relative path of the file in the project root
+     * @param pathToFile The absolute path to the file
+     * @param projectBasePath Tha absolute path to the project root
+     * @return String representing the elative path of the file in the project root
+     */
     private static String getPathToFileInProjectRoot(Path pathToFile, Path projectBasePath) {
         if (pathToFile.toString().startsWith(projectBasePath.toString()))
             return pathToFile.toString().substring(projectBasePath.toString().length());
@@ -101,20 +107,37 @@ public class File extends Transaction {
         return pathToFile.toString();
     }
 
+    /**
+     * Get the ID of this File object (unique)
+     * @return String representing the File unique ID
+     */
     public String getId() {
         return id;
     }
 
+    /**
+     * Get the size of the File represented by this object
+     * @return the size of the file
+     */
     public int getSize() {
         return fileSize;
     }
 
+    /**
+     * Get the name of the file
+     * @return String representing the name (with extension) of the File
+     */
     public String getFileName() {
         return fileName;
     }
 
+    /**
+     * Add a part of the File content of the file
+     * Set the isComplete method to true if all parts are present in the File
+     * @param content the part of the file
+     */
     public void addFileContent(FileContent content) {
-        contents.add(content);
+        contents.put(content.getOrder(), content);
 
         if (content.isLastContent()) {
             lastContentOrder = content.getOrder();
@@ -125,26 +148,47 @@ public class File extends Transaction {
         }
     }
 
+    /**
+     * Tell if all parts are in the file and can be write
+     * @return True if the file content is complete
+     */
     public boolean isComplete() {
         return complete;
     }
 
-    public void setPathOfProjectRoot(String pathOfProjectRoot) {
-        this.pathOfProjectRoot = pathOfProjectRoot;
-    }
-
-    public boolean writeFile() {
+    /**
+     * Write the file (if is complete) in the relative path of the project root given
+     * @param projectRoot the project root
+     * @return True is the file is correctly write, false if the file is not complete or if the project root path is not reachable
+     * @throws IOException if an I/O exception is throw during the write proccess
+     */
+    public boolean writeFile(Path projectRoot) throws IOException {
         if (!this.isComplete()) {
-            // TODO Error
+            logger.error("The file to write is not complete");
             return false;
         }
 
-        if (this.pathOfProjectRoot == null) {
-            // TODO Error
+        if (Files.isReadable(projectRoot)) {
+            logger.error("The path of the project root is not readable or reachable : " + projectRoot.toString());
             return false;
         }
 
-        // TODO Make the write method
+        // Get the absolute path to the file
+        Path filePath = Paths.get(projectRoot.toString(), this.pathInProject);
+
+        // Create all parents directories to the file
+        Files.createDirectories(filePath.getParent());
+
+        FileOutputStream fileOutputStream = new FileOutputStream(filePath.toFile());
+
+
+        for (int i = 0; i < this.lastContentOrder; i++) {
+            FileContent content = this.contents.get(i);
+            fileOutputStream.write(content.getContent());
+            logger.debug(String.format("Wrote part of %s (%d/%d)", filePath, i, this.lastContentOrder));
+        }
+        logger.debug("Completely wrote " + filePath);
+
         return true;
     }
 }

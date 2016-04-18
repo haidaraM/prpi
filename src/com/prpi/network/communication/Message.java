@@ -13,20 +13,14 @@ public class Message<T> extends Transaction {
     public Message(T obj, TransactionType transactionType) {
         super(Message.class, transactionType);
         this.content = obj;
-        this.json = gson.toJson(this);
+        this.json = Transaction.gson.toJson(this);
     }
 
+    /**
+     * Get the content of the Message
+     * @return
+     */
     public T getContent() {
         return content;
-    }
-
-    @Override
-    public String getString(int offset, int length) {
-        return this.json.substring(offset, offset + length);
-    }
-
-    @Override
-    public int getLength() {
-        return this.json.length();
     }
 }

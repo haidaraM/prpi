@@ -1,20 +1,30 @@
 package com.prpi.network.communication;
 
-import com.google.gson.Gson;
-
-/**
- * Created by Pierre on 17/04/2016.
- */
 public class FileContent extends Transaction {
 
+    /**
+     * The file ID (ID of an File object) attached of this FileContent
+     */
     private String fileId;
 
+    /**
+     * The part of the content of the File
+     */
     private byte[] content;
 
+    /**
+     * Size of the content array
+     */
     private int sizeContent;
 
+    /**
+     * The order of this part in all FileContent composed the File
+     */
     private int order;
 
+    /**
+     * True if this FileContent is the last of all parts of the content of the File
+     */
     private boolean lastContent;
 
     FileContent(String fileId, byte[] content, int sizeContent, int order, boolean lastContent, TransactionType transactionType) {
@@ -23,18 +33,34 @@ public class FileContent extends Transaction {
         this.content = content;
         this.order = order;
         this.lastContent = lastContent;
-        this.json = gson.toJson(this);
+        this.json = Transaction.gson.toJson(this);
     }
 
+    /**
+     * @return true if this FileContent is the last of all the content of the File
+     */
     public boolean isLastContent() {
         return lastContent;
     }
 
+    /**
+     * @return the order of this FileContent in all parts of the content of the final file
+     */
     public int getOrder() {
         return order;
     }
 
+    /**
+     * @return the ID of the File attached (ID of an File object)
+     */
     public String getFileId() {
         return fileId;
+    }
+
+    /**
+     * @return the part of the content of the final file
+     */
+    public byte[] getContent() {
+        return content;
     }
 }

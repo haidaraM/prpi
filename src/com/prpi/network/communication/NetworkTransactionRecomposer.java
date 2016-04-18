@@ -15,9 +15,19 @@ public class NetworkTransactionRecomposer {
 
     private static final Logger logger = Logger.getLogger(NetworkTransactionRecomposer.class);
 
+    /**
+     * Contain all Transaction not completly recomposed
+     */
     private Map<String, Map<Integer, NetworkTransaction>> incompleteTransactions;
 
+    /**
+     * Contain all File not completly recomposed with his FileContent
+     */
     private Map<String, File> incompleteFiles;
+
+    /**
+     * Contain all FileContent not attached to an File object
+     */
     private Map<String, List<FileContent>> incompleteFileContents;
 
     public NetworkTransactionRecomposer() {
@@ -27,12 +37,12 @@ public class NetworkTransactionRecomposer {
     }
 
     /**
-     * Add a part of receive message
-     * @param json the part of message received
-     * @return the Transaction if it complete, else return null
+     * Add a part of receive message (NetworkTransaction)
+     * @param json String representing the NetworkTransaction in json
+     * @return the Transaction if all parts are received, else return null
+     *      It can be a Message or a File (if a File is return, all parts (FileContent) are present and the File can be write)
      */
     public Transaction addPart(String json) {
-        Transaction result = null;
         try {
             // Get the NetworkTransaction
             NetworkTransaction networkTransaction = NetworkTransactionFactory.jsonToNetworkMessage(json);
@@ -44,16 +54,19 @@ public class NetworkTransactionRecomposer {
                 // Check if the composed message is completely here
                 if (incompleteTransactions.get(networkTransaction.getTransactionID()).size() == networkTransaction.getNbMessage()) {
 
+                    // Recomposed the Transaction with all NetworkTransaction
                     String content = "";
                     Map<Integer, NetworkTransaction> allComposedNetworkMessage = incompleteTransactions.get(networkTransaction.getTransactionID());
                     for (int i = 0; i < networkTransaction.getNbMessage(); i++) {
                         content += allComposedNetworkMessage.get(i).getContent();
                     }
 
-                    result = Transaction.jsonToTransaction(content);
+                    // The recomposed Transaction
+                    Transaction transaction = Transaction.jsonToTransaction(content);
 
-                    if (result instanceof File) {
-                        File file = (File) result;
+                    // If its a File or a FileContent, need to check if its fully recomposed too
+                    if (transaction instanceof File) {
+                        File file = (File) transaction;
                         if (incompleteFileContents.containsKey(file.getId())) {
                             incompleteFileContents.get(file.getId()).forEach(file::addFileContent);
                             incompleteFileContents.remove(file.getId());
@@ -64,8 +77,8 @@ public class NetworkTransactionRecomposer {
                         } else {
                             incompleteFiles.put(file.getId(), file);
                         }
-                    } else if (result instanceof FileContent) {
-                        FileContent fileContent = (FileContent) result;
+                    } else if (transaction instanceof FileContent) {
+                        FileContent fileContent = (FileContent) transaction;
                         if (incompleteFiles.containsKey(fileContent.getFileId())) {
                             File fileToComplete = incompleteFiles.get(fileContent.getFileId());
                             fileToComplete.addFileContent(fileContent);
@@ -81,17 +94,20 @@ public class NetworkTransactionRecomposer {
                                 incompleteFileContents.put(fileContent.getFileId(), listFileContents);
                             }
                         }
+
+                    // Else its a simple Message and can be given
                     } else {
-                        return result;
+                        return transaction;
                     }
                 }
             } else {
+                // Its a Transaction in a single NetworkTransaction, can be given directly
                 return Transaction.jsonToTransaction(networkTransaction.getContent());
             }
         } catch (JsonSyntaxException e) {
             logger.error("The json is not correctly formed : " + json, e);
         } catch (ClassNotFoundException e) {
-            // TODO : error
+            logger.error("When converting the json to Transaction, the dynamic cast with his specified type can be done. The class given is not found (maybe you are not up to date with the last protocole version ?)");
         }
         return null;
     }
