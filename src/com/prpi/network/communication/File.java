@@ -178,7 +178,7 @@ public class File extends Transaction {
             return false;
         }
 
-        if (Files.isReadable(projectRoot)) {
+        if (!Files.isReadable(projectRoot)) {
             logger.error("The path of the project root is not readable or reachable : " + projectRoot.toString());
             return false;
         }
