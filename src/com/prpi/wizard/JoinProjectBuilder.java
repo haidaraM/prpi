@@ -10,6 +10,8 @@ import com.intellij.openapi.roots.ui.configuration.ModulesProvider;
 import com.prpi.PrPiProjectComponent;
 import com.prpi.network.client.Client;
 import com.prpi.network.client.PrPiClient;
+import com.prpi.network.communication.Message;
+import com.prpi.network.communication.Transaction;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 
@@ -46,8 +48,15 @@ public class JoinProjectBuilder extends ExistingModuleLoader {
         projectApp.setClient(client);
         logger.debug("Begin init client");
         if (client.initConnection(this.hostname, this.port)) {
+
+            try {
+                client.sendMessage(new Message<>("", Transaction.TransactionType.PROJECT_FILES));
+            } catch (InterruptedException e) {
+                logger.error(e);
+            }
+
             // TODO Disable last wizard step and set project name and properties (not with iml like this...)
-            //return super.validate(current, dest);
+            return super.validate(current, dest);
         }
         return false;
     }

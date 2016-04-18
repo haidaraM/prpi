@@ -77,7 +77,7 @@ public class Client extends Thread {
     @Override
     public void run() {
 
-        if (this.channel == null || this.channel.isWritable()) {
+        if (this.channel == null || !this.channel.isWritable()) {
             logger.error("You need to init connection of the client before run it !");
             return;
         }
@@ -112,10 +112,33 @@ public class Client extends Thread {
     }
 
     /**
-     * Add a Message in the queue of message to send to the server
+     * Send the message to the server imediatly if the initialization of the client connection is done.
+     * (the client not need to be run to use this method)
      * @param msg the Message to send
      */
-    public void sendMessage(@NotNull Message msg) {
+    public void sendMessage(@NotNull Message msg) throws InterruptedException {
+
+        if (this.channel == null || !this.channel.isWritable()) {
+            logger.error("You need to init connection of the client before send a message !");
+            return;
+        }
+
+        List<ChannelFuture> lastWriteFuture = NetworkTransactionFactory.buildAndSend(msg, this.channel);
+
+        // Sync all message before proccess others
+        for (ChannelFuture channelFuture : lastWriteFuture) {
+            if (channelFuture != null) {
+                channelFuture.sync();
+            }
+        }
+    }
+
+    /**
+     * Add a Message in the queue of message to send to the server.
+     * The message while be send if the client is running
+     * @param msg the Message to send
+     */
+    public void addMessageToSend(@NotNull Message msg) {
         this.unsentMessages.add(msg);
         this.notify();
     }

@@ -70,7 +70,7 @@ public class FileContent extends Transaction {
     public String toString() {
         return "FileContent{" +
                 "fileId='" + fileId + '\'' +
-                ", content=" + Arrays.toString(content) +
+                //", content=" + Arrays.toString(content) +
                 ", sizeContent=" + sizeContent +
                 ", order=" + order +
                 ", lastContent=" + lastContent +

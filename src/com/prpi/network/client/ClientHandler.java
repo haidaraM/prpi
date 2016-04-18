@@ -35,13 +35,13 @@ public class ClientHandler extends SimpleChannelInboundHandler<String> {
     @Override
     public void channelRead0(ChannelHandlerContext ctx, String json) throws Exception {
 
-        logger.trace("Client receive a new NetworkTransaction : " + json);
+        logger.trace("Client receive a new NetworkTransaction.");
 
         Transaction transaction = this.recomposer.addPart(json);
 
         if (transaction != null) {
 
-            logger.trace("The NetworkTransaciton complete a Transaction : " + transaction.toString());
+            logger.trace("The NetworkTransaciton complete a Transaction.");
 
             switch (transaction.getTransactionType()) {
 
