@@ -66,6 +66,10 @@ public class ClientHandler extends SimpleChannelInboundHandler<String> {
                     logger.debug("Client received a simple message: " + transaction.toString());
                     break;
 
+                case CLOSE:
+                    ctx.close();
+                    break;
+
                 default:
                     logger.warn("Impossible to process this transaction, type is unsupported : " + transaction.toString());
                     break;

@@ -15,23 +15,17 @@ public class NetworkTransactionRecomposer {
     /**
      * Contain all Transaction not completly recomposed
      */
-    private Map<String, Map<Integer, NetworkTransaction>> incompleteTransactions;
+    private Map<String, Map<Integer, NetworkTransaction>> incompleteTransactions = new HashMap<>();
 
     /**
      * Contain all File not completly recomposed with his FileContent
      */
-    private Map<String, File> incompleteFiles;
+    private Map<String, File> incompleteFiles = new HashMap<>();
 
     /**
      * Contain all FileContent not attached to an File object
      */
-    private Map<String, List<FileContent>> incompleteFileContents;
-
-    public NetworkTransactionRecomposer() {
-        this.incompleteTransactions = new HashMap<>();
-        this.incompleteFiles = new HashMap<>();
-        this.incompleteFileContents = new HashMap<>();
-    }
+    private Map<String, List<FileContent>> incompleteFileContents = new HashMap<>();
 
     /**
      * Add a part of receive message (NetworkTransaction)
@@ -45,10 +39,12 @@ public class NetworkTransactionRecomposer {
             NetworkTransaction networkTransaction = NetworkTransactionFactory.jsonToNetworkMessage(json);
 
             Transaction resultTransaction;
-            if (networkTransaction.isComposedMessage())
+            if (networkTransaction.isComposedMessage()) {
                 resultTransaction = handleComposedMessage(networkTransaction);
-            else // if simple message, simply parse message to the right object
+            } else {
+                // if simple message, simply parse message to the right object
                 resultTransaction = handleTransactionContent(networkTransaction.getContent());
+            }
 
             return resultTransaction;
 
@@ -60,7 +56,15 @@ public class NetworkTransactionRecomposer {
         return null;
     }
 
+    /**
+     * Proccess a new NetworkTransaction when it's a composed Transaction
+     * @param networkTransaction the new NetworkTransaction received
+     * @return a Transaction if the new NetworkTransaction complete a composed Transaction
+     * @throws ClassNotFoundException
+     */
     private Transaction handleComposedMessage(NetworkTransaction networkTransaction) throws ClassNotFoundException {
+
+        // TODO Why use method here ? You need to research in the incompleteTransactions map again after :/
         addPartOfTransaction(networkTransaction);
 
         // Check if transaction if fully restored (all parts received)
@@ -74,8 +78,11 @@ public class NetworkTransactionRecomposer {
 
         // Recompose the transaction
         StringBuilder contentBuilder = new StringBuilder();
-        for (NetworkTransaction transactionPart : composedNetworkMessages.values())
+        for (NetworkTransaction transactionPart : composedNetworkMessages.values()) {
+
+            // TODO the order is respected in every cases ?
             contentBuilder.append(transactionPart.getContent());
+        }
         String content = contentBuilder.toString();
 
         // The recomposed transaction
@@ -87,7 +94,7 @@ public class NetworkTransactionRecomposer {
         Map<Integer, NetworkTransaction> currentTransactions = incompleteTransactions.get(transactionID);
 
         if (currentTransactions == null) {
-            currentTransactions = new TreeMap<>();
+            currentTransactions = new HashMap<>();
             incompleteTransactions.put(transactionID, currentTransactions);
         }
 
@@ -95,6 +102,12 @@ public class NetworkTransactionRecomposer {
         currentTransactions.put(messageID, transaction);
     }
 
+    /**
+     * Proccess a content of an NetworkTransaction or multiple when content is recomposed
+     * @param content the content to convert in Transaction
+     * @return the Transaction result of the converting proccess
+     * @throws ClassNotFoundException
+     */
     private Transaction handleTransactionContent(String content) throws ClassNotFoundException {
         Transaction transaction = Transaction.jsonToTransaction(content);
 
@@ -118,8 +131,9 @@ public class NetworkTransactionRecomposer {
             fileContents.forEach(file::addFileContent);
 
             incompleteFileContents.remove(fileId);
-        } else
+        } else {
             logger.trace("No file content associated (yet)");
+        }
 
         if (file.isComplete()) {
             logger.trace("The file is now complete!");

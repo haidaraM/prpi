@@ -44,6 +44,7 @@ public class ServerHandler extends SimpleChannelInboundHandler<String> {
                     logger.debug("Server received new connection: " + ctx);
                     /*Message welcomeMessage = new Message<>("Hello world new client !", Transaction.TransactionType.SIMPLE_MESSAGE);
                     NetworkTransactionFactory.buildAndSend(welcomeMessage, ctx.channel());*/
+                    clientChannels.add(ctx.channel());
                 });
     }
 
@@ -64,6 +65,11 @@ public class ServerHandler extends SimpleChannelInboundHandler<String> {
 
                 case SIMPLE_MESSAGE:
                     logger.trace("The transaction is a Message : " + transaction.toString());
+                    break;
+
+                case CLOSE:
+                    ctx.close();
+                    clientChannels.remove(ctx.channel());
                     break;
 
                 default:
