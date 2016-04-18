@@ -55,7 +55,7 @@ public class Client extends Thread {
      * @param port the port of the server
      * @return true if the initialization is done, else false
      */
-    public boolean initConnection(String host, int port) {
+    public boolean connect(String host, int port) {
         logger.trace("Init connection of the client ...");
         try {
             Bootstrap bootstrap = new Bootstrap();
@@ -116,7 +116,7 @@ public class Client extends Thread {
      * @param msg the Message to send
      */
     public void sendMessage(@NotNull Message msg) {
-        this.unsentMessages.add(msg);
-        this.notify();
+        unsentMessages.add(msg);
+        notify();
     }
 }

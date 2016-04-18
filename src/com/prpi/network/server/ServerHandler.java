@@ -38,23 +38,29 @@ public class ServerHandler extends SimpleChannelInboundHandler<String> {
         // list so the channel received the messages from others.
         ctx.pipeline().get(SslHandler.class).handshakeFuture().addListener(
                 future -> {
-                    Message welcomeMessage = new Message<>("Hello world new client !", Transaction.TransactionType.SIMPLE_MESSAGE);
-                    logger.trace("Server send this welcome message to a new client : " + welcomeMessage.toString());
-                    NetworkTransactionFactory.buildAndSend(welcomeMessage, ctx.channel());
+                    logger.debug("Server received new connection: " + ctx);
+                    /*Message welcomeMessage = new Message<>("Hello world new client !", Transaction.TransactionType.SIMPLE_MESSAGE);
+                    NetworkTransactionFactory.buildAndSend(welcomeMessage, ctx.channel());*/
                 });
     }
 
     @Override
     public void channelRead0(ChannelHandlerContext ctx, String json) {
-        logger.trace("Server receive a new NetworkTransaction.");
+        logger.debug("Server received a new message (NetworkTransaction).");
 
-        Transaction transaction = this.recomposer.addPart(json);
+        Transaction transaction = recomposer.addPart(json);
 
         if (transaction != null) {
 
             logger.trace("The NetworkTransaciton complete a Transaction !");
 
             switch (transaction.getTransactionType()) {
+
+                case INIT_PROJECT:
+                    logger.debug("Received a request for project initialization");
+                    /*sendProjectStructure();
+                    sendProjectFiles();*/
+                    break;
 
                 case SIMPLE_MESSAGE:
                     logger.trace("The transaction is a Message : " + transaction.toString());

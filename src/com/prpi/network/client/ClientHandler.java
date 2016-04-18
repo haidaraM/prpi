@@ -1,12 +1,10 @@
 package com.prpi.network.client;
 
 import com.intellij.openapi.project.Project;
-import com.prpi.network.communication.File;
-import com.prpi.network.communication.NetworkTransaction;
-import com.prpi.network.communication.NetworkTransactionRecomposer;
-import com.prpi.network.communication.Transaction;
+import com.prpi.network.communication.*;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.handler.ssl.SslHandler;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,11 +31,21 @@ public class ClientHandler extends SimpleChannelInboundHandler<String> {
     }
 
     @Override
+    public void channelActive(ChannelHandlerContext ctx) throws Exception {
+        ctx.pipeline().get(SslHandler.class).handshakeFuture().addListener(
+                future -> {
+                    logger.debug("Client established connection to server: " + ctx);
+
+                    Message<String> projectCopyMessage = new Message<>("Foo", Transaction.TransactionType.INIT_PROJECT);
+                    NetworkTransactionFactory.buildAndSend(projectCopyMessage, ctx.channel());
+                });
+    }
+
+    @Override
     public void channelRead0(ChannelHandlerContext ctx, String json) throws Exception {
+        logger.debug("Client received a new message (NetworkTransaction)");
 
-        logger.trace("Client receive a new NetworkTransaction : " + json);
-
-        Transaction transaction = this.recomposer.addPart(json);
+        Transaction transaction = recomposer.addPart(json);
 
         if (transaction != null) {
 
@@ -61,7 +69,7 @@ public class ClientHandler extends SimpleChannelInboundHandler<String> {
                     break;
 
                 case SIMPLE_MESSAGE:
-                    logger.trace("The transaction is a Message : " + transaction.toString());
+                    logger.debug("Client received a simple message: " + transaction.toString());
                     break;
 
                 default:
