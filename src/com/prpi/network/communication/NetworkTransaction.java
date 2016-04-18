@@ -7,11 +7,6 @@ import org.jetbrains.annotations.NotNull;
 public class NetworkTransaction {
 
     /**
-     * The transaction type of this message
-     */
-    private Transaction.TransactionType transactionType;
-
-    /**
      * The ID of the transaction
      */
     private String transactionID;
@@ -31,9 +26,8 @@ public class NetworkTransaction {
      */
     private String content;
 
-    NetworkTransaction(@NotNull String transactionID, @NotNull Transaction.TransactionType transactionType, int nbMessage, int messageID, @NotNull String content) {
+    NetworkTransaction(@NotNull String transactionID, int nbMessage, int messageID, @NotNull String content) {
         this.content = content;
-        this.transactionType = transactionType;
         this.transactionID = transactionID;
         this.messageID = messageID;
         this.nbMessage = nbMessage;
@@ -47,10 +41,6 @@ public class NetworkTransaction {
 
     protected static NetworkTransaction jsonToNetworkMessage(String json) throws JsonSyntaxException {
         return gson.fromJson(json, NetworkTransaction.class);
-    }
-
-    protected Transaction.TransactionType getTransactionType() {
-        return transactionType;
     }
 
     protected String getTransactionID() {

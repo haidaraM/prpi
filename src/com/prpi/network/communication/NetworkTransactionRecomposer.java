@@ -65,7 +65,7 @@ public class NetworkTransactionRecomposer {
                     Transaction transaction = Transaction.jsonToTransaction(content);
 
                     // If its a File or a FileContent, need to check if its fully recomposed too
-                    if (transaction instanceof File) {
+                    if (transaction instanceof File) { // TODO use TransactionType instead ?? What is the best ?
                         File file = (File) transaction;
                         if (incompleteFileContents.containsKey(file.getId())) {
                             incompleteFileContents.get(file.getId()).forEach(file::addFileContent);
@@ -77,7 +77,7 @@ public class NetworkTransactionRecomposer {
                         } else {
                             incompleteFiles.put(file.getId(), file);
                         }
-                    } else if (transaction instanceof FileContent) {
+                    } else if (transaction instanceof FileContent) { // TODO use TransactionType instead ?? What is the best ?
                         FileContent fileContent = (FileContent) transaction;
                         if (incompleteFiles.containsKey(fileContent.getFileId())) {
                             File fileToComplete = incompleteFiles.get(fileContent.getFileId());

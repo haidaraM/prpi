@@ -132,6 +132,14 @@ public class File extends Transaction {
     }
 
     /**
+     * Get the relative path of the file in the project
+     * @return String representing the relative path (racine = project root) of the file
+     */
+    public String getPathInProject() {
+        return pathInProject;
+    }
+
+    /**
      * Add a part of the File content of the file
      * Set the isComplete method to true if all parts are present in the File
      * @param content the part of the file

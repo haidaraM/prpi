@@ -3,6 +3,7 @@ package com.prpi.network.communication;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import com.prpi.network.PrPiChannelInitializer;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import org.apache.log4j.Logger;
@@ -37,18 +38,19 @@ public class NetworkTransactionFactory {
     }
 
     /**
+     * The limit of the message length
+     */
+    private static final int maxMessageLength = PrPiChannelInitializer.MAX_FRAME_LENGTH
+            - new NetworkTransaction(Long.toString(Long.MAX_VALUE), Integer.MAX_VALUE, Integer.MAX_VALUE, "").toJson().length()
+            - 100; // Increase if needed this random value in case of out of frame length
+
+    /**
      * Build all NetworkTransaction corresponding to the Transaction given and send them to the receiver
      * @param message the message to send (Transaction)
-     * @param transactionType the type of Transaction
      * @param receiver the channel receiver of this message(s)
      * @return all ChannelFuture created to send messages
      */
-    public static List<ChannelFuture> buildAndSend(@NotNull Transaction message, @NotNull Transaction.TransactionType transactionType, @NotNull final ChannelHandlerContext receiver) {
-
-        // The limit of the message length
-        final int maxMessageLength = PrPiChannelInitializer.MAX_FRAME_LENGTH
-                - new NetworkTransaction(Long.toString(Long.MAX_VALUE), transactionType, Integer.MAX_VALUE, Integer.MAX_VALUE, "").toJson().length()
-                - 100; // Increase if needed this random value in case of out of frame length
+    public static List<ChannelFuture> buildAndSend(@NotNull Transaction message, @NotNull final Channel receiver) {
 
         // The string length
         int messageLengthLeft = message.getLength();
@@ -74,7 +76,7 @@ public class NetworkTransactionFactory {
         while (messageLengthLeft > maxMessageLength) {
 
             // Create the NetworkTransaction, part of the final Message
-            NetworkTransaction transaction = new NetworkTransaction(transactionID, transactionType, nbMessage, messageID, message.getString(offset, maxMessageLength));
+            NetworkTransaction transaction = new NetworkTransaction(transactionID, nbMessage, messageID, message.getString(offset, maxMessageLength));
 
             // Send this NetworkTransaction and get the ChannelFuture created
             channelFutureToReturn.add(receiver.writeAndFlush(transaction.toJson()));
@@ -87,7 +89,7 @@ public class NetworkTransactionFactory {
 
         if (messageLengthLeft > 0) {
             // Last NetworkTransaction
-            NetworkTransaction transaction = new NetworkTransaction(transactionID, transactionType, nbMessage, messageID, message.getString(offset, messageLengthLeft));
+            NetworkTransaction transaction = new NetworkTransaction(transactionID, nbMessage, messageID, message.getString(offset, messageLengthLeft));
 
             // Send and store the ChannelFuture
             channelFutureToReturn.add(receiver.writeAndFlush(transaction.toJson()));
@@ -99,11 +101,10 @@ public class NetworkTransactionFactory {
      * Build all NetworkTransaction corresponding to the File given and send them to the receiver
      * @param file the path to the file to send
      * @param projectRoot the path to the project root
-     * @param transactionType the transaction type
      * @param receiver the channel receiver of all NetworkTransaction sent
      * @return all ChannelFuture created to send messages
      */
-    public static List<ChannelFuture> buildAndSend(Path file, Path projectRoot, @NotNull Transaction.TransactionType transactionType, @NotNull final ChannelHandlerContext receiver) {
+    public static List<ChannelFuture> buildAndSend(Path file, Path projectRoot, @NotNull final Channel receiver) {
 
         // List of ChannelFuture to return
         List<ChannelFuture> channelFutureToReturn = new LinkedList<>();
@@ -126,14 +127,14 @@ public class NetworkTransactionFactory {
             for (java.io.File subFile : subFiles) {
 
                 // Get all ChannelFuture made to send all NetworkMessage
-                channelFutureToReturn.addAll(buildAndSend(subFile.toPath(), projectRoot, transactionType, receiver));
+                channelFutureToReturn.addAll(buildAndSend(subFile.toPath(), projectRoot, receiver));
             }
 
         // Its a file
         } else {
 
-            File fileToSend = new File(file, projectRoot, transactionType);
-            buildAndSend(fileToSend, transactionType, receiver);
+            File fileToSend = new File(file, projectRoot, Transaction.TransactionType.FILE_TRANSFERT);
+            buildAndSend(fileToSend, receiver);
 
             int fileSize = fileToSend.getSize();
             logger.debug("Size of file " + file + " is " + fileSize);
@@ -151,10 +152,10 @@ public class NetworkTransactionFactory {
 
                     boolean lastContent = (dataRead < bufferSize);
 
-                    FileContent fileContent = new FileContent(fileToSend.getId(), fileData, dataRead, fileContentNumber, lastContent, transactionType);
+                    FileContent fileContent = new FileContent(fileToSend.getId(), fileData, dataRead, fileContentNumber, lastContent, Transaction.TransactionType.FILE_CONTENT);
 
                     // Get all ChannelFuture made to send all NetworkMessage
-                    channelFutureToReturn.addAll(buildAndSend(fileContent, transactionType, receiver));
+                    channelFutureToReturn.addAll(buildAndSend(fileContent, receiver));
 
                     // Update index and fileData array size
                     fileContentNumber++;

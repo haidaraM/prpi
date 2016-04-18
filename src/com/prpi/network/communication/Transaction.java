@@ -12,6 +12,7 @@ public abstract class Transaction {
      */
     public enum TransactionType {
         FILE_TRANSFERT,
+        FILE_CONTENT,
         SIMPLE_MESSAGE,
         INIT_PROJECT,
         CLOSE
@@ -38,6 +39,15 @@ public abstract class Transaction {
     }
 
     /**
+     * Get the string representation of the object (json format)
+     * @return json representing this object
+     */
+    @Override
+    public String toString() {
+        return this.json;
+    }
+
+    /**
      * Get a String part of the final json of this object
      * @param offset index of the begin string to extract
      * @param length the length of the string exctracted
@@ -53,6 +63,14 @@ public abstract class Transaction {
      */
     public int getLength() {
         return json.length();
+    }
+
+    /**
+     * Get the type of this Transaction
+     * @return the type
+     */
+    public TransactionType getTransactionType() {
+        return transactionType;
     }
 
     /**
