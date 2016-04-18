@@ -23,4 +23,11 @@ public class Message<T> extends Transaction {
     public T getContent() {
         return content;
     }
+
+    @Override
+    public String toString() {
+        return "Message{" +
+                "content=" + content +
+                "} " + super.toString();
+    }
 }

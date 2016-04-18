@@ -1,5 +1,7 @@
 package com.prpi.network.communication;
 
+import java.util.Arrays;
+
 public class FileContent extends Transaction {
 
     /**
@@ -62,5 +64,16 @@ public class FileContent extends Transaction {
      */
     public byte[] getContent() {
         return content;
+    }
+
+    @Override
+    public String toString() {
+        return "FileContent{" +
+                "fileId='" + fileId + '\'' +
+                ", content=" + Arrays.toString(content) +
+                ", sizeContent=" + sizeContent +
+                ", order=" + order +
+                ", lastContent=" + lastContent +
+                "} " + super.toString();
     }
 }

@@ -6,6 +6,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.prpi.PrPiProjectComponent;
 import com.prpi.network.server.PrPiServer;
+import com.prpi.network.server.Server;
 import org.apache.log4j.Logger;
 
 public class HostProject extends AnAction {
@@ -37,9 +38,9 @@ public class HostProject extends AnAction {
     }
 
     private void launchServer(int port) {
-        PrPiServer server = new PrPiServer(port, project);
+        Server server = new Server(project, port);
         server.start();
-        projectComponent.setServerThread(server);
+        projectComponent.setServer(server);
     }
 
     @Override

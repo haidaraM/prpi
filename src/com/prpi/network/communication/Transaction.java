@@ -36,15 +36,7 @@ public abstract class Transaction {
     Transaction(Class type, TransactionType transactionType) {
         this.objectTypeInTransaction = type.getCanonicalName();
         this.transactionType = transactionType;
-    }
-
-    /**
-     * Get the string representation of the object (json format)
-     * @return json representing this object
-     */
-    @Override
-    public String toString() {
-        return this.json;
+        this.json = Transaction.gson.toJson(this);
     }
 
     /**
@@ -93,5 +85,14 @@ public abstract class Transaction {
 
         // Create this object and re-cast to the transaction (but its a Message or a File, or a FileContent ...)
         return (Transaction) gson.fromJson(json, type);
+    }
+
+    @Override
+    public String toString() {
+        return "Transaction{" +
+                "objectTypeInTransaction='" + objectTypeInTransaction + '\'' +
+                ", json='" + json + '\'' +
+                ", transactionType=" + transactionType +
+                '}';
     }
 }

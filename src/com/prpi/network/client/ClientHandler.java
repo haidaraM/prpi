@@ -2,6 +2,7 @@ package com.prpi.network.client;
 
 import com.intellij.openapi.project.Project;
 import com.prpi.network.communication.File;
+import com.prpi.network.communication.NetworkTransaction;
 import com.prpi.network.communication.NetworkTransactionRecomposer;
 import com.prpi.network.communication.Transaction;
 import io.netty.channel.ChannelHandlerContext;
@@ -34,13 +35,13 @@ public class ClientHandler extends SimpleChannelInboundHandler<String> {
     @Override
     public void channelRead0(ChannelHandlerContext ctx, String json) throws Exception {
 
-        logger.trace("Client receive a new NetworkTransaction.");
+        logger.trace("Client receive a new NetworkTransaction : " + json);
 
         Transaction transaction = this.recomposer.addPart(json);
 
         if (transaction != null) {
 
-            logger.trace("The NetworkTransaciton complete a Transaction !");
+            logger.trace("The NetworkTransaciton complete a Transaction : " + transaction.toString());
 
             switch (transaction.getTransactionType()) {
 

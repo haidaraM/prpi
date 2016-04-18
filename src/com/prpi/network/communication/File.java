@@ -199,4 +199,17 @@ public class File extends Transaction {
 
         return true;
     }
+
+    @Override
+    public String toString() {
+        return "File{" +
+                "fileName='" + fileName + '\'' +
+                ", pathInProject='" + pathInProject + '\'' +
+                ", fileSize=" + fileSize +
+                ", id='" + id + '\'' +
+                ", contents=" + contents +
+                ", lastContentOrder=" + lastContentOrder +
+                ", complete=" + complete +
+                "} " + super.toString();
+    }
 }

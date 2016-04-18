@@ -40,8 +40,6 @@
             <separator/>
             <action id="prpi.JoinProject" class="com.prpi.actions.JoinProject" text="Join Project"
                     description="Join a remote hosted intellij project"/>
-            <action id="prpi.Test" class="com.prpi.actions.Test" text="Test Action"
-                    description="Test Action"/>
         </group>
     </actions>
 

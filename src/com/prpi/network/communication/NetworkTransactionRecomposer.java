@@ -101,6 +101,7 @@ public class NetworkTransactionRecomposer {
                     }
                 }
             } else {
+                logger.trace("Recomposer get a single NetworkTransaction to Transaction : " + networkTransaction.getContent());
                 // Its a Transaction in a single NetworkTransaction, can be given directly
                 return Transaction.jsonToTransaction(networkTransaction.getContent());
             }

@@ -8,6 +8,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ui.configuration.ModulesProvider;
 import com.prpi.PrPiProjectComponent;
+import com.prpi.network.client.Client;
 import com.prpi.network.client.PrPiClient;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -41,16 +42,12 @@ public class JoinProjectBuilder extends ExistingModuleLoader {
     @Override
     public boolean validate(final Project current, final Project dest) {
         PrPiProjectComponent projectApp = dest.getComponent(PrPiProjectComponent.class);
-        PrPiClient client = new PrPiClient(hostname, port);
-        client.setCurrentProject(dest);
-        projectApp.setClientThread(client);
-        logger.debug("Begin init client - Copy files from server");
-        if (client.initConnection()) {
-            if (this.wizardContext != null) {
-                this.wizardContext.setProjectName(client.getProjectNameToSet());
-                // TODO Disable last wizard step and set project name and properties (not with iml like this...)
-            }
-            return super.validate(current, dest);
+        Client client = new Client(dest);
+        projectApp.setClient(client);
+        logger.debug("Begin init client");
+        if (client.initConnection(this.hostname, this.port)) {
+            // TODO Disable last wizard step and set project name and properties (not with iml like this...)
+            //return super.validate(current, dest);
         }
         return false;
     }

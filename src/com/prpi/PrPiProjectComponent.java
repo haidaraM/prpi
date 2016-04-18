@@ -2,16 +2,18 @@ package com.prpi;
 
 import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.project.Project;
+import com.prpi.network.client.Client;
 import com.prpi.network.client.PrPiClient;
 import com.prpi.network.server.PrPiServer;
+import com.prpi.network.server.Server;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 
 public class PrPiProjectComponent implements ProjectComponent {
 
-    private PrPiServer serverThread;
-    private PrPiClient clientThread;
+    private Server server;
+    private Client client;
     private Project project;
 
     public PrPiProjectComponent(Project project) {
@@ -42,35 +44,35 @@ public class PrPiProjectComponent implements ProjectComponent {
     @Override
     public void projectClosed() {
         if (this.isClient()) {
-            this.clientThread.closeConnection();
+            // TODO this.client.closeConnection();
         }
         if (this.isHosting()) {
-            this.serverThread.closeConnection();
+            // TODO this.server.closeConnection();
         }
     }
 
     public boolean isHosting() {
-        return serverThread != null;
+        return server != null;
     }
 
     public boolean isClient() {
-        return clientThread != null;
+        return client != null;
     }
 
-    public PrPiClient getClientThread() {
-        return clientThread;
+    public Client getClient() {
+        return client;
     }
 
-    public void setClientThread(PrPiClient clientThread) {
-        this.clientThread = clientThread;
+    public void setClient(Client client) {
+        this.client = client;
     }
 
-    public PrPiServer getServerThread() {
-        return serverThread;
+    public Server getServer() {
+        return server;
     }
 
-    public void setServerThread(PrPiServer serverThread) {
-        this.serverThread = serverThread;
+    public void setServer(Server server) {
+        this.server = server;
     }
 
     @NotNull

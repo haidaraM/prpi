@@ -38,10 +38,9 @@ public class ServerHandler extends SimpleChannelInboundHandler<String> {
         // list so the channel received the messages from others.
         ctx.pipeline().get(SslHandler.class).handshakeFuture().addListener(
                 future -> {
-                    NetworkTransactionFactory.buildAndSend(
-                            new Message<>("Hello world new client !", Transaction.TransactionType.SIMPLE_MESSAGE),
-                            ctx.channel()
-                    );
+                    Message welcomeMessage = new Message<>("Hello world new client !", Transaction.TransactionType.SIMPLE_MESSAGE);
+                    logger.trace("Server send this welcome message to a new client : " + welcomeMessage.toString());
+                    NetworkTransactionFactory.buildAndSend(welcomeMessage, ctx.channel());
                 });
     }
 
