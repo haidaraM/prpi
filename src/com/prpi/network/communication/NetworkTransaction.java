@@ -58,4 +58,8 @@ public class NetworkTransaction {
     protected String getContent() {
         return content;
     }
+
+    public boolean isComposedMessage() {
+        return nbMessage > 1;
+    }
 }

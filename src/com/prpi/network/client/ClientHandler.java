@@ -49,22 +49,16 @@ public class ClientHandler extends SimpleChannelInboundHandler<String> {
 
         if (transaction != null) {
 
-            logger.trace("The NetworkTransaciton complete a Transaction.");
-
             switch (transaction.getTransactionType()) {
 
                 case FILE_TRANSFERT:
-                    logger.trace("The transaction is a File");
+                    logger.trace("The message is a file transfert");
                     String projectRootPath = project.getBasePath();
-                    if (projectRootPath != null) {
-                        File fileTransaction = (File) transaction;
-                        if (fileTransaction.writeFile(Paths.get(projectRootPath))) {
-                            logger.debug("A file was written in the project (" + projectRootPath + "/" + fileTransaction.getPathInProject() + "/" + fileTransaction.getFileName() + ")");
-                        } else {
-                            logger.error("Can't write this file : " + projectRootPath + "/" + fileTransaction.getPathInProject() + "/" + fileTransaction.getFileName());
-                        }
+                    File fileTransaction = (File) transaction;
+                    if (fileTransaction.writeFile(Paths.get(projectRootPath))) {
+                        logger.debug("A file was written in the project (" + projectRootPath + "/" + fileTransaction.getPathInProject() + "/" + fileTransaction.getFileName() + ")");
                     } else {
-                        logger.error("Can't get the project root path, the file can't be written !");
+                        logger.error("Can't write this file : " + projectRootPath + "/" + fileTransaction.getPathInProject() + "/" + fileTransaction.getFileName());
                     }
                     break;
 

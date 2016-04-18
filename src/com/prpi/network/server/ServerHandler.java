@@ -14,6 +14,7 @@ import io.netty.util.concurrent.GlobalEventExecutor;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public class ServerHandler extends SimpleChannelInboundHandler<String> {
@@ -54,23 +55,15 @@ public class ServerHandler extends SimpleChannelInboundHandler<String> {
 
         if (transaction != null) {
 
-            logger.trace("The NetworkTransaciton complete a Transaction !");
-
             switch (transaction.getTransactionType()) {
 
                 case INIT_PROJECT:
                     logger.debug("Received a request for project initialization");
-                    /*sendProjectStructure();
-                    sendProjectFiles();*/
+                    sendProject(ctx);
                     break;
 
                 case SIMPLE_MESSAGE:
                     logger.trace("The transaction is a Message : " + transaction.toString());
-                    break;
-
-                case PROJECT_FILES:
-                    logger.trace("The transaction is a request to get all project files.");
-                    NetworkTransactionFactory.buildAndSend(Paths.get(this.currentProject.getBasePath()), Paths.get(this.currentProject.getBasePath()), ctx.channel());
                     break;
 
                 default:
@@ -78,6 +71,11 @@ public class ServerHandler extends SimpleChannelInboundHandler<String> {
                     break;
             }
         }
+    }
+
+    private void sendProject(ChannelHandlerContext context) {
+        Path projectPath = Paths.get(currentProject.getBasePath());
+        NetworkTransactionFactory.buildAndSend(projectPath, projectPath, context.channel());
     }
 
     @Override

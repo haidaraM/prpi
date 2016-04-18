@@ -171,7 +171,7 @@ public class File extends Transaction {
      * @throws IOException if an I/O exception is throw during the write proccess
      */
     public boolean writeFile(Path projectRoot) throws IOException {
-        if (!this.isComplete()) {
+        if (!isComplete()) {
             logger.error("The file to write is not complete");
             return false;
         }
