@@ -22,7 +22,7 @@ public class Client extends Thread {
     /**
      * The group used to communicate with the server
      */
-    private NioEventLoopGroup group;
+    private NioEventLoopGroup group = new NioEventLoopGroup();
 
     /**
      * The handler, receive all requests from the server
@@ -32,9 +32,9 @@ public class Client extends Thread {
     /**
      * The communication channel used between the client and the server
      */
-    private Channel channel;
+    private Channel channel = null;
 
-    private Queue<Message> unsentMessages;
+    private Queue<Message> unsentMessages = new LinkedList<>();
 
     private static final Logger logger = Logger.getLogger(Client.class);
 
@@ -43,10 +43,7 @@ public class Client extends Thread {
      * @param currentProject the project to follow
      */
     public Client(@NotNull Project currentProject) {
-        this.group = new NioEventLoopGroup();
-        this.handler = new ClientHandler(currentProject);
-        this.channel = null;
-        this.unsentMessages = new LinkedList<>();
+        handler = new ClientHandler(currentProject);
     }
 
     /**
@@ -61,10 +58,10 @@ public class Client extends Thread {
             Bootstrap bootstrap = new Bootstrap();
             bootstrap.group(this.group);
             bootstrap.channel(NioSocketChannel.class);
-            bootstrap.handler(new PrPiChannelInitializer(this.handler, host, port));
+            bootstrap.handler(new PrPiChannelInitializer(handler, host, port));
 
             // Start the connection attempt.
-            this.channel = bootstrap.connect(host, port).sync().channel();
+            channel = bootstrap.connect(host, port).sync().channel();
 
         } catch (InterruptedException | IOException e) {
             logger.error(e);
@@ -77,7 +74,7 @@ public class Client extends Thread {
     @Override
     public void run() {
 
-        if (this.channel == null || this.channel.isWritable()) {
+        if (this.channel == null || !this.channel.isWritable()) {
             logger.error("You need to init connection of the client before run it !");
             return;
         }
@@ -112,10 +109,33 @@ public class Client extends Thread {
     }
 
     /**
-     * Add a Message in the queue of message to send to the server
+     * Send the message to the server imediatly if the initialization of the client connection is done.
+     * (the client not need to be run to use this method)
      * @param msg the Message to send
      */
-    public void sendMessage(@NotNull Message msg) {
+    public void sendMessage(@NotNull Message msg) throws InterruptedException {
+
+        if (this.channel == null || !this.channel.isWritable()) {
+            logger.error("You need to init connection of the client before send a message !");
+            return;
+        }
+
+        List<ChannelFuture> lastWriteFuture = NetworkTransactionFactory.buildAndSend(msg, this.channel);
+
+        // Sync all message before proccess others
+        for (ChannelFuture channelFuture : lastWriteFuture) {
+            if (channelFuture != null) {
+                channelFuture.sync();
+            }
+        }
+    }
+
+    /**
+     * Add a Message in the queue of message to send to the server.
+     * The message while be send if the client is running
+     * @param msg the Message to send
+     */
+    public void addMessageToSendingQueue(@NotNull Message msg) {
         unsentMessages.add(msg);
         notify();
     }

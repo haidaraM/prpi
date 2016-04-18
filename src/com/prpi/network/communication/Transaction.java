@@ -15,6 +15,7 @@ public abstract class Transaction {
         FILE_CONTENT,
         SIMPLE_MESSAGE,
         INIT_PROJECT,
+        PROJECT_FILES,
         CLOSE
     }
 

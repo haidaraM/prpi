@@ -9,8 +9,6 @@ import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ui.configuration.ModulesProvider;
 import com.prpi.PrPiProjectComponent;
 import com.prpi.network.client.Client;
-import com.prpi.network.client.ClientMessageSender;
-import com.prpi.network.client.PrPiClient;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 
@@ -46,11 +44,10 @@ public class JoinProjectBuilder extends ExistingModuleLoader {
         Client client = new Client(dest);
         projectApp.setClient(client);
         logger.debug("Begin init client");
-        if (client.connect(this.hostname, this.port)) {
 
-            // TODO Disable last wizard step and set project name and properties (not with iml like this...)
-            //return super.validate(current, dest);
-        }
+        client.connect(hostname, port);
+        // TODO Disable last wizard step and set project name and properties (not with iml like this...)
+        // return super.validate(current, dest);
         return false;
     }
 

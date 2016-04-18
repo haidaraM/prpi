@@ -14,6 +14,8 @@ import io.netty.util.concurrent.GlobalEventExecutor;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 
+import java.nio.file.Paths;
+
 public class ServerHandler extends SimpleChannelInboundHandler<String> {
 
     private static final ChannelGroup clientChannels = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
@@ -64,6 +66,11 @@ public class ServerHandler extends SimpleChannelInboundHandler<String> {
 
                 case SIMPLE_MESSAGE:
                     logger.trace("The transaction is a Message : " + transaction.toString());
+                    break;
+
+                case PROJECT_FILES:
+                    logger.trace("The transaction is a request to get all project files.");
+                    NetworkTransactionFactory.buildAndSend(Paths.get(this.currentProject.getBasePath()), Paths.get(this.currentProject.getBasePath()), ctx.channel());
                     break;
 
                 default:
