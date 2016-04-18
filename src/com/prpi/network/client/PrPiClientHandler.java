@@ -15,6 +15,7 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 
+@Deprecated
 public class PrPiClientHandler extends SimpleChannelInboundHandler<String> {
     private static Logger logger = Logger.getLogger(PrPiClientHandler.class);
 

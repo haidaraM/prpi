@@ -16,6 +16,7 @@ import org.apache.log4j.Logger;
 import javax.net.ssl.SSLException;
 import java.security.cert.CertificateException;
 
+@Deprecated
 public class PrPiServer extends Thread {
 
     public static final int DEFAULT_PORT = Integer.parseInt(System.getProperty("port", "4211"));

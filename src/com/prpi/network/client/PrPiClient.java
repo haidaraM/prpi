@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.Queue;
 
+@Deprecated
 public class PrPiClient extends Thread {
 
     private String host;
