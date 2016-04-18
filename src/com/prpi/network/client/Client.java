@@ -25,7 +25,7 @@ public class Client extends Thread {
     private NioEventLoopGroup group;
 
     /**
-     * The handler, receive all request from the server
+     * The handler, receive all requests from the server
      */
     private ClientHandler handler;
 

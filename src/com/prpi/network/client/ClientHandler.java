@@ -44,7 +44,7 @@ public class ClientHandler extends SimpleChannelInboundHandler<String> {
 
             switch (transaction.getTransactionType()) {
 
-                case FILE_CONTENT:
+                case FILE_TRANSFERT:
                     logger.trace("The transaction is a File");
                     String projectRootPath = project.getBasePath();
                     if (projectRootPath != null) {
