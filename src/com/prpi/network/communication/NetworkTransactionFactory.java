@@ -3,9 +3,11 @@ package com.prpi.network.communication;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import com.prpi.network.PrPiChannelInitializer;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -35,12 +37,13 @@ public class NetworkTransactionFactory {
     }
 
     /**
-     * The builder to send a message on network
-     * @param message The message object
-     * @param transactionType The transaction type
-     * @return a list of all NetworkTransaction to send that represent your original message object given
+     * Build all NetworkTransaction corresponding to the Transaction given and send them to the receiver
+     * @param message the message to send (Transaction)
+     * @param transactionType the type of Transaction
+     * @param receiver the channel receiver of this message(s)
+     * @return all ChannelFuture created to send messages
      */
-    public static void buildAndSend(@NotNull Transaction message, @NotNull Transaction.TransactionType transactionType, @NotNull final ChannelHandlerContext receiver) {
+    public static List<ChannelFuture> buildAndSend(@NotNull Transaction message, @NotNull Transaction.TransactionType transactionType, @NotNull final ChannelHandlerContext receiver) {
 
         // The limit of the message length
         final int maxMessageLength = PrPiChannelInitializer.MAX_FRAME_LENGTH
@@ -65,36 +68,68 @@ public class NetworkTransactionFactory {
         // The offset in string
         int offset = 0;
 
+        // List of ChannelFuture to return
+        List<ChannelFuture> channelFutureToReturn = new LinkedList<>();
+
         while (messageLengthLeft > maxMessageLength) {
+
+            // Create the NetworkTransaction, part of the final Message
             NetworkTransaction transaction = new NetworkTransaction(transactionID, transactionType, nbMessage, messageID, message.getString(offset, maxMessageLength));
-            receiver.writeAndFlush(transaction.toJson());
+
+            // Send this NetworkTransaction and get the ChannelFuture created
+            channelFutureToReturn.add(receiver.writeAndFlush(transaction.toJson()));
+
+            // Update, ID, offset and message length left to send
             messageID++;
             offset += maxMessageLength;
             messageLengthLeft -= maxMessageLength;
         }
+
         if (messageLengthLeft > 0) {
+            // Last NetworkTransaction
             NetworkTransaction transaction = new NetworkTransaction(transactionID, transactionType, nbMessage, messageID, message.getString(offset, messageLengthLeft));
-            receiver.writeAndFlush(transaction.toJson());
+
+            // Send and store the ChannelFuture
+            channelFutureToReturn.add(receiver.writeAndFlush(transaction.toJson()));
         }
+        return channelFutureToReturn;
     }
 
-    private static java.io.File[] getFilesToSend(java.io.File directory) {
-        return directory.listFiles((dir, name) -> !name.equals(".idea"));
-    }
+    /**
+     * Build all NetworkTransaction corresponding to the File given and send them to the receiver
+     * @param file the path to the file to send
+     * @param projectRoot the path to the project root
+     * @param transactionType the transaction type
+     * @param receiver the channel receiver of all NetworkTransaction sent
+     * @return all ChannelFuture created to send messages
+     */
+    public static List<ChannelFuture> buildAndSend(Path file, Path projectRoot, @NotNull Transaction.TransactionType transactionType, @NotNull final ChannelHandlerContext receiver) {
 
-    public static void buildAndSend(Path file, Path projectRoot, @NotNull Transaction.TransactionType transactionType, @NotNull final ChannelHandlerContext receiver) {
+        // List of ChannelFuture to return
+        List<ChannelFuture> channelFutureToReturn = new LinkedList<>();
+
         if (!Files.isReadable(file)) {
-            // TODO : Warning/error
-            return;
+            logger.error("The file to build and send is not readable or reachable : " + file.toString());
+            return channelFutureToReturn;
         }
 
+        // If its a directory, need to build each file in this directory
         if (Files.isDirectory(file)) {
+
+            // Get the directory
             java.io.File directory = file.toFile();
+
+            // Get all files in this directory
             java.io.File[] subFiles = getFilesToSend(directory);
 
+            // ForEach files, build and send
             for (java.io.File subFile : subFiles) {
-                buildAndSend(subFile.toPath(), projectRoot, transactionType, receiver);
+
+                // Get all ChannelFuture made to send all NetworkMessage
+                channelFutureToReturn.addAll(buildAndSend(subFile.toPath(), projectRoot, transactionType, receiver));
             }
+
+        // Its a file
         } else {
 
             File fileToSend = new File(file, projectRoot, transactionType);
@@ -113,25 +148,49 @@ public class NetworkTransactionFactory {
                 int dataRead;
 
                 while ((dataRead = fileInputStream.read(fileData)) > 0) {
-                    boolean lastContent = (dataRead < bufferSize);
-                    FileContent fileContent = new FileContent(fileToSend.getId(), fileData, dataRead, fileContentNumber, lastContent, transactionType);
-                    buildAndSend(fileContent, transactionType, receiver);
 
+                    boolean lastContent = (dataRead < bufferSize);
+
+                    FileContent fileContent = new FileContent(fileToSend.getId(), fileData, dataRead, fileContentNumber, lastContent, transactionType);
+
+                    // Get all ChannelFuture made to send all NetworkMessage
+                    channelFutureToReturn.addAll(buildAndSend(fileContent, transactionType, receiver));
+
+                    // Update index and fileData array size
                     fileContentNumber++;
                     fileData = new byte[Math.min(bufferSize, fileSize)];
                 }
 
             } catch (FileNotFoundException e) {
-                logger.error("File not found error", e);
+                logger.error("File not found error, parts are maybe already sent ...", e);
             } catch (IOException e) {
-                logger.error("IO exception when reading file", e);
+                logger.error("IO exception when reading file, parts are maybe already sent ...", e);
             }
         }
+        return channelFutureToReturn;
     }
 
+    /**
+     * The Json builder
+     */
     private static final Gson gson = new Gson();
 
+    /**
+     * Try to convert a string representing a json of an NetworkTransaction object
+     * @param json the string json to convert
+     * @return the NetworkTransaction object
+     * @throws JsonSyntaxException in case of not good json of the NetworkTransaction object
+     */
     protected static NetworkTransaction jsonToNetworkMessage(@NotNull String json) throws JsonSyntaxException {
         return gson.fromJson(json, NetworkTransaction.class);
+    }
+
+    /**
+     * Get all sub file contain in the directory
+     * @param directory the directory to scan
+     * @return all files contain in the directory given
+     */
+    private static java.io.File[] getFilesToSend(java.io.File directory) {
+        return directory.listFiles((dir, name) -> !name.equals(".idea"));
     }
 }
