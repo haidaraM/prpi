@@ -55,6 +55,8 @@ public class CustomDocumentListener implements com.intellij.openapi.editor.event
             HeartBeat heartBeat = new HeartBeat(logicalPosition.line, logicalPosition.column, virtualFile.getName(),
                     event.getOldFragment(), event.getNewFragment(), editor.getCaretModel().getOffset());
 
+            //WriteCommandHelper.insertStringInDocument(project,event.getDocument(),"p",editor.getCaretModel().getOffset()+1);
+
             ProjectComponent.getInstance().sendMessage(
                     new Message<>(heartBeat, Transaction.TransactionType.SIMPLE_MESSAGE)
             );
