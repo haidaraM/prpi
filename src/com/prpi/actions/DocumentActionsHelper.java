@@ -6,7 +6,12 @@ import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.project.Project;
 
 /**
- * This class contains some static methods to deal with write actions on documents by automatically use CommandProcessor
+ * This class contains some static methods to deal with write actions on documents by automatically use CommandProcessor.
+ *
+ * https://intellij-support.jetbrains.com/hc/en-us/community/posts/206756795-Update-document-on-document-change
+ * https://intellij-support.jetbrains.com/hc/en-us/community/posts/206138859-Manipulating-a-Document-without-undo-history
+ * https://intellij-support.jetbrains.com/hc/en-us/community/posts/207042355-Read-only-section-in-editor
+ * https://intellij-support.jetbrains.com/hc/en-us/community/posts/206115839-When-are-document-inserts-written-to-screen-
  */
 public class DocumentActionsHelper {
 
