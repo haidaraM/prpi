@@ -8,6 +8,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.prpi.ProjectComponent;
+import com.prpi.actions.DocumentActionsHelper;
 import com.prpi.network.communication.Message;
 import com.prpi.network.communication.Transaction;
 import org.apache.log4j.Level;
@@ -23,6 +24,17 @@ public class CustomDocumentListener implements com.intellij.openapi.editor.event
 
     static {
         logger.setLevel(Level.TRACE);
+    }
+
+    private String id;
+
+    /**
+     * A dummy just for equals to work as I want
+     *
+     * @param id
+     */
+    public CustomDocumentListener(String id) {
+        this.id = id;
     }
 
     @Override
@@ -54,7 +66,8 @@ public class CustomDocumentListener implements com.intellij.openapi.editor.event
 
 
             HeartBeat heartBeat = new HeartBeat(logicalPosition.line, logicalPosition.column, virtualFile.getPath(),
-                    event.getOldFragment(), event.getNewFragment(), editor.getCaretModel().getOffset(), virtualFile.getName());
+                    event.getOldFragment(), event.getNewFragment(), editor.getCaretModel().getOffset(),
+                    virtualFile.getName());
 
             //DocumentActionsHelper.insertStringInDocument(project,event.getDocument(),"p",editor.getCaretModel().getOffset()+1);
 
@@ -67,6 +80,15 @@ public class CustomDocumentListener implements com.intellij.openapi.editor.event
             // But all changes made by user are properly handled
         }
 
+    }
 
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (!(obj instanceof CustomDocumentListener)) return false;
+
+        CustomDocumentListener customDocumentListener = (CustomDocumentListener) obj;
+
+        return this.id.equals(customDocumentListener.id);
     }
 }

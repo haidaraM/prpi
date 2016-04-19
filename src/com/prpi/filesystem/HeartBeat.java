@@ -2,9 +2,12 @@ package com.prpi.filesystem;
 
 
 import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.editor.EditorFactory;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.prpi.ProjectComponent;
+import com.prpi.actions.DocumentActionsHelper;
 import org.jetbrains.annotations.Nullable;
 
 

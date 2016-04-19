@@ -24,6 +24,8 @@ public class ProjectComponent implements com.intellij.openapi.components.Project
 
     private static Logger logger = Logger.getLogger(ProjectComponent.class);
 
+    private CustomDocumentListener customDocumentListener = new CustomDocumentListener("CustomDocumentListenner");
+
     public ProjectComponent(Project project) {
         this.project = project;
         instance = this;
@@ -108,11 +110,20 @@ public class ProjectComponent implements com.intellij.openapi.components.Project
         return project;
     }
 
-    private void setupDocuementListener() {
+    public void setupDocuementListener() {
 
         ApplicationManager.getApplication().invokeLater(() -> {
             //VirtualFileManager.getInstance().addVirtualFileListener(new CustomVirtualFileListener());
-            EditorFactory.getInstance().getEventMulticaster().addDocumentListener(new CustomDocumentListener());
+            EditorFactory.getInstance().getEventMulticaster().addDocumentListener(customDocumentListener);
         });
+    }
+
+    public void removeDocumentListenner() {
+        EditorFactory.getInstance().getEventMulticaster().removeDocumentListener(customDocumentListener);
+    }
+
+
+    public CustomDocumentListener getDocumentListener() {
+        return customDocumentListener;
     }
 }
