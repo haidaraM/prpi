@@ -2,6 +2,7 @@ package com.prpi.network.communication;
 
 import com.google.gson.JsonSyntaxException;
 import org.apache.log4j.Logger;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -33,7 +34,7 @@ public class NetworkTransactionRecomposer {
      * @return the Transaction if all parts are received, else return null
      *      It can be a Message or a File (if a File is return, all parts (FileContent) are present and the File can be write)
      */
-    public Transaction addPart(String json) {
+    public @Nullable Transaction addPart(String json) {
         try {
             // Get the NetworkTransaction
             NetworkTransaction networkTransaction = NetworkTransactionFactory.jsonToNetworkMessage(json);
@@ -62,7 +63,7 @@ public class NetworkTransactionRecomposer {
      * @return a Transaction if the new NetworkTransaction complete a composed Transaction
      * @throws ClassNotFoundException
      */
-    private Transaction handleComposedMessage(NetworkTransaction networkTransaction) throws ClassNotFoundException {
+    private @Nullable Transaction handleComposedMessage(NetworkTransaction networkTransaction) throws ClassNotFoundException {
 
         String transactionID = networkTransaction.getTransactionID();
         Map<Integer, NetworkTransaction> composedNetworkMessages = incompleteTransactions.get(transactionID);
@@ -100,7 +101,7 @@ public class NetworkTransactionRecomposer {
      * @return the Transaction result of the converting proccess
      * @throws ClassNotFoundException
      */
-    private Transaction handleTransactionContent(String content) throws ClassNotFoundException {
+    private @Nullable Transaction handleTransactionContent(String content) throws ClassNotFoundException {
         Transaction transaction = Transaction.jsonToTransaction(content);
 
         // If its a File or a FileContent, need to check if its fully recomposed too
@@ -114,7 +115,12 @@ public class NetworkTransactionRecomposer {
 
     }
 
-    private File recomposeFile(File file) {
+    /**
+     * Processing a new File, if it's completly recomposed with all his FileContent, It will be returned
+     * @param file the new File
+     * @return if File fully recomposed with his content, it's returned, else null
+     */
+    private @Nullable File recomposeFile(File file) {
         logger.trace("Recomposing file");
         String fileId = file.getId();
 
@@ -139,7 +145,12 @@ public class NetworkTransactionRecomposer {
         return null;
     }
 
-    private File recomposeFileContent(FileContent fileContent) {
+    /**
+     * Adding a new FileContent to the corresponding File are addding then in a waiting file queue if the File it's not arrived yet
+     * @param fileContent the new FileContent
+     * @return the File corresponding to this FileContent, if the content of the File is fully recomposed
+     */
+    private @Nullable File recomposeFileContent(FileContent fileContent) {
         logger.trace("Recomposing file content");
         String fileId = fileContent.getFileId();
 
@@ -152,8 +163,7 @@ public class NetworkTransactionRecomposer {
                 logger.trace("File is now complete!");
                 incompleteFiles.remove(fileId);
                 return fileToComplete;
-            }
-            else {
+            } else {
                 logger.trace("File exists, but still not complete");
                 return null;
             }
