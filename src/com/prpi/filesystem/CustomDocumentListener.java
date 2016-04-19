@@ -2,7 +2,6 @@ package com.prpi.filesystem;
 
 import com.intellij.openapi.editor.*;
 import com.intellij.openapi.editor.event.DocumentEvent;
-import com.intellij.openapi.editor.event.DocumentListener;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
 import com.prpi.ApplicationComponent;
@@ -12,9 +11,9 @@ import org.apache.log4j.Logger;
 /**
  * Listen document changes
  */
-public class PrpiDocumentListener implements DocumentListener {
+public class CustomDocumentListener implements com.intellij.openapi.editor.event.DocumentListener {
 
-    private static final Logger logger = Logger.getLogger(PrpiDocumentListener.class);
+    private static final Logger logger = Logger.getLogger(CustomDocumentListener.class);
 
    /* static {
         logger.setLevel(Level.TRACE);

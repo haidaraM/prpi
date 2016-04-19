@@ -7,16 +7,15 @@ import com.intellij.openapi.actionSystem.DataKeys;
 import com.intellij.openapi.editor.*;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.vfs.*;
-import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Listen virtual file changes
  */
-public class PrPiVirtualFileListener implements VirtualFileListener {
+public class CustomVirtualFileListener implements com.intellij.openapi.vfs.VirtualFileListener {
 
-    private static Logger logger = Logger.getLogger(PrPiVirtualFileListener.class);
+    private static Logger logger = Logger.getLogger(CustomVirtualFileListener.class);
 
     //static {
     //    logger.setLevel(Level.TRACE);

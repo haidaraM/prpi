@@ -6,8 +6,8 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.EditorFactory;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFileManager;
-import com.prpi.filesystem.PrPiVirtualFileListener;
-import com.prpi.filesystem.PrpiDocumentListener;
+import com.prpi.filesystem.CustomVirtualFileListener;
+import com.prpi.filesystem.CustomDocumentListener;
 import org.apache.log4j.Logger;
 import org.apache.log4j.xml.DOMConfigurator;
 import org.jetbrains.annotations.NotNull;
@@ -55,8 +55,8 @@ public class ApplicationComponent implements com.intellij.openapi.components.App
     private void setupDocuementListener() {
 
         ApplicationManager.getApplication().invokeLater(() -> {
-            VirtualFileManager.getInstance().addVirtualFileListener(new PrPiVirtualFileListener());
-            EditorFactory.getInstance().getEventMulticaster().addDocumentListener(new PrpiDocumentListener());
+            VirtualFileManager.getInstance().addVirtualFileListener(new CustomVirtualFileListener());
+            EditorFactory.getInstance().getEventMulticaster().addDocumentListener(new CustomDocumentListener());
         });
     }
 
