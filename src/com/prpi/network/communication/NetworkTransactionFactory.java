@@ -83,7 +83,7 @@ public class NetworkTransactionFactory {
         while (messageLengthLeft > maxMessageLength) {
 
             // Create the NetworkTransaction, part of the final Message
-            // TODO change message.getString by a StringBuilder to get more performances !
+            // TODO change message.getString by something to get more performances ??
             NetworkTransaction transaction = new NetworkTransaction(transactionID, nbMessage, messageID, message.getString(offset, maxMessageLength));
 
             // Send this NetworkTransaction and get the ChannelFuture created
