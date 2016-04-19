@@ -1,6 +1,5 @@
 package com.prpi;
 
-import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.project.Project;
 import com.prpi.network.client.Client;
 import com.prpi.network.server.Server;
@@ -8,13 +7,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 
-public class PrPiProjectComponent implements ProjectComponent {
+public class ProjectComponent implements com.intellij.openapi.components.ProjectComponent {
 
     private Server server;
     private Client client;
     private Project project;
 
-    public PrPiProjectComponent(Project project) {
+    public ProjectComponent(Project project) {
         this.project = project;
     }
 
@@ -31,7 +30,7 @@ public class PrPiProjectComponent implements ProjectComponent {
     @Override
     @NotNull
     public String getComponentName() {
-        return "PrPiProjectComponent";
+        return "ProjectComponent";
     }
 
     @Override
@@ -74,14 +73,14 @@ public class PrPiProjectComponent implements ProjectComponent {
     }
 
     @NotNull
-    public static PrPiProjectComponent getPrPiProjComp(@Nullable Project project) throws NullPointerException {
+    public static ProjectComponent getPrPiProjComp(@Nullable Project project) throws NullPointerException {
         if (project == null) {
-            project = PrPiApplicationComponent.getCurrentProject();
+            project = ApplicationComponent.getCurrentProject();
         }
         if (project == null) {
             throw new NullPointerException("No project found.");
         }
-        PrPiProjectComponent component = project.getComponent(PrPiProjectComponent.class);
+        ProjectComponent component = project.getComponent(ProjectComponent.class);
         if (component == null) {
             throw new NullPointerException("No component found.");
         }

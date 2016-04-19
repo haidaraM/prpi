@@ -3,7 +3,6 @@ package com.prpi;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.components.ApplicationComponent;
 import com.intellij.openapi.editor.EditorFactory;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFileManager;
@@ -20,18 +19,18 @@ import org.jetbrains.annotations.Nullable;
  * - http://www.jetbrains.org/intellij/sdk/docs/basics/plugin_structure/plugin_components.html?search=comp
  * - https://upsource.jetbrains.com/idea-ce/file/idea-ce-1731d054af4ca27aa827c03929e27eeb0e6a8366/platform/core-api/src/com/intellij/openapi/components/ApplicationComponent.java
  */
-public class PrPiApplicationComponent implements ApplicationComponent {
+public class ApplicationComponent implements com.intellij.openapi.components.ApplicationComponent {
 
-    private static final Logger logger = Logger.getLogger(PrPiApplicationComponent.class);
+    private static final Logger logger = Logger.getLogger(ApplicationComponent.class);
 
-    public PrPiApplicationComponent() {
+    public ApplicationComponent() {
     }
 
     @Override
     public void initComponent() {
 
         // Set the log4j configuration file
-        DOMConfigurator.configure(PrPiApplicationComponent.class.getClassLoader().getResource("log4j.xml"));
+        DOMConfigurator.configure(ApplicationComponent.class.getClassLoader().getResource("log4j.xml"));
 
         logger.trace("Init component");
 
@@ -49,7 +48,7 @@ public class PrPiApplicationComponent implements ApplicationComponent {
     @Override
     @NotNull
     public String getComponentName() {
-        return "PrPiApplicationComponent";
+        return "ApplicationComponent";
     }
 
 
@@ -62,14 +61,14 @@ public class PrPiApplicationComponent implements ApplicationComponent {
     }
 
     @NotNull
-    public static PrPiApplicationComponent getPrPiAppComp(@Nullable Project project) throws NullPointerException {
+    public static ApplicationComponent getPrPiAppComp(@Nullable Project project) throws NullPointerException {
         if (project == null) {
-            project = PrPiApplicationComponent.getCurrentProject();
+            project = ApplicationComponent.getCurrentProject();
         }
         if (project == null) {
             throw new NullPointerException("No project found.");
         }
-        PrPiApplicationComponent component = project.getComponent(PrPiApplicationComponent.class);
+        ApplicationComponent component = project.getComponent(ApplicationComponent.class);
         if (component == null) {
             throw new NullPointerException("No component found.");
         }

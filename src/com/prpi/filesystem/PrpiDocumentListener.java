@@ -3,13 +3,9 @@ package com.prpi.filesystem;
 import com.intellij.openapi.editor.*;
 import com.intellij.openapi.editor.event.DocumentEvent;
 import com.intellij.openapi.editor.event.DocumentListener;
-import com.intellij.openapi.editor.markup.HighlighterTargetArea;
-import com.intellij.openapi.editor.markup.TextAttributes;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManager;
-import com.prpi.PrPiApplicationComponent;
-import org.apache.log4j.Level;
+import com.prpi.ApplicationComponent;
 import org.apache.log4j.Logger;
 
 
@@ -31,7 +27,7 @@ public class PrpiDocumentListener implements DocumentListener {
     @Override
     public void documentChanged(DocumentEvent event) {
 
-        Project project = PrPiApplicationComponent.getCurrentProject();
+        Project project = ApplicationComponent.getCurrentProject();
 
         // get the editor
         Editor editor = FileEditorManager.getInstance(project).getSelectedTextEditor();

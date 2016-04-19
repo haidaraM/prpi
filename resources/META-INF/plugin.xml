@@ -45,12 +45,12 @@
 
     <application-components>
         <component>
-            <implementation-class>com.prpi.PrPiApplicationComponent</implementation-class>
+            <implementation-class>com.prpi.ApplicationComponent</implementation-class>
         </component>
     </application-components>
     <project-components>
         <component>
-            <implementation-class>com.prpi.PrPiProjectComponent</implementation-class>
+            <implementation-class>com.prpi.ProjectComponent</implementation-class>
         </component>
     </project-components>
 </idea-plugin>

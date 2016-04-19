@@ -4,7 +4,7 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
-import com.prpi.PrPiProjectComponent;
+import com.prpi.ProjectComponent;
 import com.prpi.network.server.Server;
 import org.apache.log4j.Logger;
 
@@ -12,14 +12,14 @@ public class HostProject extends AnAction {
     private static final Logger logger = Logger.getLogger(HostProject.class);
 
     private Project project = null;
-    private PrPiProjectComponent projectComponent = null;
+    private ProjectComponent projectComponent = null;
 
     @Override
     public void actionPerformed(AnActionEvent anActionEvent) {
         logger.trace("HostProject actionPerformed called");
         try {
             project = anActionEvent.getProject();
-            projectComponent = project.getComponent(PrPiProjectComponent.class);
+            projectComponent = project.getComponent(ProjectComponent.class);
             if (projectComponent.isClient()) {
                 Messages.showWarningDialog(project, "You are already a client of this remote project, you can't hosting this project!", "PrPi Warning - Host Is Not Allow");
             } else if (projectComponent.isHosting()) {
@@ -45,6 +45,6 @@ public class HostProject extends AnAction {
     @Override
     public void update(AnActionEvent anActionEvent) {
         super.update(anActionEvent);
-        anActionEvent.getPresentation().setEnabled(!anActionEvent.getProject().getComponent(PrPiProjectComponent.class).isHosting());
+        anActionEvent.getPresentation().setEnabled(!anActionEvent.getProject().getComponent(ProjectComponent.class).isHosting());
     }
 }

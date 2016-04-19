@@ -7,7 +7,7 @@ import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ui.configuration.ModulesProvider;
-import com.prpi.PrPiProjectComponent;
+import com.prpi.ProjectComponent;
 import com.prpi.network.client.Client;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -40,7 +40,7 @@ public class JoinProjectBuilder extends ExistingModuleLoader {
 
     @Override
     public boolean validate(final Project current, final Project dest) {
-        PrPiProjectComponent projectApp = dest.getComponent(PrPiProjectComponent.class);
+        ProjectComponent projectApp = dest.getComponent(ProjectComponent.class);
         Client client = new Client(dest);
         projectApp.setClient(client);
         logger.debug("Begin init client");
