@@ -3,12 +3,20 @@ package com.prpi.wizard;
 import com.intellij.ide.util.projectWizard.ExistingModuleLoader;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.ide.util.projectWizard.WizardContext;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.ModuleType;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.openapi.progress.ProgressManagerQueue;
+import com.intellij.openapi.progress.Task;
+import com.intellij.openapi.progress.impl.ProgressManagerImpl;
+import com.intellij.openapi.progress.util.ProgressIndicatorListenerAdapter;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ui.configuration.ModulesProvider;
 import com.intellij.openapi.ui.DialogBuilder;
 import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.openapi.ui.Messages;
 import com.prpi.ProjectComponent;
 import com.prpi.network.client.Client;
 import org.apache.log4j.Logger;
@@ -16,6 +24,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
+import java.lang.reflect.InvocationTargetException;
 
 public class JoinProjectBuilder extends ExistingModuleLoader {
 
@@ -67,39 +76,41 @@ public class JoinProjectBuilder extends ExistingModuleLoader {
                 logger.error(e);
             }
 
+            Task.Modal modalTask = new Task.Modal(dest, "Download project files", true) {
+                @Override
+                public void run(@NotNull ProgressIndicator progressIndicator) {
 
-            DialogBuilder dialogBuilder = new DialogBuilder(dest);
-            dialogBuilder.removeAllActions();
-            dialogBuilder.addCancelAction();
-            dialogBuilder.setTitle("Download project files");
-
-            JPanel dialogPanel = new JPanel();
-            dialogPanel.setLayout(new BoxLayout(dialogPanel, BoxLayout.Y_AXIS));
-
-            final int progressBarMaxValue = 100;
-            JProgressBar progressBar = new JProgressBar(0, progressBarMaxValue);
-            progressBar.setValue(50);
-            dialogPanel.add(progressBar);
-
-            dialogPanel.add(new JLabel("Downloading files from the remote project ..."));
-
-            Runnable progressTask = new Runnable() {
-                public void run() {
-                    while (progressBar.getValue() < progressBarMaxValue) {
+                    // TODO get real value
+                    for (int i = 0 ; i < 100; i++){
+                        progressIndicator.setText("Downloading files ... (file " + i + ")");
+                        progressIndicator.setFraction(i/100);
                         try {
-                            Thread.sleep(1000);
+                            Thread.sleep(500);
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
-                        progressBar.setValue(progressBar.getValue()+1);
+                        progressIndicator.checkCanceled();
                     }
+                }
+
+                @Override
+                public void onSuccess() {
+                    super.onSuccess();
+                    Messages.showMessageDialog(getProject(),"Success","Success",Messages.getInformationIcon());
+                }
+
+                @Override
+                public void onCancel() {
+                    super.onCancel();
+                    // How to canceled the validation ? Need to return false, impossible here ?
+                    Messages.showMessageDialog(getProject(),"Cancel","Nodal Canceled",Messages.getQuestionIcon());
                 }
             };
 
-            dialogBuilder.setCenterPanel(dialogPanel);
-            //progressTask.run();
+            ProgressManager.getInstance().run(modalTask);
 
-            return dialogBuilder.show() == DialogWrapper.OK_EXIT_CODE;
+            // TODO change return value with the Task.Modal result
+            return true;
         } else {
             logger.error("Client can't connect to the remote server !");
         }
