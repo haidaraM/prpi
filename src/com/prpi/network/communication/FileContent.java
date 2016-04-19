@@ -35,6 +35,7 @@ public class FileContent extends Transaction {
         this.content = content;
         this.order = order;
         this.lastContent = lastContent;
+        this.sizeContent = sizeContent;
         this.json = Transaction.gson.toJson(this);
     }
 
@@ -64,6 +65,13 @@ public class FileContent extends Transaction {
      */
     public byte[] getContent() {
         return content;
+    }
+
+    /**
+     * @return the real size of the content data array
+     */
+    public int getSizeContent() {
+        return sizeContent;
     }
 
     @Override

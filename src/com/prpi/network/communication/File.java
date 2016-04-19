@@ -8,8 +8,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.UUID;
 
 public class File extends Transaction {
@@ -37,7 +37,7 @@ public class File extends Transaction {
     /**
      * The content of the file
      */
-    private transient Map<Integer, FileContent> contents = new HashMap<>();
+    private transient Map<Integer, FileContent> contents = new TreeMap<>();
 
     /**
      * The number of the last content (get his order number)
@@ -65,16 +65,6 @@ public class File extends Transaction {
         this.id = UUID.randomUUID().toString();
         this.json = Transaction.gson.toJson(this);
     }
-
-    /* To delete ?
-    public File(String fileName, String pathInProject, int fileSize, TransactionType transactionType) {
-        super(File.class, transactionType);
-        this.fileName = fileName;
-        this.pathInProject = pathInProject;
-        this.fileSize = fileSize;
-        this.id = UUID.randomUUID().toString();
-        this.json = gson.toJson(this);
-    }*/
 
     /**
      * Get the size of an file given with is absolute path
@@ -145,8 +135,12 @@ public class File extends Transaction {
      * @param content the part of the file
      */
     public void addFileContent(FileContent content) {
-        if (contents == null)
-            contents = new HashMap<>();
+
+        // Usefull after converting json to object (becasue contents is transient)
+        if (contents == null) {
+            contents = new TreeMap<>();
+        }
+
         contents.put(content.getOrder(), content);
 
         if (content.isLastContent()) {
@@ -193,11 +187,19 @@ public class File extends Transaction {
         Files.createDirectories(filePath.getParent());
 
         try (FileOutputStream fileOutputStream = new FileOutputStream(filePath.toFile())) {
-            logger.trace("Start writing file (" + lastContentOrder + " parts)");
+            logger.trace("Start writing file (" + (lastContentOrder + 1) + " parts)");
+
+            int offset = 0;
             for (int i = 0; i <= lastContentOrder; i++) {
+
                 FileContent content = contents.get(i);
-                fileOutputStream.write(content.getContent());
-                logger.trace(String.format("Wrote part of %s (%d/%d)", filePath, i, lastContentOrder));
+
+                // Write the content in the File
+                fileOutputStream.write(content.getContent(), offset, content.getSizeContent());
+                logger.trace(String.format("Wrote part of %s (%d/%d) - Offset is %d - Size is %d", filePath, i+1, (lastContentOrder+1), offset, content.getSizeContent()));
+
+                // Update offset
+                offset += content.getSizeContent();
             }
             logger.debug("Completely wrote " + filePath);
 
