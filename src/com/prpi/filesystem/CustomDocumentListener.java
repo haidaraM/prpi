@@ -52,7 +52,8 @@ public class CustomDocumentListener implements com.intellij.openapi.editor.event
             logger.trace(event.getNewFragment());
             logger.trace(event.getOldFragment());
 
-            HeartBeat heartBeat = new HeartBeat(logicalPosition.line, logicalPosition.column, virtualFile.getName(),
+
+            HeartBeat heartBeat = new HeartBeat(logicalPosition.line, logicalPosition.column, virtualFile.getPath(),
                     event.getOldFragment(), event.getNewFragment(), editor.getCaretModel().getOffset(), virtualFile.getName());
 
             //DocumentActionsHelper.insertStringInDocument(project,event.getDocument(),"p",editor.getCaretModel().getOffset()+1);

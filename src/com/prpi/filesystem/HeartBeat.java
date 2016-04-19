@@ -2,6 +2,11 @@ package com.prpi.filesystem;
 
 
 import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VirtualFile;
+import org.jetbrains.annotations.Nullable;
+
 
 public class HeartBeat {
 
@@ -113,10 +118,15 @@ public class HeartBeat {
     /**
      * Get the document which correspond to the filePath
      *
-     * @return
+     * @return document
      */
+    @Nullable
     public Document getDocument() {
-        // TODO
-        return null;
+
+        VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByPath(this.filePath);
+        if (virtualFile == null)
+            return null;
+
+        return FileDocumentManager.getInstance().getDocument(virtualFile);
     }
 }
