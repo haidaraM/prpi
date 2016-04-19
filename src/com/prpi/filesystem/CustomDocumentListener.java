@@ -44,7 +44,7 @@ public class CustomDocumentListener implements com.intellij.openapi.editor.event
             VirtualFile virtualFile = psiFile.getVirtualFile();
 
 
-            logger.trace(virtualFile.getName());
+            logger.trace(virtualFile.getPath());
             LogicalPosition logicalPosition = editor.getCaretModel().getLogicalPosition();
             logger.trace(String.format("Line number : %d", logicalPosition.line + 1));
             logger.trace(String.format("Column number : %d", logicalPosition.column + 1));
@@ -52,13 +52,11 @@ public class CustomDocumentListener implements com.intellij.openapi.editor.event
             logger.trace(event.getNewFragment());
             logger.trace(event.getOldFragment());
 
+            HeartBeat heartBeat = new HeartBeat(logicalPosition.line, logicalPosition.column, virtualFile.getName(),
+                    event.getOldFragment(), event.getNewFragment());
 
             ProjectComponent.getInstance().sendMessage(
-                    new Message<>(
-                            new HeartBeat(logicalPosition.line, logicalPosition.column, virtualFile.getName(),
-                                    event.getOldFragment(), event.getNewFragment()),
-                            Transaction.TransactionType.SIMPLE_MESSAGE
-                    )
+                    new Message<>(heartBeat, Transaction.TransactionType.SIMPLE_MESSAGE)
             );
 
         } catch (NullPointerException ignored) {
