@@ -64,42 +64,34 @@ public class NetworkTransactionRecomposer {
      */
     private Transaction handleComposedMessage(NetworkTransaction networkTransaction) throws ClassNotFoundException {
 
-        // TODO Why use method here ? You need to research in the incompleteTransactions map again after :/
-        addPartOfTransaction(networkTransaction);
+        String transactionID = networkTransaction.getTransactionID();
+        Map<Integer, NetworkTransaction> composedNetworkMessages = incompleteTransactions.get(transactionID);
+
+        if (composedNetworkMessages == null) {
+            composedNetworkMessages = new TreeMap<>(); // Used to keep order in NetworkTransactions
+            incompleteTransactions.put(transactionID, composedNetworkMessages);
+        }
+
+        int messageID = networkTransaction.getMessageID();
+        composedNetworkMessages.put(messageID, networkTransaction);
 
         // Check if transaction if fully restored (all parts received)
-        String transactionId = networkTransaction.getTransactionID();
-        Map<Integer, NetworkTransaction> composedNetworkMessages = incompleteTransactions.get(transactionId);
         int expectedSize = networkTransaction.getNbMessage();
         if (composedNetworkMessages.size() != expectedSize) {
-            logger.debug("NetworkTransaction is not complete. Need more parts");
+            logger.trace("NetworkTransaction is not complete. Need more parts");
             return null;
         }
 
         // Recompose the transaction
         StringBuilder contentBuilder = new StringBuilder();
         for (NetworkTransaction transactionPart : composedNetworkMessages.values()) {
-
-            // TODO the order is respected in every cases ?
+            // Order is garanted by the TreeMap used
             contentBuilder.append(transactionPart.getContent());
         }
         String content = contentBuilder.toString();
 
         // The recomposed transaction
         return handleTransactionContent(content);
-    }
-
-    private void addPartOfTransaction(NetworkTransaction transaction) {
-        String transactionID = transaction.getTransactionID();
-        Map<Integer, NetworkTransaction> currentTransactions = incompleteTransactions.get(transactionID);
-
-        if (currentTransactions == null) {
-            currentTransactions = new HashMap<>();
-            incompleteTransactions.put(transactionID, currentTransactions);
-        }
-
-        int messageID = transaction.getMessageID();
-        currentTransactions.put(messageID, transaction);
     }
 
     /**
@@ -112,12 +104,14 @@ public class NetworkTransactionRecomposer {
         Transaction transaction = Transaction.jsonToTransaction(content);
 
         // If its a File or a FileContent, need to check if its fully recomposed too
-        if (transaction instanceof File) // TODO use TransactionType instead ?? What is the best ?
+        if (transaction instanceof File) {
             return recomposeFile((File) transaction);
-        else if (transaction instanceof FileContent) // TODO use TransactionType instead ?? What is the best ?
+        } else if (transaction instanceof FileContent) {
             return recomposeFileContent((FileContent) transaction);
-        else
+        } else {
             return transaction;
+        }
+
     }
 
     private File recomposeFile(File file) {
