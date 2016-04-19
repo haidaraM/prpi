@@ -56,9 +56,9 @@ public class ClientHandler extends SimpleChannelInboundHandler<String> {
                     String projectRootPath = project.getBasePath();
                     File fileTransaction = (File) transaction;
                     if (fileTransaction.writeFile(Paths.get(projectRootPath))) {
-                        logger.debug("A file was written in the project (" + projectRootPath + "/" + fileTransaction.getPathInProject() + "/" + fileTransaction.getFileName() + ")");
+                        logger.debug("A file was written in the project (" + projectRootPath + fileTransaction.getPathInProject() + ")");
                     } else {
-                        logger.error("Can't write this file : " + projectRootPath + "/" + fileTransaction.getPathInProject() + "/" + fileTransaction.getFileName());
+                        logger.error("Can't write this file : " + projectRootPath + fileTransaction.getPathInProject());
                     }
                     break;
 

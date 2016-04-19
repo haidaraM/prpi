@@ -44,6 +44,11 @@ public class NetworkTransactionFactory {
             - new NetworkTransaction(Long.toString(Long.MAX_VALUE), Integer.MAX_VALUE, Integer.MAX_VALUE, "").toJson().length()
             - 100; // Increase if needed this random value in case of out of frame length
 
+    // To get the value of the max length in debug
+    static {
+        logger.trace("The max length of the content message is : " + NetworkTransactionFactory.maxMessageLength);
+    }
+
     /**
      * Build all NetworkTransaction corresponding to the Transaction given and send them to the receiver
      * @param message the message to send (Transaction)

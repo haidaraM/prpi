@@ -66,6 +66,13 @@ public class FileContent extends Transaction {
         return content;
     }
 
+    /**
+     * @return the real size of the content data array
+     */
+    public int getSizeContent() {
+        return sizeContent;
+    }
+
     @Override
     public String toString() {
         return "FileContent{" +
