@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
+import com.google.gson.annotations.Expose;
 
 public abstract class Transaction {
 
@@ -26,7 +27,8 @@ public abstract class Transaction {
     /**
      * To store the json result (need to be update when an attribut is changed)
      */
-    protected transient String json;
+    @Expose(serialize = false)
+    protected String json;
 
     /**
      * The transaction type of this message
@@ -68,7 +70,7 @@ public abstract class Transaction {
     /**
      * The json builder
      */
-    protected transient static final Gson gson = new Gson();
+    protected static final Gson gson = new Gson();
 
     /**
      * Try to convert a json to a valid Transaction object

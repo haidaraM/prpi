@@ -1,6 +1,7 @@
 package com.prpi.network.communication;
 
 import com.google.gson.Gson;
+import com.google.gson.annotations.Expose;
 import org.apache.log4j.Logger;
 
 import java.io.FileOutputStream;
@@ -37,20 +38,23 @@ public class File extends Transaction {
     /**
      * The content of the file
      */
-    private transient Map<Integer, FileContent> contents = new TreeMap<>();
+    @Expose(serialize = false)
+    private Map<Integer, FileContent> contents = new TreeMap<>();
 
     /**
      * The number of the last content (get his order number)
      * Set to -1 when is not known
      */
-    private transient int lastContentOrder = -1;
+    @Expose(serialize = false)
+    private int lastContentOrder = -1;
 
     /**
      * True if all FileContent are added correctly in this File
      */
-    private transient boolean complete = false;
+    @Expose(serialize = false)
+    private boolean complete = false;
 
-    private static transient final Logger logger = Logger.getLogger(File.class);
+    private static final Logger logger = Logger.getLogger(File.class);
 
     public File(Path file, Path projectRoot, TransactionType transactionType) {
         super(File.class, transactionType);
@@ -130,11 +134,6 @@ public class File extends Transaction {
      * @param content the part of the file
      */
     public void addFileContent(FileContent content) {
-
-        // Usefull after converting json to object (becasue contents is transient)
-        if (contents == null) {
-            contents = new TreeMap<>();
-        }
 
         contents.put(content.getOrder(), content);
 
