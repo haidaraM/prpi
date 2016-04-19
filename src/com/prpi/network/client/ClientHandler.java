@@ -35,9 +35,6 @@ public class ClientHandler extends SimpleChannelInboundHandler<String> {
         ctx.pipeline().get(SslHandler.class).handshakeFuture().addListener(
                 future -> {
                     logger.debug("Client established connection to server: " + ctx);
-
-                    Message<String> projectCopyMessage = new Message<>("Foo", Transaction.TransactionType.INIT_PROJECT);
-                    NetworkTransactionFactory.buildAndSend(projectCopyMessage, ctx.channel());
                 });
     }
 

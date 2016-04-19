@@ -5,6 +5,7 @@ import com.prpi.network.communication.Message;
 import com.prpi.network.communication.NetworkTransactionFactory;
 import com.prpi.network.communication.NetworkTransactionRecomposer;
 import com.prpi.network.communication.Transaction;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.group.ChannelGroup;
@@ -82,6 +83,12 @@ public class ServerHandler extends SimpleChannelInboundHandler<String> {
     private void sendProject(ChannelHandlerContext context) {
         Path projectPath = Paths.get(currentProject.getBasePath());
         NetworkTransactionFactory.buildAndSend(projectPath, projectPath, context.channel());
+    }
+
+    protected void sendTransactionToClients(Transaction msg) {
+        for(Channel client : clientChannels) {
+            NetworkTransactionFactory.buildAndSend(msg, client);
+        }
     }
 
     @Override

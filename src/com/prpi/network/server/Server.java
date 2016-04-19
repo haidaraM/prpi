@@ -2,6 +2,7 @@ package com.prpi.network.server;
 
 import com.intellij.openapi.project.Project;
 import com.prpi.network.ChannelInitializer;
+import com.prpi.network.communication.Message;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.EventLoopGroup;
@@ -73,5 +74,9 @@ public class Server extends Thread {
             bossGroup.shutdownGracefully();
             this.notify();
         }
+    }
+
+    public void sendMessageToClients(Message msg) {
+        handler.sendTransactionToClients(msg);
     }
 }

@@ -2,7 +2,9 @@ package com.prpi;
 
 import com.intellij.openapi.project.Project;
 import com.prpi.network.client.Client;
+import com.prpi.network.communication.Message;
 import com.prpi.network.server.Server;
+import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -12,6 +14,8 @@ public class ProjectComponent implements com.intellij.openapi.components.Project
     private Server server;
     private Client client;
     private Project project;
+
+    private static Logger logger = Logger.getLogger(ProjectComponent.class);
 
     public ProjectComponent(Project project) {
         this.project = project;
@@ -85,5 +89,19 @@ public class ProjectComponent implements com.intellij.openapi.components.Project
             throw new NullPointerException("No component found.");
         }
         return component;
+    }
+
+    public void sendMessage(Message msg) {
+        try {
+            if (isClient()) {
+                client.sendMessageToServer(msg);
+            } else if (isHosting()) {
+                server.sendMessageToClients(msg);
+            } else {
+                logger.error("Try to send a message but this project is not hosting or is not a client !");
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 }

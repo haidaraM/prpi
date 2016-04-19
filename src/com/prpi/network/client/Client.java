@@ -4,6 +4,7 @@ import com.intellij.openapi.project.Project;
 import com.prpi.network.ChannelInitializer;
 import com.prpi.network.communication.Message;
 import com.prpi.network.communication.NetworkTransactionFactory;
+import com.prpi.network.communication.Transaction;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -13,11 +14,9 @@ import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
 
-public class Client extends Thread {
+public class Client {
 
     /**
      * The group used to communicate with the server
@@ -33,8 +32,6 @@ public class Client extends Thread {
      * The communication channel used between the client and the server
      */
     private Channel channel = null;
-
-    private Queue<Message> unsentMessages = new LinkedList<>();
 
     private static final Logger logger = Logger.getLogger(Client.class);
 
@@ -71,49 +68,12 @@ public class Client extends Thread {
         return true;
     }
 
-    @Override
-    public void run() {
-
-        if (this.channel == null || !this.channel.isWritable()) {
-            logger.error("You need to init connection of the client before run it !");
-            return;
-        }
-
-        logger.debug("Client begin his run ...");
-        try {
-            // TODO Stop and close client !
-            for(;;) {
-                while (this.unsentMessages.isEmpty()) {
-                    wait(10000);
-                }
-                Message msgToSend = this.unsentMessages.poll();
-                if (msgToSend != null) {
-                    List<ChannelFuture> lastWriteFuture = NetworkTransactionFactory.buildAndSend(msgToSend, this.channel);
-
-                    // Sync all message before proccess others
-                    for (ChannelFuture channelFuture : lastWriteFuture) {
-                        if (channelFuture != null) {
-                            channelFuture.sync();
-                        }
-                    }
-                }
-            }
-
-        } catch (InterruptedException e) {
-            logger.error(e);
-        } finally {
-            // The connection is closed automatically on shutdown.
-            this.group.shutdownGracefully();
-        }
-        logger.debug("Client end his run.");
-    }
-
     /**
      * Send the message to the server imediatly if the initialization of the client connection is done.
      * (the client not need to be run to use this method)
      * @param msg the Message to send
      */
-    public void sendMessage(@NotNull Message msg) throws InterruptedException {
+    public void sendMessageToServer(@NotNull Message msg) throws InterruptedException {
 
         if (this.channel == null || !this.channel.isWritable()) {
             logger.error("You need to init connection of the client before send a message !");
@@ -130,13 +90,7 @@ public class Client extends Thread {
         }
     }
 
-    /**
-     * Add a Message in the queue of message to send to the server.
-     * The message while be send if the client is running
-     * @param msg the Message to send
-     */
-    public void addMessageToSendingQueue(@NotNull Message msg) {
-        unsentMessages.add(msg);
-        notify();
+    public void downloadProjetFiles() throws InterruptedException {
+        this.sendMessageToServer(new Message<>("Foo", Transaction.TransactionType.INIT_PROJECT));
     }
 }

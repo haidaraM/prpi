@@ -46,6 +46,12 @@ public class JoinProjectBuilder extends ExistingModuleLoader {
         logger.debug("Begin init client");
 
         client.connect(hostname, port);
+
+        try {
+            client.downloadProjetFiles();
+        } catch (InterruptedException e) {
+            logger.error(e);
+        }
         // TODO Disable last wizard step and set project name and properties (not with iml like this...)
         // return super.validate(current, dest);
         return false;
