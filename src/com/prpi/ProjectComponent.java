@@ -15,10 +15,17 @@ public class ProjectComponent implements com.intellij.openapi.components.Project
     private Client client;
     private Project project;
 
+    private static ProjectComponent instance;
+
     private static Logger logger = Logger.getLogger(ProjectComponent.class);
 
     public ProjectComponent(Project project) {
         this.project = project;
+        instance = this;
+    }
+
+    public static ProjectComponent getInstance() {
+        return instance;
     }
 
     @Override
@@ -103,5 +110,9 @@ public class ProjectComponent implements com.intellij.openapi.components.Project
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+    }
+
+    public Project getProject() {
+        return project;
     }
 }

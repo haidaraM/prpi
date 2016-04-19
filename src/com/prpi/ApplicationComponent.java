@@ -76,6 +76,7 @@ public class ApplicationComponent implements com.intellij.openapi.components.App
     }
 
 
+    @Deprecated
     @Nullable
     public static Project getCurrentProject() {
         DataContext dataContext = DataManager.getInstance().getDataContext();
