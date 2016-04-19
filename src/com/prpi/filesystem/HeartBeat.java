@@ -1,6 +1,8 @@
 package com.prpi.filesystem;
 
 
+import com.intellij.openapi.editor.Document;
+
 public class HeartBeat {
 
     /**
@@ -17,6 +19,11 @@ public class HeartBeat {
      * Absolute path
      */
     private String filePath;
+
+    /**
+     * The name of the file (with extension)
+     */
+    private String fileName;
 
 
     /**
@@ -35,13 +42,14 @@ public class HeartBeat {
     private int caretOffset;
 
 
-    public HeartBeat(int line, int column, String filePath, CharSequence oldFragment, CharSequence newFragment, int caretOffset) {
+    public HeartBeat(int line, int column, String filePath, CharSequence oldFragment, CharSequence newFragment, int caretOffset, String fileName) {
         this.line = line;
         this.column = column;
         this.filePath = filePath;
         this.oldFragment = oldFragment;
         this.newFragment = newFragment;
         this.caretOffset = caretOffset;
+        this.fileName = fileName;
     }
 
 
@@ -87,9 +95,28 @@ public class HeartBeat {
 
     /**
      * Check if this heart beat is a insert heart beat
+     *
      * @return true if insert, false otherwise.
      */
     public boolean isInsertHeartBeat() {
         return newFragment.length() != 0;
+    }
+
+    public int getCaretOffset() {
+        return caretOffset;
+    }
+
+    public String getFileName() {
+        return fileName;
+    }
+
+    /**
+     * Get the document which correspond to the filePath
+     *
+     * @return
+     */
+    public Document getDocument() {
+        // TODO
+        return null;
     }
 }
