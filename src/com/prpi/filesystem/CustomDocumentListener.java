@@ -53,7 +53,7 @@ public class CustomDocumentListener implements com.intellij.openapi.editor.event
             logger.trace(event.getOldFragment());
 
             HeartBeat heartBeat = new HeartBeat(logicalPosition.line, logicalPosition.column, virtualFile.getName(),
-                    event.getOldFragment(), event.getNewFragment());
+                    event.getOldFragment(), event.getNewFragment(), editor.getCaretModel().getOffset());
 
             ProjectComponent.getInstance().sendMessage(
                     new Message<>(heartBeat, Transaction.TransactionType.SIMPLE_MESSAGE)

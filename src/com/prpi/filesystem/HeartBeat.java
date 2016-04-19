@@ -29,13 +29,19 @@ public class HeartBeat {
      */
     private CharSequence newFragment;
 
+    /**
+     * Carret offset in the editor
+     */
+    private int caretOffset;
 
-    public HeartBeat(int line, int column, String filePath, CharSequence oldFragment, CharSequence newFragment) {
+
+    public HeartBeat(int line, int column, String filePath, CharSequence oldFragment, CharSequence newFragment, int caretOffset) {
         this.line = line;
         this.column = column;
         this.filePath = filePath;
         this.oldFragment = oldFragment;
         this.newFragment = newFragment;
+        this.caretOffset = caretOffset;
     }
 
 
