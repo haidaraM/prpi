@@ -180,7 +180,7 @@ public class File extends Transaction {
         logger.trace("Creating directories of parent: " + filePath.getParent());
         Files.createDirectories(filePath.getParent());
 
-        try (FileOutputStream fileOutputStream = new FileOutputStream(filePath.toFile())) {
+        try (FileOutputStream fileOutputStream = new FileOutputStream(filePath.toFile(), true)) {
             logger.trace("Start writing file (" + (lastContentOrder + 1) + " parts)");
 
             for (int i = 0; i <= lastContentOrder; i++) {
@@ -188,7 +188,7 @@ public class File extends Transaction {
                 FileContent content = contents.get(i);
 
                 // Write the content in the File
-                fileOutputStream.write(content.getContent());
+                fileOutputStream.write(content.getContent(), 0, content.getSizeContent());
                 logger.trace(String.format("Wrote part of %s (%d/%d) - Write data size is %d", filePath, i+1, (lastContentOrder+1), content.getSizeContent()));
             }
             logger.debug("Completely wrote " + filePath);
