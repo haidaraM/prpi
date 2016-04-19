@@ -47,6 +47,11 @@ public class NetworkTransactionFactory {
     }
 
     /**
+     * The limit of the array size when decomposed a file
+     */
+    private static final int fileContentBufferSize = 524288;
+
+    /**
      * Build all NetworkTransaction corresponding to the Transaction given and send them to the receiver
      * @param message the message to send (Transaction)
      * @param receiver the channel receiver of this message(s)
@@ -142,19 +147,16 @@ public class NetworkTransactionFactory {
             int fileSize = fileToSend.getSize();
             logger.debug("Size of file " + file + " is " + fileSize);
 
-            // The limit of the message length
-            final int bufferSize = 65536; // TODO : find best value
-
             try (FileInputStream fileInputStream = new FileInputStream(file.toFile()))
             {
                 int fileContentNumber = 0;
-                byte[] fileData = new byte[Math.min(bufferSize, fileSize)];
+                byte[] fileData = new byte[Math.min(fileContentBufferSize, fileSize)];
                 int dataRead;
 
                 while ((dataRead = fileInputStream.read(fileData)) > 0) {
 
-                    boolean lastContent = (dataRead < bufferSize);
-                    logger.trace("Is last part of " + file + " ? " + (lastContent ? "yes" : "no") + " ( data read is " + dataRead + " / bufferSize is " + bufferSize + " )");
+                    boolean lastContent = (dataRead < fileContentBufferSize);
+                    logger.trace("Is last part of " + file + " ? " + (lastContent ? "yes" : "no") + " ( data read is " + dataRead + " / fileContentBufferSize is " + fileContentBufferSize + " )");
 
                     FileContent fileContent = new FileContent(fileToSend.getId(), fileData, dataRead, fileContentNumber, lastContent, Transaction.TransactionType.FILE_CONTENT);
 
@@ -163,7 +165,7 @@ public class NetworkTransactionFactory {
 
                     // Update index and fileData array size
                     fileContentNumber++;
-                    fileData = new byte[Math.min(bufferSize, fileSize)];
+                    fileData = new byte[Math.min(fileContentBufferSize, fileSize)];
                 }
 
             } catch (FileNotFoundException e) {
