@@ -1,7 +1,5 @@
 package com.prpi.network.communication;
 
-import java.util.Arrays;
-
 public class FileContent extends Transaction {
 
     /**

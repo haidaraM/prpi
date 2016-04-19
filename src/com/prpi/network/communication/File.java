@@ -52,11 +52,6 @@ public class File extends Transaction {
 
     private static transient final Logger logger = Logger.getLogger(File.class);
 
-    /**
-     * The json builder
-     */
-    private transient static final Gson gson = new Gson();
-
     public File(Path file, Path projectRoot, TransactionType transactionType) {
         super(File.class, transactionType);
         this.fileName = file.getFileName().toString();
