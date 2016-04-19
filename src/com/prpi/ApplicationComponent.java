@@ -35,7 +35,6 @@ public class ApplicationComponent implements com.intellij.openapi.components.App
         logger.trace("Init component");
 
         // TODO: insert component initialization logic here
-        setupDocuementListener();
 
         logger.trace("End of component init");
     }
@@ -52,14 +51,8 @@ public class ApplicationComponent implements com.intellij.openapi.components.App
     }
 
 
-    private void setupDocuementListener() {
 
-        ApplicationManager.getApplication().invokeLater(() -> {
-            VirtualFileManager.getInstance().addVirtualFileListener(new CustomVirtualFileListener());
-            EditorFactory.getInstance().getEventMulticaster().addDocumentListener(new CustomDocumentListener());
-        });
-    }
-
+    @Deprecated
     @NotNull
     public static ApplicationComponent getPrPiAppComp(@Nullable Project project) throws NullPointerException {
         if (project == null) {
