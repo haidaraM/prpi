@@ -2,20 +2,17 @@ package com.prpi.network.communication;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
-import com.prpi.network.PrPiChannelInitializer;
+import com.prpi.network.ChannelInitializer;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelHandlerContext;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
@@ -40,7 +37,7 @@ public class NetworkTransactionFactory {
     /**
      * The limit of the message length
      */
-    private static final int maxMessageLength = PrPiChannelInitializer.MAX_FRAME_LENGTH
+    private static final int maxMessageLength = ChannelInitializer.MAX_FRAME_LENGTH
             - new NetworkTransaction(Long.toString(Long.MAX_VALUE), Integer.MAX_VALUE, Integer.MAX_VALUE, "").toJson().length()
             - 100; // Increase if needed this random value in case of out of frame length
 

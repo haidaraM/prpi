@@ -1,7 +1,7 @@
 package com.prpi.network.client;
 
 import com.intellij.openapi.project.Project;
-import com.prpi.network.PrPiChannelInitializer;
+import com.prpi.network.ChannelInitializer;
 import com.prpi.network.communication.Message;
 import com.prpi.network.communication.NetworkTransactionFactory;
 import io.netty.bootstrap.Bootstrap;
@@ -58,7 +58,7 @@ public class Client extends Thread {
             Bootstrap bootstrap = new Bootstrap();
             bootstrap.group(this.group);
             bootstrap.channel(NioSocketChannel.class);
-            bootstrap.handler(new PrPiChannelInitializer(handler, host, port));
+            bootstrap.handler(new ChannelInitializer(handler, host, port));
 
             // Start the connection attempt.
             channel = bootstrap.connect(host, port).sync().channel();

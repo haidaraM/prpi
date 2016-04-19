@@ -1,7 +1,7 @@
 package com.prpi.network.server;
 
 import com.intellij.openapi.project.Project;
-import com.prpi.network.PrPiChannelInitializer;
+import com.prpi.network.ChannelInitializer;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.EventLoopGroup;
@@ -58,7 +58,7 @@ public class Server extends Thread {
 
             serverBootstrap.handler(new LoggingHandler(LogLevel.INFO));
 
-            serverBootstrap.childHandler(new PrPiChannelInitializer(this.handler));
+            serverBootstrap.childHandler(new ChannelInitializer(this.handler));
 
             // Bind and start to accept incoming connections.
             ChannelFuture f = serverBootstrap.bind(this.listenPort).sync();

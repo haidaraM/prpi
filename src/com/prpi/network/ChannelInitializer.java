@@ -1,6 +1,5 @@
 package com.prpi.network;
 
-import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.socket.SocketChannel;
@@ -15,7 +14,7 @@ import io.netty.handler.ssl.util.SelfSignedCertificate;
 import javax.net.ssl.SSLException;
 import java.security.cert.CertificateException;
 
-public class PrPiChannelInitializer extends ChannelInitializer<SocketChannel> {
+public class ChannelInitializer extends io.netty.channel.ChannelInitializer<SocketChannel> {
 
     private final SslContext sslCtx;
     private String host;
@@ -30,7 +29,7 @@ public class PrPiChannelInitializer extends ChannelInitializer<SocketChannel> {
      * @throws SSLException
      * @throws CertificateException
      */
-    public PrPiChannelInitializer(SimpleChannelInboundHandler handler) throws SSLException, CertificateException {
+    public ChannelInitializer(SimpleChannelInboundHandler handler) throws SSLException, CertificateException {
         SelfSignedCertificate ssc = new SelfSignedCertificate();
         this.sslCtx = SslContextBuilder.forServer(ssc.certificate(), ssc.privateKey()).build();
         this.host = null;
@@ -45,7 +44,7 @@ public class PrPiChannelInitializer extends ChannelInitializer<SocketChannel> {
      * @param port
      * @throws SSLException
      */
-    public PrPiChannelInitializer(SimpleChannelInboundHandler handler, String host, int port) throws SSLException {
+    public ChannelInitializer(SimpleChannelInboundHandler handler, String host, int port) throws SSLException {
         this.sslCtx = SslContextBuilder.forClient().trustManager(InsecureTrustManagerFactory.INSTANCE).build();
         this.host = host;
         this.port = port;
@@ -69,7 +68,7 @@ public class PrPiChannelInitializer extends ChannelInitializer<SocketChannel> {
         }
 
         // On top of the SSL handler, add the text line codec.
-        pipeline.addLast("framer", new JsonObjectDecoder(PrPiChannelInitializer.MAX_FRAME_LENGTH));
+        pipeline.addLast("framer", new JsonObjectDecoder(ChannelInitializer.MAX_FRAME_LENGTH));
         pipeline.addLast("decoder", new StringDecoder());
         pipeline.addLast("encoder", new StringEncoder());
 
