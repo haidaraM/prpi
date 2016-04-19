@@ -157,7 +157,7 @@ public class NetworkTransactionFactory {
                 while ((dataRead = fileInputStream.read(fileData)) > 0) {
 
                     boolean lastContent = (dataRead < bufferSize);
-                    logger.debug("LastContent of " + file + "? " + (lastContent ? "oui" : "non") + " ( data read is " + dataRead + " / bufferSize is " + bufferSize + " )");
+                    logger.trace("Is last part of " + file + " ? " + (lastContent ? "yes" : "no") + " ( data read is " + dataRead + " / bufferSize is " + bufferSize + " )");
 
                     FileContent fileContent = new FileContent(fileToSend.getId(), fileData, dataRead, fileContentNumber, lastContent, Transaction.TransactionType.FILE_CONTENT);
 
