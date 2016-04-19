@@ -183,17 +183,13 @@ public class File extends Transaction {
         try (FileOutputStream fileOutputStream = new FileOutputStream(filePath.toFile())) {
             logger.trace("Start writing file (" + (lastContentOrder + 1) + " parts)");
 
-            int offset = 0;
             for (int i = 0; i <= lastContentOrder; i++) {
 
                 FileContent content = contents.get(i);
 
                 // Write the content in the File
-                fileOutputStream.write(content.getContent(), offset, content.getSizeContent());
-                logger.trace(String.format("Wrote part of %s (%d/%d) - Offset is %d - Size is %d", filePath, i+1, (lastContentOrder+1), offset, content.getSizeContent()));
-
-                // Update offset
-                offset += content.getSizeContent();
+                fileOutputStream.write(content.getContent());
+                logger.trace(String.format("Wrote part of %s (%d/%d) - Write data size is %d", filePath, i+1, (lastContentOrder+1), content.getSizeContent()));
             }
             logger.debug("Completely wrote " + filePath);
 
