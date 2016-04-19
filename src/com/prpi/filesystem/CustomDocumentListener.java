@@ -56,24 +56,25 @@ public class CustomDocumentListener implements com.intellij.openapi.editor.event
             VirtualFile virtualFile = psiFile.getVirtualFile();
 
 
-            logger.trace(virtualFile.getPath());
             LogicalPosition logicalPosition = editor.getCaretModel().getLogicalPosition();
+            logger.trace(String.format("File name : %s", virtualFile.getName()));
             logger.trace(String.format("Line number : %d", logicalPosition.line + 1));
             logger.trace(String.format("Column number : %d", logicalPosition.column + 1));
-
-            logger.trace(event.getNewFragment());
-            logger.trace(event.getOldFragment());
+            logger.trace(String.format("New fragment : %s", event.getNewFragment()));
+            logger.trace(String.format("Old fragment : %s", event.getOldFragment()));
+            logger.trace(String.format("Caret offset : %d", editor.getCaretModel().getOffset()));
 
 
             HeartBeat heartBeat = new HeartBeat(logicalPosition.line, logicalPosition.column, virtualFile.getPath(),
                     event.getOldFragment(), event.getNewFragment(), editor.getCaretModel().getOffset(),
                     virtualFile.getName());
+            //DocumentActionsHelper.createGuardedBlock(event.getDocument(),logicalPosition.line);
 
             //DocumentActionsHelper.insertStringInDocument(project,event.getDocument(),"p",editor.getCaretModel().getOffset()+1);
 
             ProjectComponent.getInstance().sendMessage(
-                    new Message<>(heartBeat, Transaction.TransactionType.SIMPLE_MESSAGE)
-            );
+                    new Message<>(heartBeat, Transaction.TransactionType.SIMPLE_MESSAGE));
+
 
         } catch (NullPointerException ignored) {
             // Some changes seem not to be related on virtual files. So sometimes we have NullPointerException.
