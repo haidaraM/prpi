@@ -1,4 +1,4 @@
-package com.prpi.filesystem;
+package com.prpi.actions;
 
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
@@ -8,7 +8,7 @@ import com.intellij.openapi.project.Project;
 /**
  * This class contains some static methods to deal with write actions on documents by automatically use CommandProcessor
  */
-public class WriteCommandHelper {
+public class DocumentActionsHelper {
 
 
     /**
