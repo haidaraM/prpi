@@ -24,6 +24,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 
 public class JoinProjectBuilder extends ExistingModuleLoader {
@@ -85,22 +86,27 @@ public class JoinProjectBuilder extends ExistingModuleLoader {
                 public void run(@NotNull ProgressIndicator progressIndicator) {
                     if (finalProjectSize != -1) {
                         // TODO get real value
-                        for (int i = 0; i < finalProjectSize; i++){
+                        for (int i = 0; i < finalProjectSize;){
                             progressIndicator.setText("Downloading files ... ");
                             progressIndicator.setText2("Size " + i + " / " + finalProjectSize);
                             progressIndicator.setFraction(i/finalProjectSize);
                             try {
-                                Thread.sleep(10);
+                                Thread.sleep(1000);
+                                i = client.getCurrentProjectSize();
                             } catch (InterruptedException e) {
+                                logger.error(e);
                                 e.printStackTrace();
+                            } catch (IOException e) {
+                                logger.error(e);
                             }
                             progressIndicator.checkCanceled();
                         }
                     } else {
+                        progressIndicator.setText("Downloading files ... ");
                         try {
-                            Thread.sleep(1000);
+                            Thread.sleep(10000);
                         } catch (InterruptedException e) {
-                            e.printStackTrace();
+                            logger.error(e);
                         }
                     }
                 }

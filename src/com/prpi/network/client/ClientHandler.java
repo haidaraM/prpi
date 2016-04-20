@@ -57,7 +57,8 @@ public class ClientHandler extends SimpleChannelInboundHandler<String> {
 
         if (transaction != null) {
 
-            logger.debug("New Transaction (ID: " + transaction.getTransactionID() + ") - Responses availables : " + Arrays.toString(transactionResponses.keySet().toArray()));
+            logger.trace("New Transaction (ID: " + transaction.getTransactionID() + ") - Responses availables : " + Arrays.toString(transactionResponses.keySet().toArray()));
+
             // If this is a transaction that corresponding to a response, it's not treated here, just put in the response list
             if (transactionResponses.containsKey(transaction.getTransactionID())) {
                 Transaction resut = transactionResponses.get(transaction.getTransactionID());
@@ -122,5 +123,9 @@ public class ClientHandler extends SimpleChannelInboundHandler<String> {
             transactionResponses.put(transactionID, null);
         }
         return null;
+    }
+
+    public Project getProject() {
+        return project;
     }
 }

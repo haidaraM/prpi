@@ -15,6 +15,7 @@ import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 
@@ -122,5 +123,9 @@ public class Client {
             }
         }
         return -1;
+    }
+
+    public int getCurrentProjectSize() throws IOException {
+        return NetworkTransactionFactory.getProjectSize(Paths.get(this.handler.getProject().getBasePath()));
     }
 }
