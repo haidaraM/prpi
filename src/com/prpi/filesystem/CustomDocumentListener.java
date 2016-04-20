@@ -75,7 +75,7 @@ public class CustomDocumentListener implements com.intellij.openapi.editor.event
 
 
             ProjectComponent.getInstance().sendMessage(
-                    new Message<>(heartBeat, Transaction.TransactionType.SIMPLE_MESSAGE));
+                    new Message<>(heartBeat, Transaction.TransactionType.HEART_BEAT));
 
 
         } catch (NullPointerException ignored) {

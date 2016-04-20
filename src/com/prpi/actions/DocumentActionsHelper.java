@@ -26,6 +26,8 @@ import java.awt.*;
  * https://intellij-support.jetbrains.com/hc/en-us/community/posts/206115839-When-are-document-inserts-written-to-screen-
  * https://intellij-support.jetbrains.com/hc/en-us/community/posts/206761955-Why-i-need-getLineNumber-int-offset-
  * https://intellij-support.jetbrains.com/hc/en-us/community/posts/206119849-Access-to-method-call-under-caret-instead-of-PsiMethod
+ * https://intellij-support.jetbrains.com/hc/en-us/community/posts/206107829-How-to-specific-selection-start-position-and-end-position
+ * https://intellij-support.jetbrains.com/hc/en-us/community/posts/206774575-Get-PsiElement-by-file-name
  */
 public class DocumentActionsHelper {
 

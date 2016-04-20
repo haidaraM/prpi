@@ -74,6 +74,9 @@ public class ServerHandler extends SimpleChannelInboundHandler<String> {
                     ctx.close();
                     clientChannels.remove(ctx.channel());
                     break;
+                case HEART_BEAT:
+                    logger.trace("New heart beat received : "+transaction.toString());
+                    break;
 
                 default:
                     logger.warn("Impossible to process this transaction, type is unsupported : " + transaction.toString());

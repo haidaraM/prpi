@@ -64,6 +64,10 @@ public class ClientHandler extends SimpleChannelInboundHandler<String> {
                     logger.debug("Client received a simple message: " + transaction.toString());
                     break;
 
+                case HEART_BEAT:
+                    logger.trace("New heart beat received : "+transaction.toString());
+                    break;
+
                 case CLOSE:
                     ctx.close();
                     break;
