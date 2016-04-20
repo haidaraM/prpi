@@ -107,18 +107,27 @@ public class HeartBeat {
     }
 
     /**
-     * Get the document which correspond to the filePath
+     * Get the document which corresponds to the filePath
      *
      * @return document
      */
     @Nullable
     public Document getDocument() {
 
-        VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByPath(this.filePath);
+        VirtualFile virtualFile = getVirtualFile();
         if (virtualFile == null)
             return null;
 
         return FileDocumentManager.getInstance().getDocument(virtualFile);
+    }
+
+    /**
+     * Get virtual file which corresponds to the filepath
+     * @return virtual file
+     */
+    @Nullable
+    public VirtualFile getVirtualFile(){
+        return LocalFileSystem.getInstance().findFileByPath(this.filePath);
     }
 
 

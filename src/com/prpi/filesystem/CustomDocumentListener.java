@@ -64,6 +64,7 @@ public class CustomDocumentListener implements com.intellij.openapi.editor.event
             logger.trace(String.format("Old fragment : %s", event.getOldFragment()));
             logger.trace(String.format("Caret offset : %d", editor.getCaretModel().getOffset()));
 
+            //  DocumentActionsHelper.hightLightLineInSelectedEditor(event.getDocument(),logicalPosition.line);
 
             HeartBeat heartBeat = new HeartBeat(logicalPosition.line, logicalPosition.column, virtualFile.getPath(),
                     event.getOldFragment(), event.getNewFragment(), editor.getCaretModel().getOffset(),
@@ -71,6 +72,7 @@ public class CustomDocumentListener implements com.intellij.openapi.editor.event
             //DocumentActionsHelper.createGuardedBlock(event.getDocument(),logicalPosition.line);
 
             //DocumentActionsHelper.insertStringInDocument(project,event.getDocument(),"p",editor.getCaretModel().getOffset()+1);
+
 
             ProjectComponent.getInstance().sendMessage(
                     new Message<>(heartBeat, Transaction.TransactionType.SIMPLE_MESSAGE));
