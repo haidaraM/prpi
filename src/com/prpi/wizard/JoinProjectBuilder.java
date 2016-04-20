@@ -19,7 +19,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 
-public class JoinProjectBuilder extends ModuleBuilder {
+public class JoinProjectBuilder extends ExistingModuleLoader {
 
     private static final Logger logger = Logger.getLogger(JoinProjectBuilder.class);
 
@@ -39,7 +39,7 @@ public class JoinProjectBuilder extends ModuleBuilder {
 
     @Override
     public boolean validate(final Project current, final Project dest) {
-        return this.initClientAndProject(current, dest) && super.validate(current, dest);
+        return initClientAndProject(current, dest) && super.validate(current, dest);
     }
 
     @Nullable
