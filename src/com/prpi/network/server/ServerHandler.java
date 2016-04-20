@@ -70,7 +70,7 @@ public class ServerHandler extends SimpleChannelInboundHandler<String> {
                     break;
 
                 case SIMPLE_MESSAGE:
-                    logger.trace("The transaction is a Message : " + transaction.toString());
+                    logger.info("Server received a simple message : " + transaction.toString());
                     break;
 
                 case CLOSE:

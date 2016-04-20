@@ -85,7 +85,7 @@ public class ClientHandler extends SimpleChannelInboundHandler<String> {
                     break;
 
                 case SIMPLE_MESSAGE:
-                    logger.debug("Client received a simple message: " + transaction.toString());
+                    logger.info("Client received a simple message: " + transaction.toString());
                     break;
 
                 case CLOSE:
