@@ -4,6 +4,7 @@ import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.ui.Messages;
+import com.prpi.network.client.Client;
 import com.prpi.network.server.Server;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
@@ -64,7 +65,7 @@ public class JoinProjectInputIPAndPortStep extends ModuleWizardStep {
         panel.add(portPanel);
 
         // TODO -> uncomment this line
-        //panel.add(createTestConnectionButton());
+        panel.add(createTestConnectionButton());
 
         return panel;
     }
@@ -88,13 +89,21 @@ public class JoinProjectInputIPAndPortStep extends ModuleWizardStep {
 
             connectionResultTextField.setForeground(Color.BLACK);
             connectionResultTextField.setText("Processing...");
+            connectionResultTextField.repaint();
 
             boolean couldConnect = false;
 
+            try {
+                Thread.sleep(1000);
+            } catch(InterruptedException ex) {
+                Thread.currentThread().interrupt();
+            }
+
+            // TODO : improve error message when unknown host
             String ipAddress = checkAndGetHostnameImput();
             int port = checkAndGetPortImput();
             if (ipAddress != null && port != 0) {
-                //couldConnect = PrPiClient.testConnection(ipAddress, port);
+                couldConnect = Client.testConnection(ipAddress, port);
             }
 
             String msgText;

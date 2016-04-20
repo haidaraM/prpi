@@ -8,6 +8,7 @@ import com.prpi.network.communication.Transaction;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import org.apache.log4j.Logger;
@@ -26,7 +27,7 @@ public class Client {
     /**
      * The handler, receive all requests from the server
      */
-    private ClientHandler handler;
+    private SimpleChannelInboundHandler<String> handler;
 
     /**
      * The communication channel used between the client and the server
@@ -41,6 +42,11 @@ public class Client {
      */
     public Client(@NotNull Project currentProject) {
         handler = new ClientHandler(currentProject);
+    }
+
+    private Client()
+    {
+        handler = new ClientTestHandler();
     }
 
     /**
@@ -92,5 +98,18 @@ public class Client {
 
     public void downloadProjetFiles() throws InterruptedException {
         this.sendMessageToServer(new Message<>("Foo", Transaction.TransactionType.INIT_PROJECT));
+    }
+
+    public void close() {
+        if (channel != null) {
+            channel.close();
+        }
+    }
+
+    public static boolean testConnection(String ipAddress, int port) {
+        Client testClient = new Client();
+        boolean connection = testClient.connect(ipAddress, port);
+        testClient.close();
+        return connection;
     }
 }

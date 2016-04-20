@@ -36,6 +36,7 @@ public class ClientHandler extends SimpleChannelInboundHandler<String> {
                 future -> {
                     logger.debug("Client established connection to server: " + ctx);
                 });
+
     }
 
     @Override
