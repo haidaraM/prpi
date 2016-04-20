@@ -4,14 +4,27 @@ package com.prpi.filesystem;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.EditorFactory;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.search.FilenameIndex;
+import com.intellij.psi.search.GlobalSearchScope;
 import com.prpi.ProjectComponent;
 import com.prpi.actions.DocumentActionsHelper;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
 
 
 public class HeartBeat {
+
+
+    private static final Logger logger = Logger.getLogger(HeartBeat.class);
+
+    static {
+        logger.setLevel(Level.TRACE);
+    }
 
     /**
      * Line which was edited
@@ -71,17 +84,14 @@ public class HeartBeat {
     }
 
 
-
     public String getFilePath() {
         return filePath;
     }
 
 
-
     public CharSequence getOldFragment() {
         return oldFragment;
     }
-
 
 
     public CharSequence getNewFragment() {
@@ -115,20 +125,32 @@ public class HeartBeat {
     public Document getDocument() {
 
         VirtualFile virtualFile = getVirtualFile();
-        if (virtualFile == null)
+        if (virtualFile == null) {
             return null;
-
-        return FileDocumentManager.getInstance().getDocument(virtualFile);
+        } else {
+            return FileDocumentManager.getInstance().getDocument(virtualFile);
+        }
     }
 
     /**
      * Get virtual file which corresponds to the filepath
+     *
      * @return virtual file
      */
     @Nullable
-    public VirtualFile getVirtualFile(){
-        return LocalFileSystem.getInstance().findFileByPath(this.filePath);
-    }
+    public VirtualFile getVirtualFile() {
+        Project project = ProjectComponent.getInstance().getProject();
 
+        PsiFile[] psiFiles = FilenameIndex.getFilesByName(project, this.fileName,
+                GlobalSearchScope.projectScope(project));
+        if (psiFiles.length == 0) {
+            logger.trace(String.format("File '%s' not found in project scope", this.fileName));
+            return null;
+        } else {
+
+            // I Suppose that there are not more than two files whith the same name.
+            return psiFiles[0].getVirtualFile();
+        }
+    }
 
 }
