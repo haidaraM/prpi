@@ -95,12 +95,8 @@ public class ServerHandler extends SimpleChannelInboundHandler<String> {
 
     private void sendProjectInfos(Transaction request, ChannelHandlerContext context) {
         Map<String, Object> projectInfos = new HashMap<>();
-        try {
-            // TODO Check if getBasePath is null
-            projectInfos.put("projectSize", NetworkTransactionFactory.getProjectSize(Paths.get(this.currentProject.getBasePath())));
-        } catch (IOException e) {
-            logger.error("Can't get the base path of the project");
-        }
+        // TODO Check if getBasePath is null
+        projectInfos.put("projectSize", NetworkTransactionFactory.getFilesCount(Paths.get(this.currentProject.getBasePath())));
 
         // Make the response
         Message<Map<String, Object>> response = new Message<>(projectInfos, Transaction.TransactionType.INIT_PROJECT);

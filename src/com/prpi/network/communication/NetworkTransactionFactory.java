@@ -217,7 +217,7 @@ public class NetworkTransactionFactory {
         });
     }
 
-    public static int getProjectSize(Path projectRoot) throws IOException {
+    /*public static int getProjectSize(Path projectRoot) throws IOException {
         return (int) Files.walk(projectRoot).mapToLong(p -> {
             for (Pattern pattern: fileToExcludeInProject) {
                 java.io.File file = p.toFile();
@@ -227,5 +227,30 @@ public class NetworkTransactionFactory {
             }
             return p.toFile().length();
         }).sum();
+    }*/
+
+    public static int getFilesCount(Path projectRoot) {
+        java.io.File file = projectRoot.toFile();
+        java.io.File[] files = file.listFiles();
+        int count = 0;
+        for (java.io.File f : files) {
+
+            boolean isExcluded = false;
+            for (Pattern pattern : fileToExcludeInProject)
+                if (pattern.matcher(f.getName()).find()) {
+                    isExcluded = true;
+                    break;
+                }
+
+            if (isExcluded)
+                continue;
+
+            if (f.isDirectory())
+                count += getFilesCount(f.toPath());
+            else
+                count++;
+        }
+
+        return count;
     }
 }

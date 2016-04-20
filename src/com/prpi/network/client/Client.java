@@ -109,7 +109,7 @@ public class Client {
     public int downloadProjetFiles() throws InterruptedException {
         Message<String> msg = new Message<>("Foo", Transaction.TransactionType.INIT_PROJECT);
         msg.setWaitingResponse(true);
-        this.sendMessageToServer(msg);
+        sendMessageToServer(msg);
 
         Transaction response = null;
         int timeout = 60;
@@ -128,8 +128,8 @@ public class Client {
         return -1;
     }
 
-    public int getCurrentProjectSize() throws IOException {
-        return NetworkTransactionFactory.getProjectSize(Paths.get(handler.getProject().getBasePath()));
+    public int getCurrentProjectSize() {
+        return NetworkTransactionFactory.getFilesCount(Paths.get(handler.getProject().getBasePath()));
     }
 
 

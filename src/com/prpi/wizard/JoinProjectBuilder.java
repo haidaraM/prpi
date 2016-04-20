@@ -80,19 +80,6 @@ public class JoinProjectBuilder extends ModuleBuilder {
         projectApp.setClient(client);
         logger.debug("Begin init client");
 
-        // Working but ugly solution (master)
-        client.connect(hostname, port);
-
-        try {
-            client.downloadProjetFiles();
-            Messages.showInfoMessage(dest, "Wait, downloading files ... (15 secondes)", "Download Files");
-            Thread.sleep(15000);
-        } catch (InterruptedException e) {
-            logger.error(e);
-        }
-        return super.validate(current, dest);
-
-        /* NON Working version of Antoine (for now)
         if (client.connect(hostname, port)) {
             int projectSize = -1;
             try {
@@ -119,8 +106,6 @@ public class JoinProjectBuilder extends ModuleBuilder {
                             } catch (InterruptedException e) {
                                 logger.error(e);
                                 e.printStackTrace();
-                            } catch (IOException e) {
-                                logger.error(e);
                             }
                             progressIndicator.checkCanceled();
                         }
@@ -155,6 +140,6 @@ public class JoinProjectBuilder extends ModuleBuilder {
         } else {
             logger.error("Client can't connect to the remote server !");
         }
-        return false;*/
+        return false;
     }
 }
