@@ -13,25 +13,27 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.regex.Pattern;
 
 public class NetworkTransactionFactory {
 
     private static final Logger logger = Logger.getLogger(NetworkTransactionFactory.class);
 
     /**
-     * The generator of transaction ID
+     * The generator of network transaction ID
      */
-    private static AtomicLong generatorTransactionID = new AtomicLong();
+    private static AtomicLong generatorNetworkTransactionID = new AtomicLong();
 
     /**
-     * The method to call to get the transaction ID
-     * @return a new unique transaction ID
+     * The method to call to get the network transaction ID
+     * @return a new unique network transaction ID
      */
-    private static @NotNull String getNextTransactionID() {
-        return String.valueOf(generatorTransactionID.getAndIncrement());
+    private static @NotNull String getNextNetworkTransactionID() {
+        return String.valueOf(generatorNetworkTransactionID.getAndIncrement());
     }
 
     /**
@@ -71,8 +73,8 @@ public class NetworkTransactionFactory {
         // The counter to get message ID to each one
         int messageID = 0;
 
-        // The ID of the transaction
-        String transactionID = NetworkTransactionFactory.getNextTransactionID();
+        // The ID of the network transaction
+        String netWorkTransactionID = NetworkTransactionFactory.getNextNetworkTransactionID();
 
         // The offset in string
         int offset = 0;
@@ -84,10 +86,10 @@ public class NetworkTransactionFactory {
 
             // Create the NetworkTransaction, part of the final Message
             // TODO change message.getString by something to get more performances ??
-            NetworkTransaction transaction = new NetworkTransaction(transactionID, nbMessage, messageID, message.getString(offset, maxMessageLength));
+            NetworkTransaction networkTransaction = new NetworkTransaction(netWorkTransactionID, nbMessage, messageID, message.getString(offset, maxMessageLength));
 
             // Send this NetworkTransaction and get the ChannelFuture created
-            channelFutureToReturn.add(receiver.writeAndFlush(transaction.toJson()));
+            channelFutureToReturn.add(receiver.writeAndFlush(networkTransaction.toJson()));
 
             // Update, ID, offset and message length left to send
             messageID++;
@@ -97,10 +99,10 @@ public class NetworkTransactionFactory {
 
         if (messageLengthLeft > 0) {
             // Last NetworkTransaction
-            NetworkTransaction transaction = new NetworkTransaction(transactionID, nbMessage, messageID, message.getString(offset, messageLengthLeft));
+            NetworkTransaction networkTransaction = new NetworkTransaction(netWorkTransactionID, nbMessage, messageID, message.getString(offset, messageLengthLeft));
 
             // Send and store the ChannelFuture
-            channelFutureToReturn.add(receiver.writeAndFlush(transaction.toJson()));
+            channelFutureToReturn.add(receiver.writeAndFlush(networkTransaction.toJson()));
         }
         return channelFutureToReturn;
     }
@@ -129,7 +131,7 @@ public class NetworkTransactionFactory {
             java.io.File directory = file.toFile();
 
             // Get all files in this directory
-            java.io.File[] subFiles = getFilesToSend(directory);
+            java.io.File[] subFiles = getFilesInDirectory(directory);
 
             // ForEach files, build and send
             for (java.io.File subFile : subFiles) {
@@ -193,11 +195,37 @@ public class NetworkTransactionFactory {
     }
 
     /**
+     * List of all pattern to exclude when fetching project files
+     */
+    public static final Pattern[] fileToExcludeInProject = new Pattern[]{
+        Pattern.compile("^\\.idea$")
+    };
+
+    /**
      * Get all sub file contain in the directory
      * @param directory the directory to scan
      * @return all files contain in the directory given
      */
-    private static java.io.File[] getFilesToSend(java.io.File directory) {
-        return directory.listFiles((dir, name) -> !name.equals(".idea"));
+    private static java.io.File[] getFilesInDirectory(java.io.File directory) {
+        return directory.listFiles((dir, name) -> {
+            for (Pattern pattern: fileToExcludeInProject) {
+                if (pattern.matcher(name).find()) {
+                    return false;
+                }
+            }
+            return true;
+        });
+    }
+
+    public static int getProjectSize(Path projectRoot) throws IOException {
+        return (int) Files.walk(projectRoot).mapToLong(p -> {
+            for (Pattern pattern: fileToExcludeInProject) {
+                java.io.File file = p.toFile();
+                if (pattern.matcher(file.getName()).find()) {
+                    return 0;
+                }
+            }
+            return p.toFile().length();
+        }).sum();
     }
 }

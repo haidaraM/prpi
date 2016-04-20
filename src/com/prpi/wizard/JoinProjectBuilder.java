@@ -70,27 +70,38 @@ public class JoinProjectBuilder extends ExistingModuleLoader {
         logger.debug("Begin init client");
 
         if (client.connect(hostname, port)) {
+            int projectSize = -1;
             try {
-                client.downloadProjetFiles();
+                projectSize = client.downloadProjetFiles();
             } catch (InterruptedException e) {
                 logger.error(e);
             }
 
             final boolean[] resultDownloadTask = {false};
+            final int finalProjectSize = projectSize;
+
             Task.Modal modalTask = new Task.Modal(dest, "Download project files", true) {
                 @Override
                 public void run(@NotNull ProgressIndicator progressIndicator) {
-
-                    // TODO get real value
-                    for (int i = 0 ; i < 100; i++){
-                        progressIndicator.setText("Downloading files ... (file " + i + ")");
-                        progressIndicator.setFraction(i/100);
+                    if (finalProjectSize != -1) {
+                        // TODO get real value
+                        for (int i = 0; i < finalProjectSize; i++){
+                            progressIndicator.setText("Downloading files ... ");
+                            progressIndicator.setText2("Size " + i + " / " + finalProjectSize);
+                            progressIndicator.setFraction(i/finalProjectSize);
+                            try {
+                                Thread.sleep(10);
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                            progressIndicator.checkCanceled();
+                        }
+                    } else {
                         try {
-                            Thread.sleep(100);
+                            Thread.sleep(1000);
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
-                        progressIndicator.checkCanceled();
                     }
                 }
 
@@ -105,11 +116,12 @@ public class JoinProjectBuilder extends ExistingModuleLoader {
                     super.onCancel();
                     resultDownloadTask[0] = false;
                     Messages.showWarningDialog(getProject(), "You canceled the download process, the project can't be initialized.", "Download Canceled");
+                    // TODO delete download files
                 }
             };
 
             ProgressManager.getInstance().run(modalTask);
-            
+
             return resultDownloadTask[0];
         } else {
             logger.error("Client can't connect to the remote server !");

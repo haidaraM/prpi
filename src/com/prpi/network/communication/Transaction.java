@@ -5,6 +5,9 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.annotations.Expose;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.concurrent.atomic.AtomicLong;
 
 public abstract class Transaction {
 
@@ -35,9 +38,35 @@ public abstract class Transaction {
      */
     private TransactionType transactionType;
 
+    /**
+     * The ID of this transaction
+     */
+    @Expose(serialize = true, deserialize = true)
+    private String transactionID;
+
+    /**
+     * If true, the receiver need to make a response with the same transaction ID
+     */
+    private boolean waitingResponse = false;
+
+    /**
+     * The generator of transaction ID
+     */
+    private static AtomicLong generatorTransactionID = new AtomicLong();
+
+    /**
+     * The method to call to get the transaction ID
+     * @return a new transaction ID
+     */
+    private static @NotNull String getNextTransactionID() {
+        return String.valueOf(generatorTransactionID.getAndIncrement());
+    }
+
     Transaction(Class type, TransactionType transactionType) {
         this.objectTypeInTransaction = type.getCanonicalName();
         this.transactionType = transactionType;
+        this.waitingResponse = false;
+        this.transactionID = Transaction.getNextTransactionID();
         this.json = Transaction.gson.toJson(this);
     }
 
@@ -65,6 +94,24 @@ public abstract class Transaction {
      */
     public TransactionType getTransactionType() {
         return transactionType;
+    }
+
+    public boolean isWaitingResponse() {
+        return waitingResponse;
+    }
+
+    public void setWaitingResponse(boolean waitingResponse) {
+        this.waitingResponse = waitingResponse;
+        this.json = Transaction.gson.toJson(this);
+    }
+
+    public String getTransactionID() {
+        return transactionID;
+    }
+
+    public void setTransactionID(String transactionID) {
+        this.transactionID = transactionID;
+        this.json = Transaction.gson.toJson(this);
     }
 
     /**

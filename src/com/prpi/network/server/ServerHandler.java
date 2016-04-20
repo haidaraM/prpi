@@ -15,8 +15,12 @@ import io.netty.util.concurrent.GlobalEventExecutor;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ServerHandler extends SimpleChannelInboundHandler<String> {
 
@@ -61,7 +65,8 @@ public class ServerHandler extends SimpleChannelInboundHandler<String> {
 
                 case INIT_PROJECT:
                     logger.debug("Received a request for project initialization");
-                    sendProject(ctx);
+                    sendProjectInfos(transaction, ctx);
+                    sendProjectFiles(ctx);
                     break;
 
                 case SIMPLE_MESSAGE:
@@ -80,7 +85,27 @@ public class ServerHandler extends SimpleChannelInboundHandler<String> {
         }
     }
 
-    private void sendProject(ChannelHandlerContext context) {
+    private void sendProjectInfos(Transaction request, ChannelHandlerContext context) {
+        Map<String, Object> projectInfos = new HashMap<>();
+        try {
+            // TODO Check if getBasePath is null
+            projectInfos.put("projectSize", NetworkTransactionFactory.getProjectSize(Paths.get(this.currentProject.getBasePath())));
+        } catch (IOException e) {
+            logger.error("Can't get the base path of the project");
+        }
+
+        // Make the response
+        Message<Map<String, Object>> response = new Message<>(projectInfos, Transaction.TransactionType.INIT_PROJECT);
+
+        // Set the transaction ID same as the request because its a response
+        response.setTransactionID(request.getTransactionID());
+        logger.debug("The Transaction ID of the response : " + response.getTransactionID());
+
+        // Send
+        NetworkTransactionFactory.buildAndSend(response, context.channel());
+    }
+
+    private void sendProjectFiles(ChannelHandlerContext context) {
         Path projectPath = Paths.get(currentProject.getBasePath());
         NetworkTransactionFactory.buildAndSend(projectPath, projectPath, context.channel());
     }

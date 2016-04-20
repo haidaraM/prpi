@@ -1,5 +1,6 @@
 package com.prpi.network.client;
 
+import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.prpi.network.ChannelInitializer;
 import com.prpi.network.communication.Message;
@@ -15,6 +16,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 public class Client {
 
@@ -80,6 +82,11 @@ public class Client {
             return;
         }
 
+        if (msg.isWaitingResponse()) {
+            // Set the transaction ID in the list of waiting response transaction
+            this.handler.getTransactionResponse(msg.getTransactionID());
+        }
+
         List<ChannelFuture> lastWriteFuture = NetworkTransactionFactory.buildAndSend(msg, this.channel);
 
         // Sync all message before proccess others
@@ -90,7 +97,30 @@ public class Client {
         }
     }
 
-    public void downloadProjetFiles() throws InterruptedException {
-        this.sendMessageToServer(new Message<>("Foo", Transaction.TransactionType.INIT_PROJECT));
+    /**
+     * Initialize the download process of all project files from the remote project
+     * @return the number of files to download
+     * @throws InterruptedException
+     */
+    public int downloadProjetFiles() throws InterruptedException {
+        Message<String> msg = new Message<>("Foo", Transaction.TransactionType.INIT_PROJECT);
+        msg.setWaitingResponse(true);
+        this.sendMessageToServer(msg);
+
+        Transaction response = null;
+        int timeout = 60;
+        while(timeout > 0 && (response = this.handler.getTransactionResponse(msg.getTransactionID())) == null) {
+            Thread.sleep(1000);
+            timeout--;
+        }
+        if (response != null && response.getTransactionType() == Transaction.TransactionType.INIT_PROJECT) {
+            Message<Map<String, Object>> responseMessage = (Message<Map<String, Object>>) response;
+            Map<String, Object> projectInfos = responseMessage.getContent();
+            if (projectInfos.containsKey("projectSize")) {
+                // TODO Why deserialized give a Double insted of an int ??
+                return ((Double)projectInfos.get("projectSize")).intValue();
+            }
+        }
+        return -1;
     }
 }

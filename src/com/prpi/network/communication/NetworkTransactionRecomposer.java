@@ -39,6 +39,8 @@ public class NetworkTransactionRecomposer {
             // Get the NetworkTransaction
             NetworkTransaction networkTransaction = NetworkTransactionFactory.jsonToNetworkMessage(json);
 
+            logger.trace("Add NetworkTransaction part : " + json);
+
             Transaction resultTransaction;
             if (networkTransaction.isComposedMessage()) {
                 resultTransaction = handleComposedMessage(networkTransaction);
@@ -65,7 +67,7 @@ public class NetworkTransactionRecomposer {
      */
     private @Nullable Transaction handleComposedMessage(NetworkTransaction networkTransaction) throws ClassNotFoundException {
 
-        String transactionID = networkTransaction.getTransactionID();
+        String transactionID = networkTransaction.getNetworkTransactionID();
         Map<Integer, NetworkTransaction> composedNetworkMessages = incompleteTransactions.get(transactionID);
 
         if (composedNetworkMessages == null) {

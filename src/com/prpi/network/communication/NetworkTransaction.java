@@ -9,7 +9,7 @@ public class NetworkTransaction {
     /**
      * The ID of the transaction
      */
-    private String transactionID;
+    private String networkTransactionID;
 
     /**
      * The number of this message in this transaction ID (first = 0, second = 1, ...)
@@ -26,9 +26,9 @@ public class NetworkTransaction {
      */
     private String content;
 
-    NetworkTransaction(@NotNull String transactionID, int nbMessage, int messageID, @NotNull String content) {
+    NetworkTransaction(@NotNull String networkTransactionID, int nbMessage, int messageID, @NotNull String content) {
         this.content = content;
-        this.transactionID = transactionID;
+        this.networkTransactionID = networkTransactionID;
         this.messageID = messageID;
         this.nbMessage = nbMessage;
     }
@@ -43,8 +43,8 @@ public class NetworkTransaction {
         return gson.fromJson(json, NetworkTransaction.class);
     }
 
-    protected String getTransactionID() {
-        return transactionID;
+    protected String getNetworkTransactionID() {
+        return networkTransactionID;
     }
 
     protected int getMessageID() {
