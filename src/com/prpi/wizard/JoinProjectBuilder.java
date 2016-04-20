@@ -95,11 +95,10 @@ public class JoinProjectBuilder extends ExistingModuleLoader {
                 @Override
                 public void run(@NotNull ProgressIndicator progressIndicator) {
                     if (finalProjectSize != -1) {
-                        // TODO get real value
                         for (int i = 0; i < finalProjectSize;){
                             progressIndicator.setText("Downloading files ... ");
-                            progressIndicator.setText2("Size " + i + " / " + finalProjectSize);
-                            progressIndicator.setFraction(i/finalProjectSize);
+                            progressIndicator.setText2("File " + i + " / " + finalProjectSize);
+                            progressIndicator.setFraction((double)i/(double)finalProjectSize);
                             try {
                                 Thread.sleep(1000);
                                 i = client.getCurrentProjectSize();
