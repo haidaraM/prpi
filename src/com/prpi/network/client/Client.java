@@ -152,7 +152,7 @@ public class Client {
 
             msg = new Message<>("Foo bar", Transaction.TransactionType.CLOSE);
             c.sendMessageToServer(msg);
-            //c.close();
+            c.close();
 
             if (response != null && response.getTransactionType() == Transaction.TransactionType.PROJECT_NAME) {
                 Message<String> responseMessage = (Message<String>) response;
