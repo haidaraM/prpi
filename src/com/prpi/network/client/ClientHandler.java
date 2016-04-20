@@ -16,12 +16,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class ClientHandler extends SimpleChannelInboundHandler<String> {
-
-    /**
-     * The project that the client follow
-     */
-    private Project project;
+class ClientHandler extends AbstractClientHandler {
 
     /**
      * The recomposer of Transaction
@@ -35,9 +30,8 @@ public class ClientHandler extends SimpleChannelInboundHandler<String> {
 
     private static Logger logger = Logger.getLogger(ClientHandler.class);
 
-    public ClientHandler(@NotNull Project currentProject) {
-        super();
-        this.project = currentProject;
+    ClientHandler(@NotNull Project currentProject) {
+        super(currentProject);
         this.recomposer = new NetworkTransactionRecomposer();
     }
 
@@ -52,6 +46,7 @@ public class ClientHandler extends SimpleChannelInboundHandler<String> {
                 future -> {
                     logger.debug("Client established connection to server: " + ctx);
                 });
+
     }
 
     @Override
@@ -116,6 +111,7 @@ public class ClientHandler extends SimpleChannelInboundHandler<String> {
      * @param transactionID the transaction ID of the transaction response
      * @return Transaction if the response arrived else null
      */
+    @Override
     public @Nullable Transaction getTransactionResponse(@NotNull String transactionID) {
         if (transactionResponses.containsKey(transactionID)) {
             Transaction resut = transactionResponses.get(transactionID);
@@ -130,7 +126,4 @@ public class ClientHandler extends SimpleChannelInboundHandler<String> {
         return null;
     }
 
-    public Project getProject() {
-        return project;
-    }
 }

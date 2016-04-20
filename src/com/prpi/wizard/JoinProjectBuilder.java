@@ -39,7 +39,7 @@ public class JoinProjectBuilder extends ModuleBuilder {
 
     @Override
     public boolean validate(final Project current, final Project dest) {
-        return this.initClientAndProject(dest) && super.validate(current, dest);
+        return this.initClientAndProject(current, dest) && super.validate(current, dest);
     }
 
     @Nullable
@@ -73,13 +73,26 @@ public class JoinProjectBuilder extends ModuleBuilder {
         this.projectName = projectName;
     }
 
-    private boolean initClientAndProject(final Project dest) {
+    private boolean initClientAndProject(final Project current, final Project dest) {
 
         ProjectComponent projectApp = dest.getComponent(ProjectComponent.class);
         Client client = new Client(dest);
         projectApp.setClient(client);
         logger.debug("Begin init client");
 
+        // Working but ugly solution (master)
+        client.connect(hostname, port);
+
+        try {
+            client.downloadProjetFiles();
+            Messages.showInfoMessage(dest, "Wait, downloading files ... (15 secondes)", "Download Files");
+            Thread.sleep(15000);
+        } catch (InterruptedException e) {
+            logger.error(e);
+        }
+        return super.validate(current, dest);
+
+        /* NON Working version of Antoine (for now)
         if (client.connect(hostname, port)) {
             int projectSize = -1;
             try {
@@ -142,6 +155,6 @@ public class JoinProjectBuilder extends ModuleBuilder {
         } else {
             logger.error("Client can't connect to the remote server !");
         }
-        return false;
+        return false;*/
     }
 }

@@ -1,23 +1,18 @@
 package com.prpi.network.client;
 
-import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.prpi.network.ChannelInitializer;
 import com.prpi.network.communication.Message;
-import com.prpi.network.communication.NetworkTransaction;
 import com.prpi.network.communication.NetworkTransactionFactory;
 import com.prpi.network.communication.Transaction;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 
-import javax.net.ssl.SSLException;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.List;
@@ -33,7 +28,7 @@ public class Client {
     /**
      * The handler, receive all requests from the server
      */
-    private ClientHandler handler;
+    private AbstractClientHandler handler;
 
     /**
      * The communication channel used between the client and the server
@@ -48,6 +43,10 @@ public class Client {
      */
     public Client(@NotNull Project currentProject) {
         handler = new ClientHandler(currentProject);
+    }
+
+    private Client(AbstractClientHandler handler) {
+        this.handler = handler;
     }
 
     /**
@@ -89,7 +88,7 @@ public class Client {
 
         if (msg.isWaitingResponse()) {
             // Set the transaction ID in the list of waiting response transaction
-            this.handler.getTransactionResponse(msg.getTransactionID());
+            handler.getTransactionResponse(msg.getTransactionID());
         }
 
         List<ChannelFuture> lastWriteFuture = NetworkTransactionFactory.buildAndSend(msg, this.channel);
@@ -114,7 +113,7 @@ public class Client {
 
         Transaction response = null;
         int timeout = 60;
-        while(timeout > 0 && (response = this.handler.getTransactionResponse(msg.getTransactionID())) == null) {
+        while(timeout > 0 && (response = handler.getTransactionResponse(msg.getTransactionID())) == null) {
             Thread.sleep(1000);
             timeout--;
         }
@@ -130,18 +129,13 @@ public class Client {
     }
 
     public int getCurrentProjectSize() throws IOException {
-        return NetworkTransactionFactory.getProjectSize(Paths.get(this.handler.getProject().getBasePath()));
+        return NetworkTransactionFactory.getProjectSize(Paths.get(handler.getProject().getBasePath()));
     }
 
-
-
-    private Client() {
-        handler = new ClientHandler();
-    }
 
     public static String sendProjectNameRequest(String ipAddress, int port) {
         try {
-            Client c = new Client();
+            Client c = new Client(new ClientHandler());
             c.connect(ipAddress, port);
 
             Message<String> msg = new Message<>("Bar", Transaction.TransactionType.PROJECT_NAME);
@@ -172,5 +166,32 @@ public class Client {
             logger.error("Could not get project name from server", e);
             return null;
         }
+    }
+
+    /**
+     * Close the client and notify the server (if connected).
+     */
+    public void close() {
+        if (channel != null) {
+            try {
+                sendMessageToServer(new Message(new String("Close"), Transaction.TransactionType.CLOSE));
+            } catch (InterruptedException e) {
+                logger.error("Impossible to notify the server with the close message.");
+            }
+            channel.close();
+        }
+    }
+
+    /**
+     * Test if the connection is reachable and available.
+     * @param ipAddress The address ip of the host
+     * @param port The port number to connect
+     * @return True if the connection is available, false otherwise.
+     */
+    public static boolean testConnection(String ipAddress, int port) {
+        Client testClient = new Client(new ClientEmptyHandler());
+        boolean connection = testClient.connect(ipAddress, port);
+        testClient.close();
+        return connection;
     }
 }

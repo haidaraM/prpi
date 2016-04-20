@@ -1,6 +1,11 @@
 package com.prpi;
 
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.editor.EditorFactory;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFileManager;
+import com.prpi.filesystem.CustomDocumentListener;
+import com.prpi.filesystem.CustomVirtualFileListener;
 import com.prpi.network.client.Client;
 import com.prpi.network.communication.Message;
 import com.prpi.network.server.Server;
@@ -15,10 +20,19 @@ public class ProjectComponent implements com.intellij.openapi.components.Project
     private Client client;
     private Project project;
 
+    private static ProjectComponent instance;
+
     private static Logger logger = Logger.getLogger(ProjectComponent.class);
+
+    private CustomDocumentListener customDocumentListener = new CustomDocumentListener("CustomDocumentListenner");
 
     public ProjectComponent(Project project) {
         this.project = project;
+        instance = this;
+    }
+
+    public static ProjectComponent getInstance() {
+        return instance;
     }
 
     @Override
@@ -40,6 +54,7 @@ public class ProjectComponent implements com.intellij.openapi.components.Project
     @Override
     public void projectOpened() {
         // called when project is opened
+        setupDocuementListener();
     }
 
     @Override
@@ -76,20 +91,6 @@ public class ProjectComponent implements com.intellij.openapi.components.Project
         this.server = server;
     }
 
-    @NotNull
-    public static ProjectComponent getPrPiProjComp(@Nullable Project project) throws NullPointerException {
-        if (project == null) {
-            project = ApplicationComponent.getCurrentProject();
-        }
-        if (project == null) {
-            throw new NullPointerException("No project found.");
-        }
-        ProjectComponent component = project.getComponent(ProjectComponent.class);
-        if (component == null) {
-            throw new NullPointerException("No component found.");
-        }
-        return component;
-    }
 
     public void sendMessage(Message msg) {
         try {
@@ -103,5 +104,26 @@ public class ProjectComponent implements com.intellij.openapi.components.Project
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+    }
+
+    public Project getProject() {
+        return project;
+    }
+
+    public void setupDocuementListener() {
+
+        ApplicationManager.getApplication().invokeLater(() -> {
+            //VirtualFileManager.getInstance().addVirtualFileListener(new CustomVirtualFileListener());
+            EditorFactory.getInstance().getEventMulticaster().addDocumentListener(customDocumentListener);
+        });
+    }
+
+    public void removeDocumentListenner() {
+        EditorFactory.getInstance().getEventMulticaster().removeDocumentListener(customDocumentListener);
+    }
+
+
+    public CustomDocumentListener getDocumentListener() {
+        return customDocumentListener;
     }
 }

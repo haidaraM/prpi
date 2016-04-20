@@ -15,6 +15,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 public class JoinProjectInputIPAndPortStep extends ModuleWizardStep {
 
@@ -64,8 +65,7 @@ public class JoinProjectInputIPAndPortStep extends ModuleWizardStep {
         panel.add(ipPanel);
         panel.add(portPanel);
 
-        // TODO -> uncomment this line
-        //panel.add(createTestConnectionButton());
+        panel.add(createTestConnectionButton());
 
         return panel;
     }
@@ -95,7 +95,7 @@ public class JoinProjectInputIPAndPortStep extends ModuleWizardStep {
             String ipAddress = checkAndGetHostnameImput();
             int port = checkAndGetPortImput();
             if (ipAddress != null && port != 0) {
-                //couldConnect = PrPiClient.testConnection(ipAddress, port);
+                couldConnect = Client.testConnection(ipAddress, port);
             }
 
             String msgText;
@@ -170,6 +170,9 @@ public class JoinProjectInputIPAndPortStep extends ModuleWizardStep {
                 ipAddress = null;
                 Messages.showWarningDialog("No hostname, or not reachable!", "PrPi Warning - Hostname Problem");
             }
+        } catch (UnknownHostException e) {
+            ipAddress = null;
+            Messages.showWarningDialog("Unknown host", "PrPi Warning - Hostname Problem");
         } catch (IOException e) {
             ipAddress = null;
             logger.error("Network error", e);
