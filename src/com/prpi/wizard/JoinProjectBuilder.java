@@ -37,6 +37,7 @@ public class JoinProjectBuilder extends ModuleBuilder {
 
     private static final Logger logger = Logger.getLogger(JoinProjectBuilder.class);
 
+    private String projectName;
     private String hostname;
     private int port;
     private WizardContext wizardContext;
@@ -58,18 +59,18 @@ public class JoinProjectBuilder extends ModuleBuilder {
     @Nullable
     @Override
     public ModuleWizardStep modifySettingsStep(@NotNull SettingsStep settingsStep) {
-        logger.debug("Modify settings step " + settingsStep.getModuleNameField());
+        logger.debug("Modify settings step " + settingsStep.getClass());
 
         ProjectSettingsStep p = (ProjectSettingsStep) settingsStep;
         p.getModuleNameField().setEnabled(false);
-        p.getModuleNameField().setText("AA");
+        p.getModuleNameField().setText(projectName);
 
         return super.modifySettingsStep(p);
     }
 
     @Override
     public void setupRootModel(ModifiableRootModel modifiableRootModel) throws ConfigurationException {
-        logger.debug("Setup root model");
+        logger.debug("Setup root model - does nothing");
     }
 
     @Override
@@ -77,9 +78,13 @@ public class JoinProjectBuilder extends ModuleBuilder {
         return JoinProjectModule.getInstance();
     }
 
-    public void setHostnameAndPort(String hostname, int port) {
+    void setHostnameAndPort(String hostname, int port) {
         this.hostname = hostname;
         this.port = port;
+    }
+
+    void setProjectName(String projectName) {
+        this.projectName = projectName;
     }
 
     private boolean initClientAndProject(final Project dest) {

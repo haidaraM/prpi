@@ -41,6 +41,11 @@ public class ClientHandler extends SimpleChannelInboundHandler<String> {
         this.recomposer = new NetworkTransactionRecomposer();
     }
 
+    ClientHandler() {
+        super();
+        recomposer = new NetworkTransactionRecomposer();
+    }
+
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         ctx.pipeline().get(SslHandler.class).handshakeFuture().addListener(

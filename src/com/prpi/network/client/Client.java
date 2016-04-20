@@ -4,16 +4,20 @@ import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.prpi.network.ChannelInitializer;
 import com.prpi.network.communication.Message;
+import com.prpi.network.communication.NetworkTransaction;
 import com.prpi.network.communication.NetworkTransactionFactory;
 import com.prpi.network.communication.Transaction;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 
+import javax.net.ssl.SSLException;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.List;
@@ -127,5 +131,46 @@ public class Client {
 
     public int getCurrentProjectSize() throws IOException {
         return NetworkTransactionFactory.getProjectSize(Paths.get(this.handler.getProject().getBasePath()));
+    }
+
+
+
+    private Client() {
+        handler = new ClientHandler();
+    }
+
+    public static String sendProjectNameRequest(String ipAddress, int port) {
+        try {
+            Client c = new Client();
+            c.connect(ipAddress, port);
+
+            Message<String> msg = new Message<>("Bar", Transaction.TransactionType.PROJECT_NAME);
+            msg.setWaitingResponse(true);
+            logger.debug("Sending project name request to the server");
+            c.sendMessageToServer(msg);
+
+            Transaction response = null;
+            int timeout = 20;
+            while(timeout > 0 && (response = c.handler.getTransactionResponse(msg.getTransactionID())) == null) {
+                Thread.sleep(300);
+                timeout--;
+            }
+
+            msg = new Message<>("Foo bar", Transaction.TransactionType.CLOSE);
+            c.sendMessageToServer(msg);
+            //c.close();
+
+            if (response != null && response.getTransactionType() == Transaction.TransactionType.PROJECT_NAME) {
+                Message<String> responseMessage = (Message<String>) response;
+                logger.debug("Client received project name from server: " + responseMessage.getContent());
+                return responseMessage.getContent();
+            }
+            logger.warn("Could not get project name");
+            return null;
+
+        } catch (Exception e) {
+            logger.error("Could not get project name from server", e);
+            return null;
+        }
     }
 }

@@ -73,7 +73,13 @@ public class ServerHandler extends SimpleChannelInboundHandler<String> {
                     logger.info("Server received a simple message : " + transaction.toString());
                     break;
 
+                case PROJECT_NAME:
+                    logger.debug("Received request of project name");
+                    sendProjectName(transaction, ctx);
+                    break;
+
                 case CLOSE:
+                    logger.debug("Server received a closing connection");
                     ctx.close();
                     clientChannels.remove(ctx.channel());
                     break;
@@ -114,6 +120,13 @@ public class ServerHandler extends SimpleChannelInboundHandler<String> {
         for(Channel client : clientChannels) {
             NetworkTransactionFactory.buildAndSend(msg, client);
         }
+    }
+
+    private void sendProjectName(Transaction t, ChannelHandlerContext ctx) {
+        Message<String> projectNameMessage = new Message<>(currentProject.getName(), Transaction.TransactionType.PROJECT_NAME);
+        projectNameMessage.setTransactionID(t.getTransactionID());
+        logger.debug("Server sending project name: " + currentProject.getName());
+        NetworkTransactionFactory.buildAndSend(projectNameMessage, ctx.channel());
     }
 
     @Override
