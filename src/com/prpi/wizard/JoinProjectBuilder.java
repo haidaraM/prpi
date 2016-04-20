@@ -1,10 +1,12 @@
 package com.prpi.wizard;
 
-import com.intellij.ide.util.projectWizard.ExistingModuleLoader;
-import com.intellij.ide.util.projectWizard.ModuleWizardStep;
-import com.intellij.ide.util.projectWizard.WizardContext;
+import com.intellij.ide.projectWizard.ProjectSettingsStep;
+import com.intellij.ide.util.projectWizard.*;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.module.ModifiableModuleModel;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleType;
+import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.ProgressManagerQueue;
@@ -20,14 +22,18 @@ import com.intellij.openapi.ui.Messages;
 import com.prpi.ProjectComponent;
 import com.prpi.network.client.Client;
 import org.apache.log4j.Logger;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.util.*;
+import java.util.List;
 
-public class JoinProjectBuilder extends ExistingModuleLoader {
+public class JoinProjectBuilder extends ModuleBuilder {
 
     private static final Logger logger = Logger.getLogger(JoinProjectBuilder.class);
 
@@ -38,24 +44,37 @@ public class JoinProjectBuilder extends ExistingModuleLoader {
     @Override
     public ModuleWizardStep[] createWizardSteps(@NotNull WizardContext wizardContext, @NotNull ModulesProvider modulesProvider) {
         this.wizardContext = wizardContext;
+
         return new ModuleWizardStep[] {
                 new JoinProjectInputIPAndPortStep(this, wizardContext)
         };
     }
 
     @Override
-    public ModuleType getModuleType() {
-        return JoinProjectModule.getInstance();
-    }
-
-    @Override
-    public void setupRootModel(ModifiableRootModel rootModel) throws com.intellij.openapi.options.ConfigurationException {
-        // Empty
-    }
-
-    @Override
     public boolean validate(final Project current, final Project dest) {
         return this.initClientAndProject(dest) && super.validate(current, dest);
+    }
+
+    @Nullable
+    @Override
+    public ModuleWizardStep modifySettingsStep(@NotNull SettingsStep settingsStep) {
+        logger.debug("Modify settings step " + settingsStep.getModuleNameField());
+
+        ProjectSettingsStep p = (ProjectSettingsStep) settingsStep;
+        p.getModuleNameField().setEnabled(false);
+        p.getModuleNameField().setText("AA");
+
+        return super.modifySettingsStep(p);
+    }
+
+    @Override
+    public void setupRootModel(ModifiableRootModel modifiableRootModel) throws ConfigurationException {
+        logger.debug("Setup root model");
+    }
+
+    @Override
+    public ModuleType getModuleType() {
+        return JoinProjectModule.getInstance();
     }
 
     public void setHostnameAndPort(String hostname, int port) {
@@ -135,4 +154,3 @@ public class JoinProjectBuilder extends ExistingModuleLoader {
         return false;
     }
 }
-

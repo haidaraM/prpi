@@ -2,7 +2,7 @@
     <id>com.prpi</id>
     <name>Prpi</name>
     <version>1.0</version>
-    <vendor email="prpi@prpi.com" url="http://www.yourcompany.com">Prpi</vendor>
+    <vendor email="prpi@prpi.com" url="http://www.prpi.com">Prpi</vendor>
 
     <description><![CDATA[
       A plugin for collaborative editing in Intellij Platform.
