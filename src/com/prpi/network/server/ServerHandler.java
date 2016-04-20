@@ -6,6 +6,7 @@ import com.prpi.network.communication.NetworkTransactionFactory;
 import com.prpi.network.communication.NetworkTransactionRecomposer;
 import com.prpi.network.communication.Transaction;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.group.ChannelGroup;
@@ -18,6 +19,7 @@ import org.jetbrains.annotations.NotNull;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+@ChannelHandler.Sharable
 public class ServerHandler extends SimpleChannelInboundHandler<String> {
 
     private static final ChannelGroup clientChannels = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);

@@ -1,29 +1,19 @@
 package com.prpi.network.client;
 
-import com.intellij.openapi.project.Project;
-import com.prpi.network.communication.NetworkTransactionRecomposer;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.ssl.SslHandler;
 import org.apache.log4j.Logger;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Created by Pierre on 19/04/2016.
  */
-public class ClientTestHandler extends SimpleChannelInboundHandler<String> {
+public class ClientEmptyHandler extends SimpleChannelInboundHandler<String> {
 
-    private static Logger logger = Logger.getLogger(ClientTestHandler.class);
+    private static Logger logger = Logger.getLogger(ClientEmptyHandler.class);
 
-
-
-    public ClientTestHandler() {
+    public ClientEmptyHandler() {
         super();
-    }
-
-    @Override
-    protected void channelRead0(ChannelHandlerContext channelHandlerContext, String s) throws Exception {
-
     }
 
     @Override
@@ -32,7 +22,11 @@ public class ClientTestHandler extends SimpleChannelInboundHandler<String> {
                 future -> {
                     logger.debug("Client established connection to server: " + ctx);
                 });
-        ctx.close();
+    }
+
+    @Override
+    protected void channelRead0(ChannelHandlerContext channelHandlerContext, String s) throws Exception {
+
     }
 
 }

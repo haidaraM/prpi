@@ -46,7 +46,7 @@ public class Client {
 
     private Client()
     {
-        handler = new ClientTestHandler();
+        handler = new ClientEmptyHandler();
     }
 
     /**
@@ -100,12 +100,26 @@ public class Client {
         this.sendMessageToServer(new Message<>("Foo", Transaction.TransactionType.INIT_PROJECT));
     }
 
+    /**
+     * Close the client and notify the server (if connected).
+     */
     public void close() {
         if (channel != null) {
+            try {
+                sendMessageToServer(new Message(new String("Close"), Transaction.TransactionType.CLOSE));
+            } catch (InterruptedException e) {
+                logger.error("Impossible to notify the server with the close message.");
+            }
             channel.close();
         }
     }
 
+    /**
+     * Test if the connection is reachable and available.
+     * @param ipAddress The address ip of the host
+     * @param port The port number to connect
+     * @return True if the connection is available, false otherwise.
+     */
     public static boolean testConnection(String ipAddress, int port) {
         Client testClient = new Client();
         boolean connection = testClient.connect(ipAddress, port);
