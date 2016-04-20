@@ -8,14 +8,15 @@ import com.prpi.network.communication.Transaction;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
-import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.List;
+import java.util.Map;
 
 public class Client {
 
@@ -27,7 +28,7 @@ public class Client {
     /**
      * The handler, receive all requests from the server
      */
-    private SimpleChannelInboundHandler<String> handler;
+    private AbstractClientHandler handler;
 
     /**
      * The communication channel used between the client and the server
@@ -44,9 +45,8 @@ public class Client {
         handler = new ClientHandler(currentProject);
     }
 
-    private Client()
-    {
-        handler = new ClientEmptyHandler();
+    private Client(AbstractClientHandler handler) {
+        this.handler = handler;
     }
 
     /**
@@ -86,6 +86,11 @@ public class Client {
             return;
         }
 
+        if (msg.isWaitingResponse()) {
+            // Set the transaction ID in the list of waiting response transaction
+            handler.getTransactionResponse(msg.getTransactionID());
+        }
+
         List<ChannelFuture> lastWriteFuture = NetworkTransactionFactory.buildAndSend(msg, this.channel);
 
         // Sync all message before proccess others
@@ -96,8 +101,71 @@ public class Client {
         }
     }
 
-    public void downloadProjetFiles() throws InterruptedException {
-        this.sendMessageToServer(new Message<>("Foo", Transaction.TransactionType.INIT_PROJECT));
+    /**
+     * Initialize the download process of all project files from the remote project
+     * @return the number of files to download
+     * @throws InterruptedException
+     */
+    public int downloadProjetFiles() throws InterruptedException {
+        Message<String> msg = new Message<>("Foo", Transaction.TransactionType.INIT_PROJECT);
+        msg.setWaitingResponse(true);
+        sendMessageToServer(msg);
+
+        Transaction response = null;
+        int timeout = 60;
+        while(timeout > 0 && (response = handler.getTransactionResponse(msg.getTransactionID())) == null) {
+            Thread.sleep(1000);
+            timeout--;
+        }
+        if (response != null && response.getTransactionType() == Transaction.TransactionType.INIT_PROJECT) {
+            Message<Map<String, Object>> responseMessage = (Message<Map<String, Object>>) response;
+            Map<String, Object> projectInfos = responseMessage.getContent();
+            if (projectInfos.containsKey("projectSize")) {
+                // TODO Why deserialized give a Double insted of an int ??
+                return ((Double)projectInfos.get("projectSize")).intValue();
+            }
+        }
+        return -1;
+    }
+
+    public int getCurrentProjectSize() {
+        return NetworkTransactionFactory.getFilesCount(Paths.get(handler.getProject().getBasePath()));
+    }
+
+
+    public static String sendProjectNameRequest(String ipAddress, int port) {
+        try {
+            Client c = new Client(new ClientHandler());
+            c.connect(ipAddress, port);
+
+            Message<String> msg = new Message<>("Bar", Transaction.TransactionType.PROJECT_NAME);
+            msg.setWaitingResponse(true);
+            logger.debug("Sending project name request to the server");
+            c.sendMessageToServer(msg);
+
+            Transaction response = null;
+            int timeout = 20;
+            while(timeout > 0 && (response = c.handler.getTransactionResponse(msg.getTransactionID())) == null) {
+                Thread.sleep(300);
+                timeout--;
+            }
+
+            msg = new Message<>("Foo bar", Transaction.TransactionType.CLOSE);
+            c.sendMessageToServer(msg);
+            c.close();
+
+            if (response != null && response.getTransactionType() == Transaction.TransactionType.PROJECT_NAME) {
+                Message<String> responseMessage = (Message<String>) response;
+                logger.debug("Client received project name from server: " + responseMessage.getContent());
+                return responseMessage.getContent();
+            }
+            logger.warn("Could not get project name");
+            return null;
+
+        } catch (Exception e) {
+            logger.error("Could not get project name from server", e);
+            return null;
+        }
     }
 
     /**
@@ -121,7 +189,7 @@ public class Client {
      * @return True if the connection is available, false otherwise.
      */
     public static boolean testConnection(String ipAddress, int port) {
-        Client testClient = new Client();
+        Client testClient = new Client(new ClientEmptyHandler());
         boolean connection = testClient.connect(ipAddress, port);
         testClient.close();
         return connection;

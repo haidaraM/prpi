@@ -121,7 +121,23 @@ public class JoinProjectInputIPAndPortStep extends ModuleWizardStep {
 
     @Override
     public boolean validate() throws ConfigurationException {
-        return this.checkHostnameAndPortImputs();
+        boolean valid = checkHostnameAndPortImputs();
+        if (!valid)
+            return false;
+
+        String ip = checkAndGetHostnameImput();
+        int port = checkAndGetPortImput();
+        builder.setHostnameAndPort(ip, port);
+
+        String projectName = Client.sendProjectNameRequest(ip, port);
+        if (projectName == null) {
+            logger.warn("Null project name");
+            Messages.showWarningDialog("Could not reach host for getting project name.", "PrPi Warning");
+            return false;
+        }
+        builder.setProjectName(projectName);
+
+        return true;
     }
 
     private boolean checkHostnameAndPortImputs() {
@@ -166,6 +182,8 @@ public class JoinProjectInputIPAndPortStep extends ModuleWizardStep {
 
     @Override
     public void onStepLeaving() {
-        this.builder.setHostnameAndPort(this.checkAndGetHostnameImput(), this.checkAndGetPortImput());
+        String ip = checkAndGetHostnameImput();
+        int port = checkAndGetPortImput();
+        builder.setHostnameAndPort(ip, port);
     }
 }

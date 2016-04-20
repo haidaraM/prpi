@@ -1,6 +1,5 @@
 package com.prpi.network.communication;
 
-import com.google.gson.Gson;
 import com.google.gson.annotations.Expose;
 import org.apache.log4j.Logger;
 

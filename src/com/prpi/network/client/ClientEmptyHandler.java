@@ -1,19 +1,25 @@
 package com.prpi.network.client;
 
+import com.prpi.network.communication.Transaction;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.ssl.SslHandler;
 import org.apache.log4j.Logger;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-/**
- * Created by Pierre on 19/04/2016.
- */
-public class ClientEmptyHandler extends SimpleChannelInboundHandler<String> {
+class ClientEmptyHandler extends AbstractClientHandler {
 
     private static Logger logger = Logger.getLogger(ClientEmptyHandler.class);
 
     public ClientEmptyHandler() {
         super();
+    }
+
+    @Nullable
+    @Override
+    public Transaction getTransactionResponse(@NotNull String transactionID) {
+        return null;
     }
 
     @Override

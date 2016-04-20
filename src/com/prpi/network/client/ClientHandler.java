@@ -8,27 +8,37 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.ssl.SslHandler;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-public class ClientHandler extends SimpleChannelInboundHandler<String> {
-
-    /**
-     * The project that the client follow
-     */
-    private Project project;
+class ClientHandler extends AbstractClientHandler {
 
     /**
      * The recomposer of Transaction
      */
     private NetworkTransactionRecomposer recomposer;
 
+    /**
+     * All responses corresponding to the transaction ID in the waitting list
+     */
+    private Map<String, Transaction> transactionResponses = new HashMap<>();
+
     private static Logger logger = Logger.getLogger(ClientHandler.class);
 
-    public ClientHandler(@NotNull Project currentProject) {
-        super();
-        this.project = currentProject;
+    ClientHandler(@NotNull Project currentProject) {
+        super(currentProject);
         this.recomposer = new NetworkTransactionRecomposer();
+    }
+
+    ClientHandler() {
+        super();
+        recomposer = new NetworkTransactionRecomposer();
     }
 
     @Override
@@ -48,6 +58,20 @@ public class ClientHandler extends SimpleChannelInboundHandler<String> {
 
         if (transaction != null) {
 
+            logger.trace("New Transaction (ID: " + transaction.getTransactionID() + ") - Responses availables : " + Arrays.toString(transactionResponses.keySet().toArray()));
+
+            // If this is a transaction that corresponding to a response, it's not treated here, just put in the response list
+            if (transactionResponses.containsKey(transaction.getTransactionID())) {
+                Transaction resut = transactionResponses.get(transaction.getTransactionID());
+                if (resut == null) {
+                    transactionResponses.put(transaction.getTransactionID(), transaction);
+                } else {
+                    logger.error("Multiple response for the same transaction ID : " + transaction.getTransactionID());
+                }
+                return;
+            }
+
+            // If is not a reponse, need to be treated directly
             switch (transaction.getTransactionType()) {
 
                 case FILE_TRANSFERT:
@@ -62,7 +86,7 @@ public class ClientHandler extends SimpleChannelInboundHandler<String> {
                     break;
 
                 case SIMPLE_MESSAGE:
-                    logger.debug("Client received a simple message: " + transaction.toString());
+                    logger.info("Client received a simple message: " + transaction.toString());
                     break;
 
                 case HEART_BEAT:
@@ -86,4 +110,26 @@ public class ClientHandler extends SimpleChannelInboundHandler<String> {
         logger.error("Error in client handler", cause);
         super.exceptionCaught(ctx, cause);
     }
+
+    /**
+     * Ask to get a response of a transaction ID
+     * If there is a response, the transaction is return, else null is returned
+     * @param transactionID the transaction ID of the transaction response
+     * @return Transaction if the response arrived else null
+     */
+    @Override
+    public @Nullable Transaction getTransactionResponse(@NotNull String transactionID) {
+        if (transactionResponses.containsKey(transactionID)) {
+            Transaction resut = transactionResponses.get(transactionID);
+            if (resut != null) {
+                transactionResponses.remove(transactionID);
+                return resut;
+            }
+        } else {
+            logger.debug("Add the waiting transaction ID : " + transactionID);
+            transactionResponses.put(transactionID, null);
+        }
+        return null;
+    }
+
 }

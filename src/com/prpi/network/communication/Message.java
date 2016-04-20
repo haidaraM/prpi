@@ -1,8 +1,5 @@
 package com.prpi.network.communication;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
-
 public class Message<T> extends Transaction {
 
     /**
