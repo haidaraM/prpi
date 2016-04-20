@@ -27,7 +27,7 @@ public abstract class Transaction {
     /**
      * Used to dynamicly cast in the jsonToTransaction conversion (Message, File, FileContent ...)
      */
-    private String objectTypeInTransaction;
+    protected String objectTypeInTransaction;
 
     /**
      * To store the json result (need to be update when an attribut is changed)
@@ -43,7 +43,6 @@ public abstract class Transaction {
     /**
      * The ID of this transaction
      */
-    @Expose(serialize = true, deserialize = true)
     private String transactionID;
 
     /**

@@ -9,6 +9,7 @@ public class Message<T> extends Transaction {
 
     public Message(T obj, TransactionType transactionType) {
         super(Message.class, transactionType);
+        this.objectTypeInTransaction = ((Class<T>) this.getClass()).getCanonicalName();
         this.content = obj;
         this.json = Transaction.gson.toJson(this);
     }
