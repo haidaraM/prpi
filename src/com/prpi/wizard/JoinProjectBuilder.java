@@ -76,6 +76,7 @@ public class JoinProjectBuilder extends ExistingModuleLoader {
                 logger.error(e);
             }
 
+            final boolean[] resultDownloadTask = {false};
             Task.Modal modalTask = new Task.Modal(dest, "Download project files", true) {
                 @Override
                 public void run(@NotNull ProgressIndicator progressIndicator) {
@@ -85,7 +86,7 @@ public class JoinProjectBuilder extends ExistingModuleLoader {
                         progressIndicator.setText("Downloading files ... (file " + i + ")");
                         progressIndicator.setFraction(i/100);
                         try {
-                            Thread.sleep(500);
+                            Thread.sleep(100);
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
@@ -96,21 +97,20 @@ public class JoinProjectBuilder extends ExistingModuleLoader {
                 @Override
                 public void onSuccess() {
                     super.onSuccess();
-                    Messages.showMessageDialog(getProject(),"Success","Success",Messages.getInformationIcon());
+                    resultDownloadTask[0] = true;
                 }
 
                 @Override
                 public void onCancel() {
                     super.onCancel();
-                    // How to canceled the validation ? Need to return false, impossible here ?
-                    Messages.showMessageDialog(getProject(),"Cancel","Nodal Canceled",Messages.getQuestionIcon());
+                    resultDownloadTask[0] = false;
+                    Messages.showWarningDialog(getProject(), "You canceled the download process, the project can't be initialized.", "Download Canceled");
                 }
             };
 
             ProgressManager.getInstance().run(modalTask);
-
-            // TODO change return value with the Task.Modal result
-            return true;
+            
+            return resultDownloadTask[0];
         } else {
             logger.error("Client can't connect to the remote server !");
         }
