@@ -1,6 +1,7 @@
 package com.prpi.network.server;
 
 import com.intellij.openapi.project.Project;
+import com.prpi.filesystem.HeartBeat;
 import com.prpi.network.communication.Message;
 import com.prpi.network.communication.NetworkTransactionFactory;
 import com.prpi.network.communication.NetworkTransactionRecomposer;
@@ -76,6 +77,7 @@ public class ServerHandler extends SimpleChannelInboundHandler<String> {
                     break;
                 case HEART_BEAT:
                     logger.trace("New heart beat received : "+transaction.toString());
+                 //   HeartBeat heartBeat = (( Message<HeartBeat> )transaction).getContent();
                     break;
 
                 default:

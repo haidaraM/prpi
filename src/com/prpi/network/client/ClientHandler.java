@@ -1,6 +1,7 @@
 package com.prpi.network.client;
 
 import com.intellij.openapi.project.Project;
+import com.prpi.filesystem.HeartBeat;
 import com.prpi.network.communication.*;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -66,6 +67,7 @@ public class ClientHandler extends SimpleChannelInboundHandler<String> {
 
                 case HEART_BEAT:
                     logger.trace("New heart beat received : "+transaction.toString());
+                    //HeartBeat heartBeat = (( Message<HeartBeat> )transaction).getContent();
                     break;
 
                 case CLOSE:

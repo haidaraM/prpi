@@ -60,8 +60,8 @@ public class CustomDocumentListener implements com.intellij.openapi.editor.event
             logger.trace(String.format("File name : %s", virtualFile.getName()));
             logger.trace(String.format("Line number : %d", logicalPosition.line + 1));
             logger.trace(String.format("Column number : %d", logicalPosition.column + 1));
-            logger.trace(String.format("New fragment : %s", event.getNewFragment()));
-            logger.trace(String.format("Old fragment : %s", event.getOldFragment()));
+            logger.trace(String.format("New fragment : '%s'", event.getNewFragment()));
+            logger.trace(String.format("Old fragment : '%s'", event.getOldFragment()));
             logger.trace(String.format("Caret offset : %d", editor.getCaretModel().getOffset()));
 
             //  DocumentActionsHelper.hightLightLineInSelectedEditor(event.getDocument(),logicalPosition.line);
@@ -74,8 +74,7 @@ public class CustomDocumentListener implements com.intellij.openapi.editor.event
             //DocumentActionsHelper.insertStringInDocument(project,event.getDocument(),"p",editor.getCaretModel().getOffset()+1);
 
 
-            ProjectComponent.getInstance().sendMessage(
-                    new Message<>(heartBeat, Transaction.TransactionType.HEART_BEAT));
+            ProjectComponent.getInstance().sendMessage(new Message<HeartBeat>(heartBeat, Transaction.TransactionType.HEART_BEAT));
 
 
         } catch (NullPointerException ignored) {
