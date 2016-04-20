@@ -7,6 +7,7 @@ import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ui.configuration.ModulesProvider;
+import com.intellij.openapi.ui.Messages;
 import com.prpi.ProjectComponent;
 import com.prpi.network.client.Client;
 import org.apache.log4j.Logger;
@@ -49,12 +50,13 @@ public class JoinProjectBuilder extends ExistingModuleLoader {
 
         try {
             client.downloadProjetFiles();
+            Messages.showInfoMessage(dest, "Wait, downloading files ... (15 secondes)", "Download Files");
+            Thread.sleep(15000);
         } catch (InterruptedException e) {
             logger.error(e);
         }
         // TODO Disable last wizard step and set project name and properties (not with iml like this...)
-        // return super.validate(current, dest);
-        return false;
+        return super.validate(current, dest);
     }
 
     public void setHostnameAndPort(String hostname, int port) {
