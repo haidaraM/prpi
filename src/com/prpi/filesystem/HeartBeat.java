@@ -65,41 +65,29 @@ public class HeartBeat {
         return line;
     }
 
-    public void setLine(int line) {
-        this.line = line;
-    }
 
     public int getColumn() {
         return column;
     }
 
-    public void setColumn(int column) {
-        this.column = column;
-    }
+
 
     public String getFilePath() {
         return filePath;
     }
 
-    public void setFilePath(String filePath) {
-        this.filePath = filePath;
-    }
+
 
     public CharSequence getOldFragment() {
         return oldFragment;
     }
 
-    public void setOldFragment(CharSequence oldFragment) {
-        this.oldFragment = oldFragment;
-    }
+
 
     public CharSequence getNewFragment() {
         return newFragment;
     }
 
-    public void setNewFragment(CharSequence newFragment) {
-        this.newFragment = newFragment;
-    }
 
     /**
      * Check if this heart beat is a insert heart beat
@@ -132,4 +120,6 @@ public class HeartBeat {
 
         return FileDocumentManager.getInstance().getDocument(virtualFile);
     }
+
+
 }
