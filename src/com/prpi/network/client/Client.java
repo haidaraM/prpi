@@ -138,7 +138,7 @@ public class Client {
         return NetworkTransactionFactory.getFilesCount(Paths.get(handler.getProject().getBasePath()));
     }
 
-
+    // TODO humm, we can make better, like the downloadProjetFiles method above
     public static String sendProjectNameRequest(String ipAddress, int port) {
         try {
             Client c = new Client(new ClientHandler());
