@@ -68,8 +68,11 @@ public class ServerHandler extends SimpleChannelInboundHandler<String> {
 
                 case INIT_PROJECT:
                     logger.debug("Received a request for project initialization");
-                    sendProjectInfos(transaction, ctx);
                     sendProjectFiles(ctx);
+                    break;
+
+                case NUMBER_OF_PROJECT_FILES:
+                    sendNumberOfProjectFiles(transaction, ctx);
                     break;
 
                 case SIMPLE_MESSAGE:
@@ -98,17 +101,15 @@ public class ServerHandler extends SimpleChannelInboundHandler<String> {
         }
     }
 
-    private void sendProjectInfos(Transaction request, ChannelHandlerContext context) {
-        Map<String, Object> projectInfos = new HashMap<>();
-        // TODO Check if getBasePath is null
-        projectInfos.put("projectSize", NetworkTransactionFactory.getFilesCount(Paths.get(this.currentProject.getBasePath())));
-
+    private void sendNumberOfProjectFiles(Transaction request, ChannelHandlerContext context) {
         // Make the response
-        Message<Map<String, Object>> response = new Message<>(projectInfos, Transaction.TransactionType.INIT_PROJECT);
+        Message<Integer> response = new Message<>(
+                NetworkTransactionFactory.getFilesCount(Paths.get(this.currentProject.getBasePath())),
+                Transaction.TransactionType.NUMBER_OF_PROJECT_FILES
+        );
 
         // Set the transaction ID same as the request because its a response
         response.setTransactionID(request.getTransactionID());
-        logger.debug("The Transaction ID of the response : " + response.getTransactionID());
 
         // Send
         NetworkTransactionFactory.buildAndSend(response, context.channel());

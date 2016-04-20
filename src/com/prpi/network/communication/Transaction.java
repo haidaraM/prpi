@@ -21,6 +21,7 @@ public abstract class Transaction {
         INIT_PROJECT,
         HEART_BEAT,
         PROJECT_NAME,
+        NUMBER_OF_PROJECT_FILES,
         CLOSE
     }
 

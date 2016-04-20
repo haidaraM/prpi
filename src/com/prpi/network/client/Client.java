@@ -107,25 +107,31 @@ public class Client {
      * @throws InterruptedException
      */
     public int downloadProjetFiles() throws InterruptedException {
-        Message<String> msg = new Message<>("Foo", Transaction.TransactionType.INIT_PROJECT);
-        msg.setWaitingResponse(true);
-        sendMessageToServer(msg);
+
+        // Ask the number of files
+        Message<Object> nbFilesRequest = new Message<>(null, Transaction.TransactionType.NUMBER_OF_PROJECT_FILES);
+        nbFilesRequest.setWaitingResponse(true);
+        sendMessageToServer(nbFilesRequest);
 
         Transaction response = null;
         int timeout = 60;
-        while(timeout > 0 && (response = handler.getTransactionResponse(msg.getTransactionID())) == null) {
-            Thread.sleep(1000);
+        while(timeout > 0 && (response = handler.getTransactionResponse(nbFilesRequest.getTransactionID())) == null) {
+            Thread.sleep(100);
             timeout--;
         }
-        if (response != null && response.getTransactionType() == Transaction.TransactionType.INIT_PROJECT) {
-            Message<Map<String, Object>> responseMessage = (Message<Map<String, Object>>) response;
-            Map<String, Object> projectInfos = responseMessage.getContent();
-            if (projectInfos.containsKey("projectSize")) {
-                // TODO Why deserialized give a Double insted of an int ??
-                return ((Double)projectInfos.get("projectSize")).intValue();
-            }
+
+        int numberOfFiles = -1;
+
+        if (response != null && response.getTransactionType() == Transaction.TransactionType.NUMBER_OF_PROJECT_FILES) {
+            Message<Double> responseMessage = (Message<Double>) response;
+            numberOfFiles = responseMessage.getContent().intValue();
         }
-        return -1;
+
+        // Ask all files
+        Message<Object> initProjectRequest = new Message<>(null, Transaction.TransactionType.INIT_PROJECT);
+        sendMessageToServer(initProjectRequest);
+
+        return numberOfFiles;
     }
 
     public int getCurrentProjectSize() {
