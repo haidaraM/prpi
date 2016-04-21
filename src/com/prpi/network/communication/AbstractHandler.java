@@ -88,6 +88,4 @@ public abstract class AbstractHandler extends SimpleChannelInboundHandler<String
 
         return receivedResponses.get(transactionID);
     }
-
-
 }

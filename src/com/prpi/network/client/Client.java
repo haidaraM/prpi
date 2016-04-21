@@ -118,7 +118,7 @@ public class Client {
 
         int numberOfFiles = -1;
 
-        if (response != null && response.getTransactionType() == Transaction.TransactionType.NUMBER_OF_PROJECT_FILES) {
+        if (response.getTransactionType() == Transaction.TransactionType.NUMBER_OF_PROJECT_FILES) {
             Message<Double> responseMessage = (Message<Double>) response;
             numberOfFiles = responseMessage.getContent().intValue();
         }
@@ -148,12 +148,12 @@ public class Client {
             Transaction response = c.handler.waitForTransactionResponse(msg.getTransactionID(), TimeoutEnum.SHORT);
             c.close();
 
-            if (response != null && response.getTransactionType() == Transaction.TransactionType.PROJECT_NAME) {
+            if (response.getTransactionType() == Transaction.TransactionType.PROJECT_NAME) {
                 Message<String> responseMessage = (Message<String>) response;
                 logger.debug("Client received project name from server: " + responseMessage.getContent());
                 return responseMessage.getContent();
             }
-            logger.warn("Could not get project name");
+            logger.warn("Could not get project name, wrong response type received");
             return null;
 
         } catch (Exception e) {
