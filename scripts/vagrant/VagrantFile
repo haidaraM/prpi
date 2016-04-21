@@ -1,0 +1,27 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure(2) do |config|
+
+  config.ssh.forward_x11 = true
+
+  config.vm.box = "elmhaidara/trusty64"
+
+  config.vm.define "prpi-client" do |t|
+
+  end
+
+  # Il faudra modifier ce repertoire pour le faire pointer vers le repertoire de compilation de votre plugin
+  config.vm.synced_folder "/Users/elmhaidara/Library/Caches/IntelliJIdea15/plugins-sandbox","/home/vagrant/.IntelliJIdea15"
+
+  config.vm.network "private_network", ip: "192.168.33.10"
+
+   config.vm.provider "virtualbox" do |vb|
+  #   # Display the VirtualBox GUI when booting the machine
+  #   vb.gui = true
+  #
+  #   # Customize the amount of memory on the VM:
+     vb.memory = "4096"
+   end
+  #
+end
