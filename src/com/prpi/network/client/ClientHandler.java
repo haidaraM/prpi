@@ -1,6 +1,8 @@
 package com.prpi.network.client;
 
 import com.intellij.openapi.project.Project;
+import com.prpi.ProjectComponent;
+import com.prpi.actions.DocumentActionsHelper;
 import com.prpi.filesystem.HeartBeat;
 import com.prpi.network.communication.*;
 import io.netty.channel.ChannelHandlerContext;
@@ -54,7 +56,8 @@ class ClientHandler extends AbstractHandler {
                 String projectRootPath = project.getBasePath();
                 File fileTransaction = (File) transaction;
                 if (fileTransaction.writeFile(Paths.get(projectRootPath))) {
-                    logger.debug("A file was written in the project (" + projectRootPath + fileTransaction.getPathInProject() + ")");
+                    logger.debug(
+                            "A file was written in the project (" + projectRootPath + fileTransaction.getPathInProject() + ")");
                 } else {
                     logger.error("Can't write this file : " + projectRootPath + fileTransaction.getPathInProject());
                 }
@@ -66,8 +69,19 @@ class ClientHandler extends AbstractHandler {
 
             case HEART_BEAT:
                 logger.trace("New heart beat received : " + transaction.toString());
-                HeartBeat heartBeat = (( Message<HeartBeat> )transaction).getContent();
+                HeartBeat heartBeat = ((Message<HeartBeat>) transaction).getContent();
                 logger.debug("After cast, toString of the heartBeat : " + heartBeat.toString());
+
+                ProjectComponent.getInstance().removeDocumentListenner();
+                if (heartBeat.isInsertHeartBeat()) {
+                    DocumentActionsHelper.insertStringInDocument(ProjectComponent.getInstance().getProject(),
+                            heartBeat.getDocument(), heartBeat.getNewFragment(), heartBeat.getCaretOffset());
+                } else {
+                    DocumentActionsHelper.deleteStringIndocument(ProjectComponent.getInstance().getProject(),
+                            heartBeat.getDocument(), heartBeat.getCaretOffset(), heartBeat.getCaretOffset() + 1);
+                }
+
+                ProjectComponent.getInstance().setupDocuementListener();
                 break;
 
             case CLOSE:

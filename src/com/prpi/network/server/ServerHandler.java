@@ -1,6 +1,8 @@
 package com.prpi.network.server;
 
 import com.intellij.openapi.project.Project;
+import com.prpi.ProjectComponent;
+import com.prpi.actions.DocumentActionsHelper;
 import com.prpi.filesystem.HeartBeat;
 import com.prpi.network.communication.*;
 import io.netty.channel.Channel;
@@ -85,9 +87,21 @@ public class ServerHandler extends AbstractHandler {
                 clientChannels.remove(ctx.channel());
                 break;
             case HEART_BEAT:
-                logger.trace("New heart beat received : "+transaction.toString());
-                HeartBeat heartBeat = (( Message<HeartBeat> )transaction).getContent();
+                logger.trace("New heart beat received : " + transaction.toString());
+                HeartBeat heartBeat = ((Message<HeartBeat>) transaction).getContent();
                 logger.debug("After cast, toString of the heartBeat : " + heartBeat.toString());
+
+                ProjectComponent.getInstance().removeDocumentListenner();
+                if (heartBeat.isInsertHeartBeat()) {
+                    DocumentActionsHelper.insertStringInDocument(ProjectComponent.getInstance().getProject(),
+                            heartBeat.getDocument(), heartBeat.getNewFragment(), heartBeat.getCaretOffset());
+                } else {
+                    DocumentActionsHelper.deleteStringIndocument(ProjectComponent.getInstance().getProject(),
+                            heartBeat.getDocument(), heartBeat.getCaretOffset(), heartBeat.getCaretOffset() + 1);
+                }
+
+                ProjectComponent.getInstance().setupDocuementListener();
+
                 break;
 
             default:
@@ -116,7 +130,7 @@ public class ServerHandler extends AbstractHandler {
     }
 
     protected void sendTransactionToClients(Transaction msg) {
-        for(Channel client : clientChannels) {
+        for (Channel client : clientChannels) {
             NetworkTransactionFactory.buildAndSend(msg, client);
         }
     }
