@@ -4,7 +4,9 @@ import com.google.gson.JsonSyntaxException;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 
 /**
  * This class is able to recompose multiple incoming NetworkTransaction
@@ -16,17 +18,17 @@ public class NetworkTransactionRecomposer {
     /**
      * Contain all Transaction not completly recomposed
      */
-    private Map<String, Map<Integer, NetworkTransaction>> incompleteTransactions = new HashMap<>();
+    private Map<String, Map<Integer, NetworkTransaction>> incompleteTransactions = new ConcurrentHashMap<>();
 
     /**
      * Contain all File not completly recomposed with his FileContent
      */
-    private Map<String, File> incompleteFiles = new HashMap<>();
+    private Map<String, File> incompleteFiles = new ConcurrentHashMap<>();
 
     /**
      * Contain all FileContent not attached to an File object
      */
-    private Map<String, List<FileContent>> incompleteFileContents = new HashMap<>();
+    private Map<String, Map<Integer, FileContent>> incompleteFileContents = new ConcurrentHashMap<>();
 
     /**
      * Add a part of receive message (NetworkTransaction)
@@ -71,7 +73,7 @@ public class NetworkTransactionRecomposer {
         Map<Integer, NetworkTransaction> composedNetworkMessages = incompleteTransactions.get(transactionID);
 
         if (composedNetworkMessages == null) {
-            composedNetworkMessages = new TreeMap<>(); // Used to keep order in NetworkTransactions
+            composedNetworkMessages = new ConcurrentSkipListMap<>(); // Used to keep order in NetworkTransactions
             incompleteTransactions.put(transactionID, composedNetworkMessages);
         }
 
@@ -129,8 +131,10 @@ public class NetworkTransactionRecomposer {
         // If a file content is waiting for the file
         if (incompleteFileContents.containsKey(fileId)) {
             logger.trace("Adding content to the file");
-            List<FileContent> fileContents = incompleteFileContents.get(file.getId());
-            fileContents.forEach(file::addFileContent);
+            Map<Integer, FileContent> fileContents = incompleteFileContents.get(file.getId());
+
+            // TODO add a method in file to add all FileContent in one time
+            fileContents.forEach((order,fileContent)->file.addFileContent(fileContent));
 
             incompleteFileContents.remove(fileId);
         } else {
@@ -172,12 +176,12 @@ public class NetworkTransactionRecomposer {
 
         } else {
             logger.trace("No file is associated with this content");
-            List<FileContent> fileContents = incompleteFileContents.get(fileId);
+            Map<Integer, FileContent> fileContents = incompleteFileContents.get(fileId);
             if (fileContents == null) {
-                fileContents = new ArrayList<>();
+                fileContents = new ConcurrentHashMap<>();
                 incompleteFileContents.put(fileId, fileContents);
             }
-            fileContents.add(fileContent);
+            fileContents.put(fileContent.getOrder(), fileContent);
             return null;
         }
     }

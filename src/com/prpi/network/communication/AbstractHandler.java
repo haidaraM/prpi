@@ -10,8 +10,13 @@ import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Map;
+import java.util.Queue;
+import java.util.Set;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListSet;
 
 public abstract class AbstractHandler extends SimpleChannelInboundHandler<String> implements ResponseWaiting {
 
@@ -20,7 +25,7 @@ public abstract class AbstractHandler extends SimpleChannelInboundHandler<String
     protected Project project = null;
     protected NetworkTransactionRecomposer recomposer = new NetworkTransactionRecomposer();
 
-    private Transaction completeTransaction = null;
+    private Queue<Transaction> completeTransaction = new ConcurrentLinkedQueue<>();
 
 
     public AbstractHandler(@NotNull Project project) {
@@ -37,21 +42,23 @@ public abstract class AbstractHandler extends SimpleChannelInboundHandler<String
 
     @Override
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, String json) {
-        completeTransaction = recomposer.addPart(json);
+        Transaction transactionRecomposed = recomposer.addPart(json);
+        if (transactionRecomposed != null) {
+            completeTransaction.add(transactionRecomposed);
+        }
     }
 
     protected boolean receivedTransactionIsComplete() {
-        return completeTransaction != null;
+        return !completeTransaction.isEmpty();
     }
 
-    protected Transaction getCompleteTransaction() {
-        return completeTransaction;
+    protected @Nullable Transaction getCompleteTransaction() {
+        return completeTransaction.poll();
     }
-
 
     // ------ Implementation of interface ResponseWaiting
-    private Map<String, Transaction> receivedResponses = new HashMap<>();
-    private Set<String> awaitedResponses = new HashSet<>();
+    private Map<String, Transaction> receivedResponses = new ConcurrentHashMap<>();
+    private Set<String> awaitedResponses = new ConcurrentSkipListSet<>();
 
     public boolean responseIsAwaited(@NotNull String transactionID) {
         return awaitedResponses.contains(transactionID);
