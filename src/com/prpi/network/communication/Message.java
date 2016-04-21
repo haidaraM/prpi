@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class Message<T> extends Transaction {
 
@@ -25,21 +26,16 @@ public class Message<T> extends Transaction {
 
     /**
      * Get the content of the Message
-     * @return
+     * @return the object, or null in case of problem when transform the content in object
      */
-    public T getContent() {
-        logger.debug("Get Content of Message, content type : " + contentType + " / Content : " + content);
-
-        // Used to read directly in the json the type of the final cast of the object
-        JsonParser parser = new JsonParser();
-        JsonObject jsonObject = parser.parse(json).getAsJsonObject();
+    public @Nullable T getContent() {
+        logger.trace("Get Content of Message, content type : " + contentType + " / Content : " + content);
         try {
-            Class type = Class.forName(jsonObject.get("contentType").getAsString());
+            Class type = Class.forName(contentType);
             return (T) gson.fromJson(content, type);
         } catch (ClassNotFoundException e) {
-            logger.debug(e);
+            logger.error("Problem when change message content (json) in object", e);
         }
-
         return null;
     }
 
