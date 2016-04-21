@@ -5,14 +5,18 @@ ADRESSE_IP=192.168.33.10 # j'utilise l'ip car j'ai plusieurs vms qui tournent so
 VM_OPTION="-Xmx512m -Xms256m -XX:MaxPermSize=250m -ea"
 DEBUG_PORT=7533
 
+TMPDIR="/home/vagrant/.IntelliJIdea15Tmp"
 # la syncrhonisation des repertoires de compilaiton du plugin se fait directement dans le VagrantFile
+
+# pour des raisons de performances...
+ssh vagrant@${ADRESSE_IP} cp -ru /home/vagrant/.IntelliJIdea15 ${TMPDIR}
 
 ssh -X vagrant@${ADRESSE_IP} java \
  ${VM_OPTION} \
  -Xbootclasspath/a:/opt/idea-IC/lib/boot.jar \
- -Didea.config.path=/home/vagrant/.IntelliJIdea15/config \
- -Didea.system.path=/home/vagrant/.IntelliJIdea15/system \
- -Didea.plugins.path=/home/vagrant/.IntelliJIdea15/plugins \
+ -Didea.config.path=/home/vagrant/.IntelliJIdea15Tmp/config \
+ -Didea.system.path=/home/vagrant/.IntelliJIdea15Tmp/system \
+ -Didea.plugins.path=/home/vagrant/.IntelliJIdea15Tmp/plugins \
  -Didea.classpath.index.enabled=false \
  -Didea.required.plugins.id=com.prpi \
  -Dsun.awt.disablegrab=true \
@@ -25,3 +29,4 @@ ssh -X vagrant@${ADRESSE_IP} java \
  com.intellij.idea.Main
 
 
+#ssh vagrant@${ADRESSE_IP} rm -rf ${TMPDIR}
