@@ -110,7 +110,7 @@ public class Client {
     public int downloadProjetFiles() throws InterruptedException, TimeoutException {
 
         // Ask the number of files
-        Message<Object> nbFilesRequest = new Message<>(null, Transaction.TransactionType.NUMBER_OF_PROJECT_FILES);
+        Message<String> nbFilesRequest = new Message<>("", Transaction.TransactionType.NUMBER_OF_PROJECT_FILES);
         nbFilesRequest.setWaitingResponse(true);
         sendMessageToServer(nbFilesRequest);
 
@@ -119,12 +119,12 @@ public class Client {
         int numberOfFiles = -1;
 
         if (response.getTransactionType() == Transaction.TransactionType.NUMBER_OF_PROJECT_FILES) {
-            Message<Double> responseMessage = (Message<Double>) response;
-            numberOfFiles = responseMessage.getContent().intValue();
+            Message<Integer> responseMessage = (Message<Integer>) response;
+            numberOfFiles = responseMessage.getContent();
         }
 
         // Ask all files
-        Message<Object> initProjectRequest = new Message<>(null, Transaction.TransactionType.INIT_PROJECT);
+        Message<String> initProjectRequest = new Message<>("", Transaction.TransactionType.INIT_PROJECT);
         sendMessageToServer(initProjectRequest);
 
         return numberOfFiles;

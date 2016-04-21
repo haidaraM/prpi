@@ -67,6 +67,7 @@ class ClientHandler extends AbstractHandler {
             case HEART_BEAT:
                 logger.trace("New heart beat received : " + transaction.toString());
                 HeartBeat heartBeat = (( Message<HeartBeat> )transaction).getContent();
+                logger.debug("After cast, toString of the heartBeat : " + heartBeat.toString());
                 break;
 
             case CLOSE:

@@ -38,10 +38,11 @@ public class NetworkTransactionRecomposer {
      */
     public @Nullable Transaction addPart(String json) {
         try {
-            // Get the NetworkTransaction
-            NetworkTransaction networkTransaction = NetworkTransactionFactory.jsonToNetworkMessage(json);
 
             logger.trace("Add NetworkTransaction part : " + json);
+
+            // Get the NetworkTransaction
+            NetworkTransaction networkTransaction = NetworkTransactionFactory.jsonToNetworkMessage(json);
 
             Transaction resultTransaction;
             if (networkTransaction.isComposedMessage()) {

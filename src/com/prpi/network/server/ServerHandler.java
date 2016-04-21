@@ -86,7 +86,8 @@ public class ServerHandler extends AbstractHandler {
                 break;
             case HEART_BEAT:
                 logger.trace("New heart beat received : "+transaction.toString());
-             //   HeartBeat heartBeat = (( Message<HeartBeat> )transaction).getContent();
+                HeartBeat heartBeat = (( Message<HeartBeat> )transaction).getContent();
+                logger.debug("After cast, toString of the heartBeat : " + heartBeat.toString());
                 break;
 
             default:

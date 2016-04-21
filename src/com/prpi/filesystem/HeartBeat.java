@@ -153,4 +153,16 @@ public class HeartBeat {
         }
     }
 
+    @Override
+    public String toString() {
+        return "HeartBeat{" +
+                "line=" + line +
+                ", column=" + column +
+                ", filePath='" + filePath + '\'' +
+                ", fileName='" + fileName + '\'' +
+                ", oldFragment=" + oldFragment +
+                ", newFragment=" + newFragment +
+                ", caretOffset=" + caretOffset +
+                '}';
+    }
 }
