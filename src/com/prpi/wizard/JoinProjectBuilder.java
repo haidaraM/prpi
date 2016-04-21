@@ -56,7 +56,7 @@ public class JoinProjectBuilder extends ExistingModuleLoader {
 
     @Override
     public void setupRootModel(ModifiableRootModel modifiableRootModel) throws ConfigurationException {
-        logger.debug("Setup root model - does nothing");
+        logger.trace("Setup root model - does nothing");
     }
 
     @Override

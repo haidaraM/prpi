@@ -156,8 +156,6 @@ public class Client {
                 timeout--;
             }
 
-            msg = new Message<>("Foo bar", Transaction.TransactionType.CLOSE);
-            c.sendMessageToServer(msg);
             c.close();
 
             if (response != null && response.getTransactionType() == Transaction.TransactionType.PROJECT_NAME) {
