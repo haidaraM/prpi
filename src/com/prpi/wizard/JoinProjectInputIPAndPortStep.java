@@ -165,17 +165,9 @@ public class JoinProjectInputIPAndPortStep extends ModuleWizardStep {
 
     private @Nullable String checkAndGetHostnameImput() {
         String ipAddress = ipTextField.getText();
-        try {
-            if (ipAddress.isEmpty() || !InetAddress.getByName(ipAddress).isReachable(10000)) {
-                ipAddress = null;
-                Messages.showWarningDialog("No hostname, or not reachable!", "PrPi Warning - Hostname Problem");
-            }
-        } catch (UnknownHostException e) {
+        if (ipAddress == null || ipAddress.isEmpty()) {
             ipAddress = null;
-            Messages.showWarningDialog("Unknown host", "PrPi Warning - Hostname Problem");
-        } catch (IOException e) {
-            ipAddress = null;
-            logger.error("Network error", e);
+            Messages.showWarningDialog("No hostname!", "PrPi Warning - Hostname Problem");
         }
         return ipAddress;
     }
