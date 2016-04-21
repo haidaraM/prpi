@@ -50,12 +50,12 @@ public class HeartBeat {
     /**
      * Represents the old deleted character if the user delete a character. Must be empty if it's a insert heart beart
      */
-    private CharSequence oldFragment;
+    private String oldFragment;
 
     /**
      * Represents the new inserted character if the user insert a character. Must be empty if it's a delete heart beat
      */
-    private CharSequence newFragment;
+    private String newFragment;
 
     /**
      * Carret offset in the editor
@@ -63,7 +63,7 @@ public class HeartBeat {
     private int caretOffset;
 
 
-    public HeartBeat(int line, int column, String filePath, CharSequence oldFragment, CharSequence newFragment, int caretOffset, String fileName) {
+    public HeartBeat(int line, int column, String filePath, String oldFragment, String newFragment, int caretOffset, String fileName) {
         this.line = line;
         this.column = column;
         this.filePath = filePath;
@@ -89,12 +89,12 @@ public class HeartBeat {
     }
 
 
-    public CharSequence getOldFragment() {
+    public String getOldFragment() {
         return oldFragment;
     }
 
 
-    public CharSequence getNewFragment() {
+    public String getNewFragment() {
         return newFragment;
     }
 
