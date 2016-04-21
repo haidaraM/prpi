@@ -18,6 +18,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
+import java.util.concurrent.TimeoutException;
 
 public class JoinProjectBuilder extends ExistingModuleLoader {
 
@@ -84,7 +85,7 @@ public class JoinProjectBuilder extends ExistingModuleLoader {
             int projectSize = -1;
             try {
                 projectSize = client.downloadProjetFiles();
-            } catch (InterruptedException e) {
+            } catch (InterruptedException | TimeoutException e) {
                 logger.error(e);
             }
 

@@ -2,9 +2,11 @@ package com.prpi.network.client;
 
 import com.intellij.openapi.project.Project;
 import com.prpi.network.ChannelInitializer;
+import com.prpi.network.communication.AbstractHandler;
 import com.prpi.network.communication.Message;
 import com.prpi.network.communication.NetworkTransactionFactory;
 import com.prpi.network.communication.Transaction;
+import com.prpi.network.timeout.TimeoutEnum;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -16,7 +18,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.TimeoutException;
 
 public class Client {
 
@@ -28,7 +30,7 @@ public class Client {
     /**
      * The handler, receive all requests from the server
      */
-    private AbstractClientHandler handler;
+    private AbstractHandler handler;
 
     /**
      * The communication channel used between the client and the server
@@ -45,7 +47,7 @@ public class Client {
         handler = new ClientHandler(currentProject);
     }
 
-    private Client(AbstractClientHandler handler) {
+    private Client(AbstractHandler handler) {
         this.handler = handler;
     }
 
@@ -87,8 +89,7 @@ public class Client {
         }
 
         if (msg.isWaitingResponse()) {
-            // Set the transaction ID in the list of waiting response transaction
-            handler.getTransactionResponse(msg.getTransactionID());
+            handler.setWaitingForResponse(msg.getTransactionID());
         }
 
         List<ChannelFuture> lastWriteFuture = NetworkTransactionFactory.buildAndSend(msg, this.channel);
@@ -106,19 +107,14 @@ public class Client {
      * @return the number of files to download
      * @throws InterruptedException
      */
-    public int downloadProjetFiles() throws InterruptedException {
+    public int downloadProjetFiles() throws InterruptedException, TimeoutException {
 
         // Ask the number of files
         Message<Object> nbFilesRequest = new Message<>(null, Transaction.TransactionType.NUMBER_OF_PROJECT_FILES);
         nbFilesRequest.setWaitingResponse(true);
         sendMessageToServer(nbFilesRequest);
 
-        Transaction response = null;
-        int timeout = 60;
-        while(timeout > 0 && (response = handler.getTransactionResponse(nbFilesRequest.getTransactionID())) == null) {
-            Thread.sleep(100);
-            timeout--;
-        }
+        Transaction response = handler.waitForTransactionResponse(nbFilesRequest.getTransactionID(), TimeoutEnum.LONG);
 
         int numberOfFiles = -1;
 
@@ -149,13 +145,7 @@ public class Client {
             logger.debug("Sending project name request to the server");
             c.sendMessageToServer(msg);
 
-            Transaction response = null;
-            int timeout = 20;
-            while(timeout > 0 && (response = c.handler.getTransactionResponse(msg.getTransactionID())) == null) {
-                Thread.sleep(300);
-                timeout--;
-            }
-
+            Transaction response = c.handler.waitForTransactionResponse(msg.getTransactionID(), TimeoutEnum.SHORT);
             c.close();
 
             if (response != null && response.getTransactionType() == Transaction.TransactionType.PROJECT_NAME) {

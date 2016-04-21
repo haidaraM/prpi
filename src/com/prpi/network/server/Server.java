@@ -2,6 +2,7 @@ package com.prpi.network.server;
 
 import com.intellij.openapi.project.Project;
 import com.prpi.network.ChannelInitializer;
+import com.prpi.network.communication.AbstractHandler;
 import com.prpi.network.communication.Message;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;

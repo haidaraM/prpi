@@ -4,41 +4,22 @@ import com.intellij.openapi.project.Project;
 import com.prpi.filesystem.HeartBeat;
 import com.prpi.network.communication.*;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.ssl.SslHandler;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
-class ClientHandler extends AbstractClientHandler {
-
-    /**
-     * The recomposer of Transaction
-     */
-    private NetworkTransactionRecomposer recomposer;
-
-    /**
-     * All responses corresponding to the transaction ID in the waitting list
-     */
-    private Map<String, Transaction> transactionResponses = new HashMap<>();
+class ClientHandler extends AbstractHandler {
 
     private static Logger logger = Logger.getLogger(ClientHandler.class);
 
     ClientHandler(@NotNull Project currentProject) {
         super(currentProject);
-        this.recomposer = new NetworkTransactionRecomposer();
     }
 
     ClientHandler() {
         super();
-        recomposer = new NetworkTransactionRecomposer();
     }
 
     @Override
@@ -51,57 +32,50 @@ class ClientHandler extends AbstractClientHandler {
     }
 
     @Override
-    public void channelRead0(ChannelHandlerContext ctx, String json) throws Exception {
+    public void channelRead0(ChannelHandlerContext ctx, String json) {
+        super.channelRead0(ctx, json);
         logger.debug("Client received a new message");
 
-        Transaction transaction = recomposer.addPart(json);
+        if (!receivedTransactionIsComplete())
+            return;
 
-        if (transaction != null) {
+        Transaction transaction = getCompleteTransaction();
 
-            logger.trace("New Transaction (ID: " + transaction.getTransactionID() + ") - Responses availables : " + Arrays.toString(transactionResponses.keySet().toArray()));
+        if (responseIsAwaited(transaction.getTransactionID())) {
+            addReceivedResponse(transaction);
+            return;
+        }
 
-            // If this is a transaction that corresponding to a response, it's not treated here, just put in the response list
-            if (transactionResponses.containsKey(transaction.getTransactionID())) {
-                Transaction resut = transactionResponses.get(transaction.getTransactionID());
-                if (resut == null) {
-                    transactionResponses.put(transaction.getTransactionID(), transaction);
+        // CAREFUL : if the received transaction needs a response, the response must have the same transactionID !!!
+        switch (transaction.getTransactionType()) {
+
+            case FILE_TRANSFERT:
+                logger.trace("The message is a file transfert");
+                String projectRootPath = project.getBasePath();
+                File fileTransaction = (File) transaction;
+                if (fileTransaction.writeFile(Paths.get(projectRootPath))) {
+                    logger.debug("A file was written in the project (" + projectRootPath + fileTransaction.getPathInProject() + ")");
                 } else {
-                    logger.error("Multiple response for the same transaction ID : " + transaction.getTransactionID());
+                    logger.error("Can't write this file : " + projectRootPath + fileTransaction.getPathInProject());
                 }
-                return;
-            }
+                break;
 
-            // If is not a reponse, need to be treated directly
-            switch (transaction.getTransactionType()) {
+            case SIMPLE_MESSAGE:
+                logger.info("Client received a simple message: " + transaction.toString());
+                break;
 
-                case FILE_TRANSFERT:
-                    logger.trace("The message is a file transfert");
-                    String projectRootPath = project.getBasePath();
-                    File fileTransaction = (File) transaction;
-                    if (fileTransaction.writeFile(Paths.get(projectRootPath))) {
-                        logger.debug("A file was written in the project (" + projectRootPath + fileTransaction.getPathInProject() + ")");
-                    } else {
-                        logger.error("Can't write this file : " + projectRootPath + fileTransaction.getPathInProject());
-                    }
-                    break;
+            case HEART_BEAT:
+                logger.trace("New heart beat received : " + transaction.toString());
+                HeartBeat heartBeat = (( Message<HeartBeat> )transaction).getContent();
+                break;
 
-                case SIMPLE_MESSAGE:
-                    logger.info("Client received a simple message: " + transaction.toString());
-                    break;
+            case CLOSE:
+                ctx.close();
+                break;
 
-                case HEART_BEAT:
-                    logger.trace("New heart beat received : " + transaction.toString());
-                    HeartBeat heartBeat = (( Message<HeartBeat> )transaction).getContent();
-                    break;
-
-                case CLOSE:
-                    ctx.close();
-                    break;
-
-                default:
-                    logger.warn("Impossible to process this transaction, type is unsupported : " + transaction.toString());
-                    break;
-            }
+            default:
+                logger.warn("Impossible to process this transaction, type is unsupported : " + transaction.toString());
+                break;
         }
     }
 
@@ -110,26 +84,4 @@ class ClientHandler extends AbstractClientHandler {
         logger.error("Error in client handler", cause);
         super.exceptionCaught(ctx, cause);
     }
-
-    /**
-     * Ask to get a response of a transaction ID
-     * If there is a response, the transaction is return, else null is returned
-     * @param transactionID the transaction ID of the transaction response
-     * @return Transaction if the response arrived else null
-     */
-    @Override
-    public @Nullable Transaction getTransactionResponse(@NotNull String transactionID) {
-        if (transactionResponses.containsKey(transactionID)) {
-            Transaction resut = transactionResponses.get(transactionID);
-            if (resut != null) {
-                transactionResponses.remove(transactionID);
-                return resut;
-            }
-        } else {
-            logger.debug("Add the waiting transaction ID : " + transactionID);
-            transactionResponses.put(transactionID, null);
-        }
-        return null;
-    }
-
 }

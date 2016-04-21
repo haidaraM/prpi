@@ -1,25 +1,19 @@
 package com.prpi.network.client;
 
+import com.prpi.network.communication.AbstractHandler;
 import com.prpi.network.communication.Transaction;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.ssl.SslHandler;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-class ClientEmptyHandler extends AbstractClientHandler {
+class ClientEmptyHandler extends AbstractHandler {
 
     private static Logger logger = Logger.getLogger(ClientEmptyHandler.class);
 
     public ClientEmptyHandler() {
         super();
-    }
-
-    @Nullable
-    @Override
-    public Transaction getTransactionResponse(@NotNull String transactionID) {
-        return null;
     }
 
     @Override
@@ -31,8 +25,7 @@ class ClientEmptyHandler extends AbstractClientHandler {
     }
 
     @Override
-    protected void channelRead0(ChannelHandlerContext channelHandlerContext, String s) throws Exception {
+    protected void channelRead0(ChannelHandlerContext channelHandlerContext, String s) {
 
     }
-
 }

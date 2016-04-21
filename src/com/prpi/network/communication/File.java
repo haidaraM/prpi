@@ -157,9 +157,8 @@ public class File extends Transaction {
      * Write the file (if is complete) in the relative path of the project root given
      * @param projectRoot the project root
      * @return True is the file is correctly write, false if the file is not complete or if the project root path is not reachable
-     * @throws IOException if an I/O exception is throw during the write proccess
      */
-    public boolean writeFile(Path projectRoot) throws IOException {
+    public boolean writeFile(Path projectRoot) {
         if (!isComplete()) {
             logger.error("The file to write is not complete");
             return false;
@@ -170,29 +169,34 @@ public class File extends Transaction {
             return false;
         }
 
-        logger.trace("Writing " + fileName + "...");
-        // Get the absolute path to the file
-        Path filePath = Paths.get(projectRoot.toString(), pathInProject);
-        logger.trace("File path: " + filePath);
+        try {
+            logger.trace("Writing " + fileName + "...");
+            // Get the absolute path to the file
+            Path filePath = Paths.get(projectRoot.toString(), pathInProject);
+            logger.trace("File path: " + filePath);
 
-        // Create all parents directories to the file
-        logger.trace("Creating directories of parent: " + filePath.getParent());
-        Files.createDirectories(filePath.getParent());
+            // Create all parents directories to the file
+            logger.trace("Creating directories of parent: " + filePath.getParent());
+            Files.createDirectories(filePath.getParent());
 
-        try (FileOutputStream fileOutputStream = new FileOutputStream(filePath.toFile(), true)) {
-            logger.trace("Start writing file (" + (lastContentOrder + 1) + " parts)");
+            try (FileOutputStream fileOutputStream = new FileOutputStream(filePath.toFile(), true)) {
+                logger.trace("Start writing file (" + (lastContentOrder + 1) + " parts)");
 
-            for (int i = 0; i <= lastContentOrder; i++) {
+                for (int i = 0; i <= lastContentOrder; i++) {
 
-                FileContent content = contents.get(i);
+                    FileContent content = contents.get(i);
 
-                // Write the content in the File
-                fileOutputStream.write(content.getContent(), 0, content.getSizeContent());
-                logger.trace(String.format("Wrote part of %s (%d/%d) - Write data size is %d", filePath, i+1, (lastContentOrder+1), content.getSizeContent()));
+                    // Write the content in the File
+                    fileOutputStream.write(content.getContent(), 0, content.getSizeContent());
+                    logger.trace(String.format("Wrote part of %s (%d/%d) - Write data size is %d", filePath, i + 1, (lastContentOrder + 1), content.getSizeContent()));
+                }
+                logger.debug("Completely wrote " + filePath);
+
+                return true;
             }
-            logger.debug("Completely wrote " + filePath);
-
-            return true;
+        } catch (IOException e) {
+            logger.error("Could not write file");
+            return false;
         }
     }
 

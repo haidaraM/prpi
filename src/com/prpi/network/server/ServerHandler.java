@@ -2,10 +2,7 @@ package com.prpi.network.server;
 
 import com.intellij.openapi.project.Project;
 import com.prpi.filesystem.HeartBeat;
-import com.prpi.network.communication.Message;
-import com.prpi.network.communication.NetworkTransactionFactory;
-import com.prpi.network.communication.NetworkTransactionRecomposer;
-import com.prpi.network.communication.Transaction;
+import com.prpi.network.communication.*;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
@@ -16,6 +13,7 @@ import io.netty.handler.ssl.SslHandler;
 import io.netty.util.concurrent.GlobalEventExecutor;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -25,22 +23,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 @ChannelHandler.Sharable
-public class ServerHandler extends SimpleChannelInboundHandler<String> {
+public class ServerHandler extends AbstractHandler {
 
     private static final ChannelGroup clientChannels = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
     private static final Logger logger = Logger.getLogger(ServerHandler.class);
 
-    /**
-     * The project that the client follow
-     */
-    private Project currentProject;
-
-    private NetworkTransactionRecomposer recomposer;
-
     public ServerHandler(@NotNull Project currentProject) {
-        super();
-        this.currentProject = currentProject;
-        this.recomposer = new NetworkTransactionRecomposer();
+        super(currentProject);
     }
 
     @Override
@@ -50,61 +39,66 @@ public class ServerHandler extends SimpleChannelInboundHandler<String> {
         ctx.pipeline().get(SslHandler.class).handshakeFuture().addListener(
                 future -> {
                     logger.debug("Server received new connection: " + ctx);
-                    /*Message welcomeMessage = new Message<>("Hello world new client !", Transaction.TransactionType.SIMPLE_MESSAGE);
-                    NetworkTransactionFactory.buildAndSend(welcomeMessage, ctx.channel());*/
                     clientChannels.add(ctx.channel());
                 });
     }
 
     @Override
     public void channelRead0(ChannelHandlerContext ctx, String json) {
+        super.channelRead0(ctx, json);
         logger.debug("Server received a new message (NetworkTransaction).");
 
-        Transaction transaction = recomposer.addPart(json);
+        if (!receivedTransactionIsComplete())
+            return;
 
-        if (transaction != null) {
+        Transaction transaction = getCompleteTransaction();
 
-            switch (transaction.getTransactionType()) {
+        if (responseIsAwaited(transaction.getTransactionID())) {
+            addReceivedResponse(transaction);
+            return;
+        }
 
-                case INIT_PROJECT:
-                    logger.debug("Received a request for project initialization");
-                    sendProjectFiles(ctx);
-                    break;
+        // CAREFUL : if the received transaction needs a response, the response must have the same transactionID !!!
+        switch (transaction.getTransactionType()) {
 
-                case NUMBER_OF_PROJECT_FILES:
-                    sendNumberOfProjectFiles(transaction, ctx);
-                    break;
+            case INIT_PROJECT:
+                logger.debug("Received a request for project initialization");
+                sendProjectFiles(ctx);
+                break;
 
-                case SIMPLE_MESSAGE:
-                    logger.info("Server received a simple message : " + transaction.toString());
-                    break;
+            case NUMBER_OF_PROJECT_FILES:
+                sendNumberOfProjectFiles(transaction, ctx);
+                break;
 
-                case PROJECT_NAME:
-                    logger.debug("Received request of project name");
-                    sendProjectName(transaction, ctx);
-                    break;
+            case SIMPLE_MESSAGE:
+                logger.info("Server received a simple message : " + transaction.toString());
+                break;
 
-                case CLOSE:
-                    logger.debug("Server received a closing connection");
-                    ctx.close();
-                    clientChannels.remove(ctx.channel());
-                    break;
-                case HEART_BEAT:
-                    logger.trace("New heart beat received : "+transaction.toString());
-                 //   HeartBeat heartBeat = (( Message<HeartBeat> )transaction).getContent();
-                    break;
+            case PROJECT_NAME:
+                logger.debug("Received request of project name");
+                sendProjectName(transaction, ctx);
+                break;
 
-                default:
-                    logger.warn("Impossible to process this transaction, type is unsupported : " + transaction.toString());
-                    break;
-            }
+            case CLOSE:
+                logger.debug("Server received a closing connection");
+                ctx.close();
+                clientChannels.remove(ctx.channel());
+                break;
+            case HEART_BEAT:
+                logger.trace("New heart beat received : "+transaction.toString());
+             //   HeartBeat heartBeat = (( Message<HeartBeat> )transaction).getContent();
+                break;
+
+            default:
+                logger.warn("Impossible to process this transaction, type is unsupported : " + transaction.toString());
+                break;
         }
     }
 
     private void sendNumberOfProjectFiles(Transaction request, ChannelHandlerContext context) {
         // Make the response
         Message<Integer> response = new Message<>(
-                NetworkTransactionFactory.getFilesCount(Paths.get(this.currentProject.getBasePath())),
+                NetworkTransactionFactory.getFilesCount(Paths.get(project.getBasePath())),
                 Transaction.TransactionType.NUMBER_OF_PROJECT_FILES
         );
 
@@ -116,7 +110,7 @@ public class ServerHandler extends SimpleChannelInboundHandler<String> {
     }
 
     private void sendProjectFiles(ChannelHandlerContext context) {
-        Path projectPath = Paths.get(currentProject.getBasePath());
+        Path projectPath = Paths.get(project.getBasePath());
         NetworkTransactionFactory.buildAndSend(projectPath, projectPath, context.channel());
     }
 
@@ -127,9 +121,9 @@ public class ServerHandler extends SimpleChannelInboundHandler<String> {
     }
 
     private void sendProjectName(Transaction t, ChannelHandlerContext ctx) {
-        Message<String> projectNameMessage = new Message<>(currentProject.getName(), Transaction.TransactionType.PROJECT_NAME);
+        Message<String> projectNameMessage = new Message<>(project.getName(), Transaction.TransactionType.PROJECT_NAME);
         projectNameMessage.setTransactionID(t.getTransactionID());
-        logger.debug("Server sending project name: " + currentProject.getName());
+        logger.debug("Server sending project name: " + project.getName());
         NetworkTransactionFactory.buildAndSend(projectNameMessage, ctx.channel());
     }
 
