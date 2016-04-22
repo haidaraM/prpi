@@ -4,6 +4,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.Pair;
 import com.prpi.ProjectComponent;
 import com.prpi.actions.DocumentActionsHelper;
 import com.prpi.filesystem.HeartBeat;
@@ -18,15 +19,18 @@ import io.netty.util.concurrent.GlobalEventExecutor;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
+import java.net.InetSocketAddress;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collection;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @ChannelHandler.Sharable
 public class ServerHandler extends AbstractHandler {
 
     private static final ChannelGroup clientChannels = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
+    private static final Map<Channel, Pair<String,InetSocketAddress>> clientInfo = new ConcurrentHashMap<>();
     private static final Logger logger = Logger.getLogger(ServerHandler.class);
 
     public ServerHandler(@NotNull Project currentProject) {
@@ -88,6 +92,7 @@ public class ServerHandler extends AbstractHandler {
                 logger.debug("Server received a closing connection");
                 ctx.close();
                 clientChannels.remove(ctx.channel());
+                clientInfo.remove(ctx.channel());
                 break;
 
             case HEART_BEAT:
@@ -151,25 +156,31 @@ public class ServerHandler extends AbstractHandler {
     }
 
     private void sendIdentificationResponse(Transaction transaction, ChannelHandlerContext ctx) {
-        Message<String> userPseudoMessage = (Message<String>) transaction;
-        String pseudo = userPseudoMessage.getContent();
+        Message<String> userIDMessage = (Message<String>) transaction;
+        String userID = userIDMessage.getContent();
 
-        final int[] userResponse = {Messages.NO};
-        ApplicationManager.getApplication().invokeAndWait(() -> userResponse[0] = Messages.showYesNoDialog(project,
-                "A new user wants to connect to your project. His nickname is: " + pseudo,
+        final int[] response = {Messages.NO};
+        final InetSocketAddress clientAddress =  (InetSocketAddress) ctx.channel().localAddress();
+        ApplicationManager.getApplication().invokeAndWait(() -> response[0] = Messages.showYesNoDialog(project,
+                "A new user wants to connect to your project. His machine name is: " + userID + " (IP " + clientAddress.getAddress().getHostAddress() + ")",
                 "New User Connection", null),
                 ModalityState.any());
-        Message<String> response = new Message<>("", Messages.YES == userResponse[0] ? Transaction.TransactionType.ACCEPTED : Transaction.TransactionType.REFUSED);
-        response.setTransactionID(transaction.getTransactionID());
-        if (userResponse[0] == Messages.YES) {
+        Message<String> responseRequest = new Message<>("", Messages.YES == response[0] ? Transaction.TransactionType.ACCEPTED : Transaction.TransactionType.REFUSED);
+        responseRequest.setTransactionID(transaction.getTransactionID());
+        if (response[0] == Messages.YES) {
             clientChannels.add(ctx.channel());
+            clientInfo.put(ctx.channel(), Pair.create(userID, clientAddress));
         }
-        NetworkTransactionFactory.buildAndSend(response, ctx.channel());
+        NetworkTransactionFactory.buildAndSend(responseRequest, ctx.channel());
     }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         logger.error("Error in server handler", cause);
         super.exceptionCaught(ctx, cause);
+    }
+
+    public Collection<Pair<String,InetSocketAddress>> getClientsInfo() {
+        return clientInfo.values();
     }
 }

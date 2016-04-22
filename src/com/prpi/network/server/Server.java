@@ -1,6 +1,7 @@
 package com.prpi.network.server;
 
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Pair;
 import com.prpi.network.ChannelInitializer;
 import com.prpi.network.communication.AbstractHandler;
 import com.prpi.network.communication.Message;
@@ -15,7 +16,10 @@ import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import javax.net.ssl.SSLException;
+import java.net.InetSocketAddress;
 import java.security.cert.CertificateException;
+import java.util.Collection;
+import java.util.Map;
 
 public class Server extends Thread {
 
@@ -79,5 +83,9 @@ public class Server extends Thread {
 
     public void sendMessageToClients(Message msg) {
         handler.sendTransactionToClients(msg);
+    }
+
+    public Collection<Pair<String,InetSocketAddress>> getClientsInfo() {
+        return this.handler.getClientsInfo();
     }
 }
