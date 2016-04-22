@@ -102,6 +102,6 @@ public class CustomDocumentListener implements com.intellij.openapi.editor.event
 
         CustomDocumentListener customDocumentListener = (CustomDocumentListener) obj;
 
-        return this.id.equals(customDocumentListener.id);
+        return this.id.equals(customDocumentListener.id) && project.getBasePath().equals(customDocumentListener.project.getBasePath());
     }
 }
