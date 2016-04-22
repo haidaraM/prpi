@@ -22,20 +22,4 @@ public class JoinProject extends AnAction {
 
         logger.trace("JoinProject actionPerformed end");
     }
-
-    @Override
-    public void update(AnActionEvent anActionEvent) {
-        super.update(anActionEvent);
-        boolean isHosting;
-
-        Project p = anActionEvent.getProject();
-        if (p == null) {
-            isHosting = false;
-        } else {
-            ProjectComponent pc = p.getComponent(ProjectComponent.class);
-            isHosting = (pc != null && pc.isHosting());
-        }
-
-        anActionEvent.getPresentation().setEnabled(!isHosting);
-    }
 }
