@@ -1,6 +1,8 @@
 package com.prpi.filesystem;
 
 
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.EditorFactory;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
@@ -128,7 +130,15 @@ public class HeartBeat {
         if (virtualFile == null) {
             return null;
         } else {
-            return FileDocumentManager.getInstance().getDocument(virtualFile);
+            final Document[] doc = {null};
+            ApplicationManager.getApplication().invokeAndWait(
+                    () -> ApplicationManager.getApplication().runReadAction(
+                            () -> {
+                                doc[0] = FileDocumentManager.getInstance().getDocument(virtualFile);
+                            }
+                    ), ModalityState.NON_MODAL
+            );
+            return doc[0];
         }
     }
 
@@ -141,15 +151,21 @@ public class HeartBeat {
     public VirtualFile getVirtualFile() {
         Project project = ProjectComponent.getInstance().getProject();
 
-        PsiFile[] psiFiles = FilenameIndex.getFilesByName(project, this.fileName,
-                GlobalSearchScope.projectScope(project));
-        if (psiFiles.length == 0) {
+        final PsiFile[][] psiFiles = {null};
+        ApplicationManager.getApplication().invokeAndWait(
+                () -> ApplicationManager.getApplication().runWriteAction(
+                        () -> {
+                            psiFiles[0] = FilenameIndex.getFilesByName(project, this.fileName, GlobalSearchScope.projectScope(project));
+                        }
+                ), ModalityState.NON_MODAL
+        );
+
+        if (psiFiles[0] == null || psiFiles[0].length == 0) {
             logger.trace(String.format("File '%s' not found in project scope", this.fileName));
             return null;
         } else {
-
             // I Suppose that there are not more than two files whith the same name.
-            return psiFiles[0].getVirtualFile();
+            return psiFiles[0][0].getVirtualFile();
         }
     }
 
