@@ -1,5 +1,6 @@
 package com.prpi.network.server;
 
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.prpi.ProjectComponent;
 import com.prpi.actions.DocumentActionsHelper;
@@ -8,21 +9,15 @@ import com.prpi.network.communication.*;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.util.concurrent.GlobalEventExecutor;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.Map;
 
 @ChannelHandler.Sharable
 public class ServerHandler extends AbstractHandler {
@@ -94,10 +89,10 @@ public class ServerHandler extends AbstractHandler {
                 ProjectComponent.getInstance().removeDocumentListenner();
                 if (heartBeat.isInsertHeartBeat()) {
                     DocumentActionsHelper.insertStringInDocument(ProjectComponent.getInstance().getProject(),
-                            heartBeat.getDocument(), heartBeat.getNewFragment(), heartBeat.getCaretOffset());
+                        heartBeat.getDocument(project), heartBeat.getNewFragment(), heartBeat.getCaretOffset());
                 } else {
-                    DocumentActionsHelper.deleteStringIndocument(ProjectComponent.getInstance().getProject(),
-                            heartBeat.getDocument(), heartBeat.getCaretOffset(), heartBeat.getCaretOffset() + 1);
+                    DocumentActionsHelper.deleteStringInDocument(ProjectComponent.getInstance().getProject(),
+                        heartBeat.getDocument(project), heartBeat.getCaretOffset(), heartBeat.getCaretOffset() + 1);
                 }
 
                 ProjectComponent.getInstance().setupDocuementListener();

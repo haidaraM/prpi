@@ -75,10 +75,10 @@ class ClientHandler extends AbstractHandler {
                 ProjectComponent.getInstance().removeDocumentListenner();
                 if (heartBeat.isInsertHeartBeat()) {
                     DocumentActionsHelper.insertStringInDocument(ProjectComponent.getInstance().getProject(),
-                            heartBeat.getDocument(), heartBeat.getNewFragment(), heartBeat.getCaretOffset());
+                            heartBeat.getDocument(project), heartBeat.getNewFragment(), heartBeat.getCaretOffset());
                 } else {
-                    DocumentActionsHelper.deleteStringIndocument(ProjectComponent.getInstance().getProject(),
-                            heartBeat.getDocument(), heartBeat.getCaretOffset(), heartBeat.getCaretOffset() + 1);
+                    DocumentActionsHelper.deleteStringInDocument(ProjectComponent.getInstance().getProject(),
+                            heartBeat.getDocument(project), heartBeat.getCaretOffset(), heartBeat.getCaretOffset() + 1);
                 }
 
                 ProjectComponent.getInstance().setupDocuementListener();

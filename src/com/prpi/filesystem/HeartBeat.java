@@ -124,9 +124,9 @@ public class HeartBeat {
      * @return document
      */
     @Nullable
-    public Document getDocument() {
+    public Document getDocument(Project project) {
 
-        VirtualFile virtualFile = getVirtualFile();
+        VirtualFile virtualFile = getVirtualFile(project);
         if (virtualFile == null) {
             return null;
         } else {
@@ -148,23 +148,24 @@ public class HeartBeat {
      * @return virtual file
      */
     @Nullable
-    public VirtualFile getVirtualFile() {
-        Project project = ProjectComponent.getInstance().getProject();
+    public VirtualFile getVirtualFile(Project project) {
+        logger.trace("Project: " + project.getBasePath());
 
         final PsiFile[][] psiFiles = {null};
         ApplicationManager.getApplication().invokeAndWait(
                 () -> ApplicationManager.getApplication().runWriteAction(
                         () -> {
-                            psiFiles[0] = FilenameIndex.getFilesByName(project, this.fileName, GlobalSearchScope.projectScope(project));
+                            psiFiles[0] = FilenameIndex.getFilesByName(project, fileName, GlobalSearchScope.projectScope(project));
                         }
                 ), ModalityState.NON_MODAL
         );
 
         if (psiFiles[0] == null || psiFiles[0].length == 0) {
-            logger.trace(String.format("File '%s' not found in project scope", this.fileName));
+            logger.trace(String.format("File '%s' not found in project scope", fileName));
             return null;
         } else {
             // I Suppose that there are not more than two files whith the same name.
+            logger.trace("Returning : " + psiFiles[0][0].getVirtualFile().getPath());
             return psiFiles[0][0].getVirtualFile();
         }
     }

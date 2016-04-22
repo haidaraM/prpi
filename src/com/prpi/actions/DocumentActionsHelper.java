@@ -69,8 +69,8 @@ public class DocumentActionsHelper {
      * @param startOffset the start offset of the range to delete.
      * @param endOffset   the end offset of the range to delete.
      */
-    public static void deleteStringIndocument(Project project, Document document, int startOffset, int endOffset) {
-        runWriteAction(project, () -> document.deleteString(startOffset, endOffset), "deleteStringIndocument");
+    public static void deleteStringInDocument(Project project, Document document, int startOffset, int endOffset) {
+        runWriteAction(project, () -> document.deleteString(startOffset, endOffset), "deleteStringInDocument");
     }
 
 

@@ -66,7 +66,11 @@ public class CustomDocumentListener implements com.intellij.openapi.editor.event
 
             //  DocumentActionsHelper.hightLightLineInSelectedEditor(event.getDocument(),logicalPosition.line);
 
-            HeartBeat heartBeat = new HeartBeat(logicalPosition.line, logicalPosition.column, virtualFile.getPath(),
+            String absoluteFilePath = virtualFile.getPath();
+            String projectBasePath = project.getBasePath();
+            String relativeFilePath = absoluteFilePath.replace(projectBasePath + '/', "");
+
+            HeartBeat heartBeat = new HeartBeat(logicalPosition.line, logicalPosition.column, relativeFilePath,
                     event.getOldFragment().toString(), event.getNewFragment().toString(), editor.getCaretModel().getOffset(),
                     virtualFile.getName());
             //DocumentActionsHelper.createGuardedBlock(event.getDocument(),logicalPosition.line);
