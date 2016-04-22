@@ -35,11 +35,18 @@
             <add-to-group group-id="MainMenu" anchor="last"/>
             <action id="prpi.HostProject" class="com.prpi.actions.HostProject" text="Host Project"
                     description="Open this project for collaboration"/>
-            <action id="prpi.EditProjectConfiguration" class="com.prpi.actions.EditProjectConfiguration" text="Edit Shared Project Configuration"
+            <action id="prpi.EditProjectConfiguration" class="com.prpi.actions.EditProjectConfiguration"
+                    text="Edit Shared Project Configuration"
                     description="Edit the current project configuration about collaboration"/>
+
+            <!--<action class="com.prpi.actions.tests.DeleteStringAction" id="prpi.DeleteStringAction" text="Delete String">
+            </action>
+            <action class="com.prpi.actions.tests.InsertStringAction" id="prpi.InsertStringAction" text="Insert String">
+            </action> -->
             <separator/>
             <action id="prpi.JoinProject" class="com.prpi.actions.JoinProject" text="Join Project"
-                    description="Join a remote hosted intellij project"/>
+                    description="Join a remote hosted intellij project">
+            </action>
         </group>
     </actions>
 
