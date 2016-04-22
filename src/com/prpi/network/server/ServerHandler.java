@@ -1,6 +1,5 @@
 package com.prpi.network.server;
 
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.prpi.ProjectComponent;
 import com.prpi.actions.DocumentActionsHelper;
@@ -86,16 +85,17 @@ public class ServerHandler extends AbstractHandler {
                 HeartBeat heartBeat = ((Message<HeartBeat>) transaction).getContent();
                 logger.debug("After cast, toString of the heartBeat : " + heartBeat.toString());
 
-                ProjectComponent.getInstance().removeDocumentListenner();
+                ProjectComponent realProjectComponent = (ProjectComponent) project.getComponent(ProjectComponent.getInstance().getComponentName());
+                realProjectComponent.removeDocumentListener();
                 if (heartBeat.isInsertHeartBeat()) {
-                    DocumentActionsHelper.insertStringInDocument(ProjectComponent.getInstance().getProject(),
+                    DocumentActionsHelper.insertStringInDocument(project,
                         heartBeat.getDocument(project), heartBeat.getNewFragment(), heartBeat.getCaretOffset());
                 } else {
-                    DocumentActionsHelper.deleteStringInDocument(ProjectComponent.getInstance().getProject(),
+                    DocumentActionsHelper.deleteStringInDocument(project,
                         heartBeat.getDocument(project), heartBeat.getCaretOffset(), heartBeat.getCaretOffset() + 1);
                 }
 
-                ProjectComponent.getInstance().setupDocuementListener();
+                realProjectComponent.setupDocumentListener();
 
                 break;
 

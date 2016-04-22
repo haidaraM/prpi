@@ -13,6 +13,9 @@ import com.prpi.network.communication.Message;
 import com.prpi.network.communication.Transaction;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+import org.jetbrains.annotations.NotNull;
+
+import static org.apache.log4j.Level.TRACE;
 
 
 /**
@@ -22,18 +25,18 @@ public class CustomDocumentListener implements com.intellij.openapi.editor.event
 
     private static final Logger logger = Logger.getLogger(CustomDocumentListener.class);
 
-    static {
-        logger.setLevel(Level.TRACE);
-    }
-
     private String id;
+
+    private Project project;
 
     /**
      * A dummy just for equals to work as I want
      *
      * @param id
      */
-    public CustomDocumentListener(String id) {
+    public CustomDocumentListener(@NotNull Project project, String id) {
+        logger.debug("Creating custom document listener for project: " + project.getBasePath());
+        this.project = project;
         this.id = id;
     }
 
@@ -44,15 +47,20 @@ public class CustomDocumentListener implements com.intellij.openapi.editor.event
     @Override
     public void documentChanged(DocumentEvent event) {
 
-        Project project = ProjectComponent.getInstance().getProject();
-
         // get the editor
         Editor editor = FileEditorManager.getInstance(project).getSelectedTextEditor();
 
-        PsiFile psiFile = PsiDocumentManager.getInstance(project).getPsiFile(event.getDocument());
+        PsiFile psiFile = PsiDocumentManager.getInstance(ProjectComponent.getInstance().getProject()).getPsiFile(event.getDocument());
+
 
 
         try {
+            if (!psiFile.getProject().getBasePath().equals(project.getBasePath())) {
+                logger.trace("Not the right project: " + project.getBasePath());
+                return;
+            }
+
+            logger.debug("Document changed in project: " + project.getBasePath() + ". File: " + psiFile.getName());
             VirtualFile virtualFile = psiFile.getVirtualFile();
 
 
@@ -77,9 +85,8 @@ public class CustomDocumentListener implements com.intellij.openapi.editor.event
 
             //DocumentActionsHelper.insertStringInDocument(project,event.getDocument(),"p",editor.getCaretModel().getOffset()+1);
 
-
-            ProjectComponent.getInstance().sendMessage(new Message<HeartBeat>(heartBeat, Transaction.TransactionType.HEART_BEAT));
-
+            ProjectComponent realProjectComponent = (ProjectComponent) project.getComponent(ProjectComponent.getInstance().getComponentName());
+            realProjectComponent.sendMessage(new Message<HeartBeat>(heartBeat, Transaction.TransactionType.HEART_BEAT));
 
         } catch (NullPointerException ignored) {
             // Some changes seem not to be related on virtual files. So sometimes we have NullPointerException.

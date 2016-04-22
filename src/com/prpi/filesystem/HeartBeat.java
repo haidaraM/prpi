@@ -4,16 +4,12 @@ package com.prpi.filesystem;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.editor.EditorFactory;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.FilenameIndex;
 import com.intellij.psi.search.GlobalSearchScope;
-import com.prpi.ProjectComponent;
-import com.prpi.actions.DocumentActionsHelper;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
@@ -21,12 +17,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class HeartBeat {
 
-
     private static final Logger logger = Logger.getLogger(HeartBeat.class);
-
-    static {
-        logger.setLevel(Level.TRACE);
-    }
 
     /**
      * Line which was edited
@@ -165,7 +156,7 @@ public class HeartBeat {
             return null;
         } else {
             // I Suppose that there are not more than two files whith the same name.
-            logger.trace("Returning : " + psiFiles[0][0].getVirtualFile().getPath());
+            logger.trace("GetVirtualFile eturning : " + psiFiles[0][0].getVirtualFile().getPath());
             return psiFiles[0][0].getVirtualFile();
         }
     }

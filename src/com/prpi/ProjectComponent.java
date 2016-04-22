@@ -2,17 +2,14 @@ package com.prpi;
 
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.EditorFactory;
+import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VirtualFileManager;
 import com.prpi.filesystem.CustomDocumentListener;
-import com.prpi.filesystem.CustomVirtualFileListener;
 import com.prpi.network.client.Client;
 import com.prpi.network.communication.Message;
 import com.prpi.network.server.Server;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 
 public class ProjectComponent implements com.intellij.openapi.components.ProjectComponent {
 
@@ -22,12 +19,13 @@ public class ProjectComponent implements com.intellij.openapi.components.Project
 
     private static ProjectComponent instance;
 
-    private static Logger logger = Logger.getLogger(ProjectComponent.class);
+    private static final Logger logger = Logger.getLogger(ProjectComponent.class);
 
-    private CustomDocumentListener customDocumentListener = new CustomDocumentListener("CustomDocumentListenner");
+    private CustomDocumentListener customDocumentListener = null;
 
     public ProjectComponent(Project project) {
         this.project = project;
+        customDocumentListener = new CustomDocumentListener(project, "CustomDocumentListenner");
         instance = this;
     }
 
@@ -54,7 +52,7 @@ public class ProjectComponent implements com.intellij.openapi.components.Project
     @Override
     public void projectOpened() {
         // called when project is opened
-        setupDocuementListener();
+        setupDocumentListener();
     }
 
     @Override
@@ -110,15 +108,17 @@ public class ProjectComponent implements com.intellij.openapi.components.Project
         return project;
     }
 
-    public void setupDocuementListener() {
+    public void setupDocumentListener() {
 
+        logger.debug("Adding document listener on project: " + project.getBasePath());
         ApplicationManager.getApplication().invokeLater(() -> {
             //VirtualFileManager.getInstance().addVirtualFileListener(new CustomVirtualFileListener());
             EditorFactory.getInstance().getEventMulticaster().addDocumentListener(customDocumentListener);
         });
     }
 
-    public void removeDocumentListenner() {
+    public void removeDocumentListener() {
+        logger.debug("Removing document listener on project: " + project.getBasePath());
         EditorFactory.getInstance().getEventMulticaster().removeDocumentListener(customDocumentListener);
     }
 

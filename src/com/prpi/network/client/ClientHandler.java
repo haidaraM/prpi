@@ -56,8 +56,7 @@ class ClientHandler extends AbstractHandler {
                 String projectRootPath = project.getBasePath();
                 File fileTransaction = (File) transaction;
                 if (fileTransaction.writeFile(Paths.get(projectRootPath))) {
-                    logger.debug(
-                            "A file was written in the project (" + projectRootPath + fileTransaction.getPathInProject() + ")");
+                    logger.debug("A file was written in the project (" + projectRootPath + fileTransaction.getPathInProject() + ")");
                 } else {
                     logger.error("Can't write this file : " + projectRootPath + fileTransaction.getPathInProject());
                 }
@@ -72,16 +71,17 @@ class ClientHandler extends AbstractHandler {
                 HeartBeat heartBeat = ((Message<HeartBeat>) transaction).getContent();
                 logger.debug("After cast, toString of the heartBeat : " + heartBeat.toString());
 
-                ProjectComponent.getInstance().removeDocumentListenner();
+                ProjectComponent realProjectComponent = (ProjectComponent) project.getComponent(ProjectComponent.getInstance().getComponentName());
+                realProjectComponent.removeDocumentListener();
                 if (heartBeat.isInsertHeartBeat()) {
-                    DocumentActionsHelper.insertStringInDocument(ProjectComponent.getInstance().getProject(),
+                    DocumentActionsHelper.insertStringInDocument(project,
                             heartBeat.getDocument(project), heartBeat.getNewFragment(), heartBeat.getCaretOffset());
                 } else {
-                    DocumentActionsHelper.deleteStringInDocument(ProjectComponent.getInstance().getProject(),
+                    DocumentActionsHelper.deleteStringInDocument(project,
                             heartBeat.getDocument(project), heartBeat.getCaretOffset(), heartBeat.getCaretOffset() + 1);
                 }
 
-                ProjectComponent.getInstance().setupDocuementListener();
+                realProjectComponent.setupDocumentListener();
                 break;
 
             case CLOSE:
