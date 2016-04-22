@@ -78,7 +78,7 @@ class ClientHandler extends AbstractHandler {
                             heartBeat.getDocument(project), heartBeat.getNewFragment(), heartBeat.getCaretOffset());
                 } else {
                     DocumentActionsHelper.deleteStringInDocument(project,
-                            heartBeat.getDocument(project), heartBeat.getCaretOffset(), heartBeat.getCaretOffset() + 1);
+                            heartBeat.getDocument(project), heartBeat.getCaretOffset(), heartBeat.getOldFragment().length());
                 }
 
                 realProjectComponent.setupDocumentListener();
