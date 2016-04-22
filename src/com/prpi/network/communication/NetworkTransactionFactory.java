@@ -198,7 +198,8 @@ public class NetworkTransactionFactory {
      * List of all pattern to exclude when fetching project files
      */
     public static final Pattern[] fileToExcludeInProject = new Pattern[]{
-        Pattern.compile("^\\.idea$")
+        Pattern.compile("^\\.idea$"), // Idea properties in directory
+        Pattern.compile("^*\\.ipr$"), Pattern.compile("^*\\.iws$") // Idea properties in files
     };
 
     /**
