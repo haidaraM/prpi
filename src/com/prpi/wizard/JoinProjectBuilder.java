@@ -82,35 +82,34 @@ public class JoinProjectBuilder extends ExistingModuleLoader {
         logger.debug("Begin init client");
 
         if (client.connect(hostname, port)) {
-            int projectSize = -1;
-            try {
-                projectSize = client.downloadProjetFiles();
-            } catch (InterruptedException | TimeoutException e) {
-                logger.error(e);
-            }
-
             final boolean[] resultDownloadTask = {false};
-            final int finalProjectSize = projectSize;
 
             Task.Modal modalTask = new Task.Modal(dest, "Download project files", true) {
                 @Override
                 public void run(@NotNull ProgressIndicator progressIndicator) {
-                    if (finalProjectSize != -1) {
-                        for (int i = 0; i < finalProjectSize;){
+                    int projectSize = -1;
+                    progressIndicator.setText2("Get number of files to download ...");
+                    try {
+                        projectSize = client.downloadProjetFiles();
+                    } catch (InterruptedException | TimeoutException e) {
+                        logger.error(e);
+                    }
+                    if (projectSize != -1) {
+                        for (int i = 0; i < projectSize;){
                             progressIndicator.setText("Downloading files ... ");
-                            progressIndicator.setText2("File " + i + " / " + finalProjectSize);
-                            progressIndicator.setFraction((double)i/(double)finalProjectSize);
+                            progressIndicator.setText2("File " + i + " / " + projectSize);
+                            progressIndicator.setFraction((double)i/(double)projectSize);
                             try {
                                 Thread.sleep(1000);
                                 i = client.getCurrentProjectSize();
                             } catch (InterruptedException e) {
                                 logger.error(e);
-                                e.printStackTrace();
                             }
                             progressIndicator.checkCanceled();
                         }
                     } else {
                         progressIndicator.setText("Downloading files ... ");
+                        progressIndicator.setText2("Can't get information from remote server ...");
                         try {
                             Thread.sleep(10000);
                         } catch (InterruptedException e) {
