@@ -17,7 +17,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
 public class Client {
@@ -100,6 +102,22 @@ public class Client {
                 channelFuture.sync();
             }
         }
+    }
+
+    /**
+     * Ask to the server if this client can join the project
+     * @param pseudo the pseudo of the client to be identified
+     * @return true if server accept request, else false
+     * @throws InterruptedException
+     * @throws TimeoutException
+     */
+    public boolean identification(String pseudo) throws InterruptedException, TimeoutException {
+        Message<String> request = new Message<>(pseudo, Transaction.TransactionType.CONNECT);
+        request.setWaitingResponse(true);
+        sendMessageToServer(request);
+
+        Transaction response = handler.waitForTransactionResponse(request.getTransactionID(), TimeoutEnum.LONG);
+        return response.getTransactionType() == Transaction.TransactionType.ACCEPTED;
     }
 
     /**

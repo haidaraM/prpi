@@ -58,7 +58,7 @@ public class ProjectComponent implements com.intellij.openapi.components.Project
     @Override
     public void projectClosed() {
         if (this.isClient()) {
-            // TODO this.client.closeConnection();
+            this.client.close();
         }
         if (this.isHosting()) {
             // TODO this.server.closeConnection();

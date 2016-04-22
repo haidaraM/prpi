@@ -2,6 +2,8 @@ package com.prpi.wizard;
 
 import com.intellij.ide.projectWizard.ProjectSettingsStep;
 import com.intellij.ide.util.projectWizard.*;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -14,10 +16,13 @@ import com.intellij.openapi.ui.Messages;
 import com.prpi.ProjectComponent;
 import com.prpi.network.client.Client;
 import org.apache.log4j.Logger;
+import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.concurrent.TimeoutException;
 
 public class JoinProjectBuilder extends ExistingModuleLoader {
@@ -82,23 +87,40 @@ public class JoinProjectBuilder extends ExistingModuleLoader {
         logger.debug("Begin init client");
 
         if (client.connect(hostname, port)) {
+
+            final String[] errorMsg = {null};
+            final String[] errorTitle = {null};
             final boolean[] resultDownloadTask = {false};
 
             Task.Modal modalTask = new Task.Modal(dest, "Download project files", true) {
                 @Override
                 public void run(@NotNull ProgressIndicator progressIndicator) {
-                    int projectSize = -1;
+                    progressIndicator.setText("Authentification ...");
+                    boolean authentification = false;
+                    try {
+                        authentification = client.identification(InetAddress.getLocalHost().getHostName());
+                    } catch (InterruptedException | TimeoutException | UnknownHostException e) {
+                        logger.error(e);
+                    }
+                    if (!authentification) {
+                        errorMsg[0] = "Your authentification failed, the project can't be initialized.";
+                        errorTitle[0] = "Identification Failed";
+                        return;
+                    }
+
+                    int nbFilesToDwnload = -1;
+                    progressIndicator.setText("Authentification accepted !");
                     progressIndicator.setText2("Get number of files to download ...");
                     try {
-                        projectSize = client.downloadProjetFiles();
+                        nbFilesToDwnload = client.downloadProjetFiles();
                     } catch (InterruptedException | TimeoutException e) {
                         logger.error(e);
                     }
-                    if (projectSize != -1) {
-                        for (int i = 0; i < projectSize;){
+                    if (nbFilesToDwnload > -1) {
+                        for (int i = 0; i < nbFilesToDwnload;){
                             progressIndicator.setText("Downloading files ... ");
-                            progressIndicator.setText2("File " + i + " / " + projectSize);
-                            progressIndicator.setFraction((double)i/(double)projectSize);
+                            progressIndicator.setText2("File " + i + " / " + nbFilesToDwnload);
+                            progressIndicator.setFraction((double)i/(double)nbFilesToDwnload);
                             try {
                                 Thread.sleep(1000);
                                 i = client.getCurrentProjectSize();
@@ -108,19 +130,10 @@ public class JoinProjectBuilder extends ExistingModuleLoader {
                             progressIndicator.checkCanceled();
                         }
                     } else {
-                        progressIndicator.setText("Downloading files ... ");
-                        progressIndicator.setText2("Can't get information from remote server ...");
-                        try {
-                            Thread.sleep(10000);
-                        } catch (InterruptedException e) {
-                            logger.error(e);
-                        }
+                        errorMsg[0] = "Error during fetching data to download, the project can't be initialized.";
+                        errorTitle[0] = "Download Error";
+                        return;
                     }
-                }
-
-                @Override
-                public void onSuccess() {
-                    super.onSuccess();
                     resultDownloadTask[0] = true;
                 }
 
@@ -128,12 +141,18 @@ public class JoinProjectBuilder extends ExistingModuleLoader {
                 public void onCancel() {
                     super.onCancel();
                     resultDownloadTask[0] = false;
-                    Messages.showWarningDialog(getProject(), "You canceled the download process, the project can't be initialized.", "Download Canceled");
+                    errorMsg[0] = "You canceled the download process, the project can't be initialized.";
+                    errorTitle[0] = "Download Canceled";
                     // TODO delete download files
                 }
             };
 
             ProgressManager.getInstance().run(modalTask);
+
+            if (!resultDownloadTask[0]) {
+                client.close();
+                ApplicationManager.getApplication().invokeLater(() -> Messages.showErrorDialog(dest, errorMsg[0], errorTitle[0]));
+            }
 
             return resultDownloadTask[0];
         } else {

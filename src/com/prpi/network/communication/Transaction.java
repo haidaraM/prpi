@@ -22,7 +22,10 @@ public abstract class Transaction {
         HEART_BEAT,
         PROJECT_NAME,
         NUMBER_OF_PROJECT_FILES,
-        CLOSE
+        CLOSE,
+        CONNECT,
+        ACCEPTED,
+        REFUSED
     }
 
     /**

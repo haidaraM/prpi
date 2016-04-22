@@ -1,6 +1,9 @@
 package com.prpi.network.server;
 
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Messages;
 import com.prpi.ProjectComponent;
 import com.prpi.actions.DocumentActionsHelper;
 import com.prpi.filesystem.HeartBeat;
@@ -15,8 +18,10 @@ import io.netty.util.concurrent.GlobalEventExecutor;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 
+import javax.swing.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Map;
 
 @ChannelHandler.Sharable
 public class ServerHandler extends AbstractHandler {
@@ -34,8 +39,7 @@ public class ServerHandler extends AbstractHandler {
         // list so the channel received the messages from others.
         ctx.pipeline().get(SslHandler.class).handshakeFuture().addListener(
                 future -> {
-                    logger.debug("Server received new connection: " + ctx);
-                    clientChannels.add(ctx.channel());
+                    // Nothing to do here ?
                 });
     }
 
@@ -56,6 +60,11 @@ public class ServerHandler extends AbstractHandler {
 
         // CAREFUL : if the received transaction needs a response, the response must have the same transactionID !!!
         switch (transaction.getTransactionType()) {
+
+            case CONNECT:
+                logger.debug("Server received new client connection: " + ctx);
+                sendIdentificationResponse(transaction, ctx);
+                break;
 
             case INIT_PROJECT:
                 logger.debug("Received a request for project initialization");
@@ -80,12 +89,16 @@ public class ServerHandler extends AbstractHandler {
                 ctx.close();
                 clientChannels.remove(ctx.channel());
                 break;
+
             case HEART_BEAT:
                 logger.trace("New heart beat received : " + transaction.toString());
                 HeartBeat heartBeat = ((Message<HeartBeat>) transaction).getContent();
                 logger.debug("After cast, toString of the heartBeat : " + heartBeat.toString());
 
-                ProjectComponent realProjectComponent = (ProjectComponent) project.getComponent(ProjectComponent.getInstance().getComponentName());
+                // TODO the second method is better ?
+                //ProjectComponent realProjectComponent = (ProjectComponent) project.getComponent(ProjectComponent.getInstance().getComponentName());
+                ProjectComponent realProjectComponent = project.getComponent(ProjectComponent.class);
+
                 realProjectComponent.removeDocumentListener();
                 if (heartBeat.isInsertHeartBeat()) {
                     DocumentActionsHelper.insertStringInDocument(project,
@@ -135,6 +148,23 @@ public class ServerHandler extends AbstractHandler {
         projectNameMessage.setTransactionID(t.getTransactionID());
         logger.debug("Server sending project name: " + project.getName());
         NetworkTransactionFactory.buildAndSend(projectNameMessage, ctx.channel());
+    }
+
+    private void sendIdentificationResponse(Transaction transaction, ChannelHandlerContext ctx) {
+        Message<String> userPseudoMessage = (Message<String>) transaction;
+        String pseudo = userPseudoMessage.getContent();
+
+        final int[] userResponse = {Messages.NO};
+        ApplicationManager.getApplication().invokeAndWait(() -> userResponse[0] = Messages.showYesNoDialog(project,
+                "A new user wants to connect to your project. His nickname is: " + pseudo,
+                "New User Connection", null),
+                ModalityState.any());
+        Message<String> response = new Message<>("", Messages.YES == userResponse[0] ? Transaction.TransactionType.ACCEPTED : Transaction.TransactionType.REFUSED);
+        response.setTransactionID(transaction.getTransactionID());
+        if (userResponse[0] == Messages.YES) {
+            clientChannels.add(ctx.channel());
+        }
+        NetworkTransactionFactory.buildAndSend(response, ctx.channel());
     }
 
     @Override
