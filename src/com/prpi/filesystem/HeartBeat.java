@@ -173,4 +173,21 @@ public class HeartBeat {
                 ", caretOffset=" + caretOffset +
                 '}';
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (!(obj instanceof HeartBeat)) return false;
+
+        HeartBeat heartBeat = (HeartBeat) obj;
+
+
+        return line == heartBeat.line &&
+                column == heartBeat.column &&
+                filePath.equals(heartBeat.filePath) &&
+                fileName.equals(heartBeat.fileName) &&
+                oldFragment.equals(heartBeat.oldFragment) &&
+                newFragment.equals(heartBeat.newFragment) &&
+                caretOffset == heartBeat.caretOffset;
+    }
 }

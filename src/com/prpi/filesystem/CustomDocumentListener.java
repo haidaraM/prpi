@@ -44,6 +44,8 @@ public class CustomDocumentListener implements com.intellij.openapi.editor.event
     public void beforeDocumentChange(DocumentEvent event) {
     }
 
+    private HeartBeat previousModification = null;
+
     @Override
     public void documentChanged(DocumentEvent event) {
 
@@ -51,8 +53,6 @@ public class CustomDocumentListener implements com.intellij.openapi.editor.event
         Editor editor = FileEditorManager.getInstance(project).getSelectedTextEditor();
 
         PsiFile psiFile = PsiDocumentManager.getInstance(ProjectComponent.getInstance().getProject()).getPsiFile(event.getDocument());
-
-
 
         try {
             if (!psiFile.getProject().getBasePath().equals(project.getBasePath())) {
@@ -81,6 +81,13 @@ public class CustomDocumentListener implements com.intellij.openapi.editor.event
             HeartBeat heartBeat = new HeartBeat(logicalPosition.line, logicalPosition.column, relativeFilePath,
                     event.getOldFragment().toString(), event.getNewFragment().toString(), editor.getCaretModel().getOffset(),
                     virtualFile.getName());
+
+            if (previousModification != null && previousModification.equals(heartBeat)) {
+                logger.debug("Already sent HeartBeat");
+                return;
+            }
+            previousModification = heartBeat;
+
             //DocumentActionsHelper.createGuardedBlock(event.getDocument(),logicalPosition.line);
 
             //DocumentActionsHelper.insertStringInDocument(project,event.getDocument(),"p",editor.getCaretModel().getOffset()+1);
