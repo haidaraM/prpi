@@ -52,7 +52,7 @@ public class CustomDocumentListener implements com.intellij.openapi.editor.event
         // get the editor
         Editor editor = FileEditorManager.getInstance(project).getSelectedTextEditor();
 
-        PsiFile psiFile = PsiDocumentManager.getInstance(ProjectComponent.getInstance().getProject()).getPsiFile(event.getDocument());
+        PsiFile psiFile = PsiDocumentManager.getInstance(project).getPsiFile(event.getDocument());
 
         try {
             if (!psiFile.getProject().getBasePath().equals(project.getBasePath())) {
@@ -92,7 +92,7 @@ public class CustomDocumentListener implements com.intellij.openapi.editor.event
 
             //DocumentActionsHelper.insertStringInDocument(project,event.getDocument(),"p",editor.getCaretModel().getOffset()+1);
 
-            ProjectComponent realProjectComponent = (ProjectComponent) project.getComponent(ProjectComponent.getInstance().getComponentName());
+            ProjectComponent realProjectComponent = ProjectComponent.getInstance(project);
             realProjectComponent.sendMessage(new Message<HeartBeat>(heartBeat, Transaction.TransactionType.HEART_BEAT));
 
         } catch (NullPointerException ignored) {

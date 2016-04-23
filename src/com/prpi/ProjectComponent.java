@@ -26,8 +26,13 @@ public class ProjectComponent implements com.intellij.openapi.components.Project
         customDocumentListener = new CustomDocumentListener(project, "CustomDocumentListenner");
     }
 
+    @Deprecated
     public static ProjectComponent getInstance() {
         return ApplicationComponent.getCurrentProject().getComponent(ProjectComponent.class);
+    }
+
+    public static ProjectComponent getInstance(Project project) {
+        return project.getComponent(ProjectComponent.class);
     }
 
     @Override
