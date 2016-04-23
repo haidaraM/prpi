@@ -17,8 +17,6 @@ public class ProjectComponent implements com.intellij.openapi.components.Project
     private Client client;
     private Project project;
 
-    private static ProjectComponent instance;
-
     private static final Logger logger = Logger.getLogger(ProjectComponent.class);
 
     private CustomDocumentListener customDocumentListener = null;
@@ -26,11 +24,10 @@ public class ProjectComponent implements com.intellij.openapi.components.Project
     public ProjectComponent(Project project) {
         this.project = project;
         customDocumentListener = new CustomDocumentListener(project, "CustomDocumentListenner");
-        instance = this;
     }
 
     public static ProjectComponent getInstance() {
-        return instance;
+        return ApplicationComponent.getCurrentProject().getComponent(ProjectComponent.class);
     }
 
     @Override
