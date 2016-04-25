@@ -50,41 +50,4 @@ public class ApplicationComponent implements com.intellij.openapi.components.App
         return "ApplicationComponent";
     }
 
-
-
-    @Deprecated
-    @NotNull
-    public static ApplicationComponent getPrPiAppComp(@Nullable Project project) throws NullPointerException {
-        if (project == null) {
-            project = ApplicationComponent.getCurrentProject();
-        }
-        if (project == null) {
-            throw new NullPointerException("No project found.");
-        }
-        ApplicationComponent component = project.getComponent(ApplicationComponent.class);
-        if (component == null) {
-            throw new NullPointerException("No component found.");
-        }
-        return component;
-    }
-
-
-    @Deprecated
-    @Nullable
-    public static Project getCurrentProject() {
-        DataContext dataContext = DataManager.getInstance().getDataContext();
-        Project project = null;
-        try {
-            project = PlatformDataKeys.PROJECT.getData(dataContext);
-        } catch (NoClassDefFoundError e) {
-            logger.warn(e.getMessage());
-
-            try {
-                project = DataKeys.PROJECT.getData(dataContext);
-            } catch (NoClassDefFoundError ex) {
-                logger.warn(ex.getMessage());
-            }
-        }
-        return project;
-    }
 }

@@ -104,7 +104,7 @@ public class ServerHandler extends AbstractHandler {
                 //ProjectComponent realProjectComponent = (ProjectComponent) project.getComponent(ProjectComponent.getInstance().getComponentName());
                 ProjectComponent realProjectComponent = project.getComponent(ProjectComponent.class);
 
-                realProjectComponent.removeDocumentListener();
+                realProjectComponent.getDocumentListener().setListening(false);
                 if (heartBeat.isInsertHeartBeat()) {
                     DocumentActionsHelper.insertStringInDocument(project,
                         heartBeat.getDocument(project), heartBeat.getNewFragment(), heartBeat.getCaretOffset());
@@ -113,7 +113,7 @@ public class ServerHandler extends AbstractHandler {
                         heartBeat.getDocument(project), heartBeat.getCaretOffset(), heartBeat.getOldFragment().length());
                 }
 
-                realProjectComponent.setupDocumentListener();
+                realProjectComponent.getDocumentListener().setListening(true);
 
                 break;
 

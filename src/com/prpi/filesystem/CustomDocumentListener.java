@@ -29,6 +29,8 @@ public class CustomDocumentListener implements com.intellij.openapi.editor.event
 
     private Project project;
 
+    private boolean listening = true;
+
     /**
      * A dummy just for equals to work as I want
      *
@@ -48,6 +50,11 @@ public class CustomDocumentListener implements com.intellij.openapi.editor.event
 
     @Override
     public void documentChanged(DocumentEvent event) {
+        if (!listening) {
+            logger.debug("No listening");
+            return;
+        }
+
 
         // get the editor
         Editor editor = FileEditorManager.getInstance(project).getSelectedTextEditor();
@@ -110,5 +117,9 @@ public class CustomDocumentListener implements com.intellij.openapi.editor.event
         CustomDocumentListener customDocumentListener = (CustomDocumentListener) obj;
 
         return this.id.equals(customDocumentListener.id) && project.getBasePath().equals(customDocumentListener.project.getBasePath());
+    }
+
+    public void setListening(boolean listening) {
+        this.listening = listening;
     }
 }

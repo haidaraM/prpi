@@ -112,7 +112,7 @@ public class DocumentActionsHelper {
     /**
      *
      */
-    public static void hightLightLineInSelectedEditor(int lineNumber) {
+    /*public static void hightLightLineInSelectedEditor(int lineNumber) {
         Editor editor = FileEditorManager.getInstance(
                 ProjectComponent.getInstance().getProject()).getSelectedTextEditor();
 
@@ -122,5 +122,5 @@ public class DocumentActionsHelper {
                     EffectType.BOXED, Font.BOLD);
             editor.getMarkupModel().addLineHighlighter(lineNumber, HighlighterLayer.LAST, textAttributes);
         }
-    }
+    }*/
 }

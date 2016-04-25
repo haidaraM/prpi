@@ -1,6 +1,7 @@
 package com.prpi;
 
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.editor.EditorFactory;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
@@ -24,11 +25,6 @@ public class ProjectComponent implements com.intellij.openapi.components.Project
     public ProjectComponent(Project project) {
         this.project = project;
         customDocumentListener = new CustomDocumentListener(project, "CustomDocumentListenner");
-    }
-
-    @Deprecated
-    public static ProjectComponent getInstance() {
-        return ApplicationComponent.getCurrentProject().getComponent(ProjectComponent.class);
     }
 
     public static ProjectComponent getInstance(Project project) {
@@ -113,17 +109,11 @@ public class ProjectComponent implements com.intellij.openapi.components.Project
     public void setupDocumentListener() {
 
         logger.debug("Adding document listener on project: " + project.getBasePath());
-        ApplicationManager.getApplication().invokeLater(() -> {
+        ApplicationManager.getApplication().invokeAndWait(() -> {
             //VirtualFileManager.getInstance().addVirtualFileListener(new CustomVirtualFileListener());
             EditorFactory.getInstance().getEventMulticaster().addDocumentListener(customDocumentListener);
-        });
+        }, ModalityState.NON_MODAL);
     }
-
-    public void removeDocumentListener() {
-        logger.debug("Removing document listener on project: " + project.getBasePath());
-        EditorFactory.getInstance().getEventMulticaster().removeDocumentListener(customDocumentListener);
-    }
-
 
     public CustomDocumentListener getDocumentListener() {
         return customDocumentListener;
