@@ -71,7 +71,7 @@ class ClientHandler extends AbstractHandler {
                 HeartBeat heartBeat = ((Message<HeartBeat>) transaction).getContent();
                 logger.debug("After cast, toString of the heartBeat : " + heartBeat.toString());
 
-                ProjectComponent realProjectComponent = (ProjectComponent) project.getComponent(ProjectComponent.getInstance().getComponentName());
+                ProjectComponent realProjectComponent = project.getComponent(ProjectComponent.class);
                 realProjectComponent.removeDocumentListener();
                 if (heartBeat.isInsertHeartBeat()) {
                     DocumentActionsHelper.insertStringInDocument(project,
